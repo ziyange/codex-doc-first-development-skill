@@ -74,17 +74,45 @@ codex-doc-first-development/
 
 `scripts/check_task_pack.py` 可以检查 Task Pack 基础完整性。
 
-## 4. 安装方式
+## 4. 推荐安装方式：把 GitHub 地址发给 Codex
 
-安装目标目录：
+正常安装不需要用户手动复制文件。你只需要把下面这段话发给 Codex：
 
 ```text
-%USERPROFILE%\.codex\skills\codex-doc-first-development
+使用 $skill-installer 安装这个 Codex Skill：
+https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-development
 ```
 
-如果由 Codex 安装，需要授权写入 `.codex/skills`。安装后，新线程或重载技能列表后可通过 `$codex-doc-first-development` 调用。
+Codex Agent 应使用 `skill-installer` 的 GitHub 安装脚本，把 skill 安装到 `$CODEX_HOME/skills`；如果未设置 `CODEX_HOME`，则安装到 `~/.codex/skills`。
 
-手动安装方式：
+Agent 侧安装命令应等价于：
+
+```bash
+scripts/install-skill-from-github.py --url https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-development
+```
+
+安装完成后，Codex 应提醒：
+
+```text
+Restart Codex to pick up new skills.
+```
+
+重启或刷新后即可使用：
+
+```text
+Use $codex-doc-first-development to turn my software idea into a Codex-ready engineering plan.
+```
+
+中文：
+
+```text
+使用 $codex-doc-first-development，从这个项目想法开始，帮我生成需求、docs 事实源、阶段计划、Task Pack、验证门禁和归档流程：
+<<<粘贴项目想法>>>
+```
+
+## 5. 手动安装方式，仅作为 fallback
+
+如果 Codex 无法联网安装，或你想从本地目录安装，可以手动复制 skill 目录：
 
 ```powershell
 Copy-Item `
@@ -94,45 +122,7 @@ Copy-Item `
   -Force
 ```
 
-## 5. GitHub 上传方式
-
-推荐上传为一个独立仓库，例如：
-
-```text
-codex-doc-first-development-skill
-```
-
-建议仓库内容：
-
-```text
-codex-doc-first-development/
-  SKILL.md
-  agents/
-  references/
-  scripts/
-```
-
-可选命令：
-
-```powershell
-cd "<workspace>\outputs\codex-doc-first-development"
-git init
-git add .
-git commit -m "Add Codex doc-first development skill"
-gh repo create codex-doc-first-development-skill --private --source . --remote origin --push
-```
-
-如果你已有目标仓库，则使用：
-
-```powershell
-cd "<workspace>\outputs\codex-doc-first-development"
-git init
-git remote add origin <你的仓库地址>
-git add .
-git commit -m "Add Codex doc-first development skill"
-git branch -M main
-git push -u origin main
-```
+手动复制后同样需要重启 Codex。
 
 ## 6. 基础调用
 

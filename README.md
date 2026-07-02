@@ -23,9 +23,24 @@ codex-doc-first-development/
     check_task_pack.py
 ```
 
-## Install
+## Install With Codex
 
-Copy the skill folder into your Codex skills directory:
+Recommended: send this GitHub skill URL to Codex and ask it to install the skill.
+
+```text
+Use $skill-installer to install this Codex skill:
+https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-development
+```
+
+Codex should install it into your `$CODEX_HOME/skills` directory, or `~/.codex/skills` when `CODEX_HOME` is unset. Restart Codex after installation so the new skill is discovered.
+
+Agent-side install command:
+
+```bash
+scripts/install-skill-from-github.py --url https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-development
+```
+
+Manual fallback:
 
 ```powershell
 Copy-Item `
@@ -35,10 +50,17 @@ Copy-Item `
   -Force
 ```
 
-Then start a new Codex thread or refresh available skills and invoke:
+## Use
 
 ```text
 Use $codex-doc-first-development to turn my software idea into a Codex-ready engineering plan.
+```
+
+Chinese prompt:
+
+```text
+使用 $codex-doc-first-development，从这个项目想法开始，帮我生成需求、docs 事实源、阶段计划、Task Pack、验证门禁和归档流程：
+<<<粘贴项目想法>>>
 ```
 
 ## What It Does
@@ -67,4 +89,3 @@ python .\codex-doc-first-development\scripts\check_task_pack.py "C:\path\to\proj
 ## User Guide
 
 See [docs/user-guide.md](docs/user-guide.md).
-
