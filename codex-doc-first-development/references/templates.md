@@ -273,7 +273,7 @@ Use only when multiple agents or branches may write overlapping areas.
 locks:
   - path: src/auth/**
     owner: TASK-001
-    expires_at: 2026-07-02T18:00:00+08:00
+    expires_at: <ISO-8601 timestamp>
     reason: auth implementation
 ```
 
@@ -401,4 +401,3 @@ validation:
 
 ## Next Phase Recommendations
 ```
-

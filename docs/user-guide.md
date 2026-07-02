@@ -19,22 +19,22 @@ Skill 名称：`codex-doc-first-development`
 
 ## 2. 当前产物
 
-Skill 包目录：
+本地构建产物目录示例：
 
 ```text
-C:\Users\ZZY\Documents\Codex\2026-07-02\you\outputs\codex-doc-first-development
+<workspace>/outputs/codex-doc-first-development
 ```
 
 用户手册：
 
 ```text
-C:\Users\ZZY\Documents\Codex\2026-07-02\you\outputs\codex-doc-first-development-user-guide.md
+<workspace>/outputs/codex-doc-first-development-user-guide.md
 ```
 
 打包文件如果已生成，通常位于：
 
 ```text
-C:\Users\ZZY\Documents\Codex\2026-07-02\you\outputs\codex-doc-first-development.zip
+<workspace>/outputs/codex-doc-first-development.zip
 ```
 
 ## 3. Skill 包结构
@@ -79,7 +79,7 @@ codex-doc-first-development/
 安装目标目录：
 
 ```text
-C:\Users\ZZY\.codex\skills\codex-doc-first-development
+%USERPROFILE%\.codex\skills\codex-doc-first-development
 ```
 
 如果由 Codex 安装，需要授权写入 `.codex/skills`。安装后，新线程或重载技能列表后可通过 `$codex-doc-first-development` 调用。
@@ -88,8 +88,8 @@ C:\Users\ZZY\.codex\skills\codex-doc-first-development
 
 ```powershell
 Copy-Item `
-  -LiteralPath "C:\Users\ZZY\Documents\Codex\2026-07-02\you\outputs\codex-doc-first-development" `
-  -Destination "C:\Users\ZZY\.codex\skills\codex-doc-first-development" `
+  -LiteralPath "<workspace>\outputs\codex-doc-first-development" `
+  -Destination "$env:USERPROFILE\.codex\skills\codex-doc-first-development" `
   -Recurse `
   -Force
 ```
@@ -115,7 +115,7 @@ codex-doc-first-development/
 可选命令：
 
 ```powershell
-cd "C:\Users\ZZY\Documents\Codex\2026-07-02\you\outputs\codex-doc-first-development"
+cd "<workspace>\outputs\codex-doc-first-development"
 git init
 git add .
 git commit -m "Add Codex doc-first development skill"
@@ -125,7 +125,7 @@ gh repo create codex-doc-first-development-skill --private --source . --remote o
 如果你已有目标仓库，则使用：
 
 ```powershell
-cd "C:\Users\ZZY\Documents\Codex\2026-07-02\you\outputs\codex-doc-first-development"
+cd "<workspace>\outputs\codex-doc-first-development"
 git init
 git remote add origin <你的仓库地址>
 git add .
@@ -290,4 +290,3 @@ Codex 必须先征求确认：
 5. 不要让 worker 在没有 Task Pack 的情况下写代码。
 6. 不要把 Agent 自报测试通过当作唯一验收证据。
 7. 阶段结束必须归档，降低下一阶段冷启动成本。
-

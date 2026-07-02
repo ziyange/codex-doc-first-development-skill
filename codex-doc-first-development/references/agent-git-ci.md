@@ -87,7 +87,7 @@ Example:
 locks:
   - path: src/auth/**
     owner: TASK-001
-    expires_at: 2026-07-02T18:00:00+08:00
+    expires_at: <ISO-8601 timestamp>
     reason: auth implementation
 ```
 
@@ -216,4 +216,3 @@ Return `BLOCKED` when:
 - Current instructions require a destructive or high-risk operation.
 - Requirements are internally inconsistent.
 - The correct business decision is not derivable from docs or user instructions.
-
