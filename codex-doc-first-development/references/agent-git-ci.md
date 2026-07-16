@@ -2,6 +2,17 @@
 
 Use this reference when the project uses subagents, branches, PRs, CI, or conflict handling.
 
+Treat these as coordination protocols over tools the environment actually provides. This reference does not create a scheduler, persistent lock service, CI provider, remote repository access, or merge authority.
+
+## Contents
+
+- [Agent Roles](#agent-roles)
+- [Delegation Decision](#delegation-decision)
+- [File Ownership and Locks](#file-ownership-matrix)
+- [Branch and Commit Strategy](#branch-strategy)
+- [CI and PR Evidence](#ci-strategy)
+- [Conflict and Blocked Handling](#conflict-handling)
+
 ## Agent Roles
 
 Main Codex agent:
@@ -32,6 +43,7 @@ Worker:
 Reviewer:
 
 - Can be simulated by the main agent or an explorer.
+- Requires explicit subagent authorization when implemented as an explorer.
 - Reviews formal solution, docs, tests, or diff.
 - Does not modify code unless explicitly assigned a fix task.
 
@@ -106,8 +118,7 @@ Standard mode:
 
 Strict mode:
 
-- Phase branch: `codex/phase-001-<name>`.
-- Task branch: `codex/task-001-<name>`.
+- When Git operations are authorized and separate branches reduce risk, use phase branch `codex/phase-001-<name>` and task branch `codex/task-001-<name>`.
 
 Rules:
 
@@ -143,6 +154,7 @@ Map checks by risk:
 Record:
 
 ```text
+Evidence source: planned / local execution / isolated execution / external CI
 Command:
 Environment:
 Result:
@@ -150,6 +162,8 @@ Relevant output:
 Skipped checks:
 Reason:
 ```
+
+Do not label a local command as CI or claim a PR check ran unless external evidence is available.
 
 ## PR Preparation
 

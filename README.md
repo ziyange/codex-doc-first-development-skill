@@ -1,8 +1,8 @@
 # Codex Doc-First Development Skill
 
-Engineering-grade document-first software development workflow for Codex.
+Practical document-first software development workflow for Codex.
 
-This repository contains a reusable Codex skill that turns raw software ideas or existing repository changes into requirements, docs source of truth, phase plans, Task Packs, subagent delegation plans, validation gates, PR/merge preparation, and archive records.
+This repository contains a reusable Codex skill that guides raw software ideas or existing repository changes through requirements, an approved docs source of truth, phase plans, Task Packs, authorized subagent delegation, validation gates, PR/merge preparation, and archive records.
 
 ## Skill
 
@@ -32,9 +32,9 @@ Use $skill-installer to install this Codex skill:
 https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-development
 ```
 
-Codex should install it into your `$CODEX_HOME/skills` directory, or `~/.codex/skills` when `CODEX_HOME` is unset. Restart Codex after installation so the new skill is discovered.
+Codex should install it into your `$CODEX_HOME/skills` directory, or `~/.codex/skills` when `CODEX_HOME` is unset. Restart or refresh Codex only if the new skill is not discovered immediately.
 
-Agent-side install command:
+The equivalent command belongs to the installed `skill-installer` skill; it is not a script in this repository:
 
 ```bash
 scripts/install-skill-from-github.py --url https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-development
@@ -72,6 +72,8 @@ Chinese prompt:
 - Defines subagent, branch, file ownership, lock, and CI rules.
 - Guides TDD, validation, acceptance, docs writeback, PR preparation, and archival.
 
+The skill is procedural guidance plus two local helper scripts. It does not provide a background scheduler, persistent lock service, CI provider, GitHub credentials, or automatic merge authority.
+
 ## Scripts
 
 Scaffold docs:
@@ -80,10 +82,24 @@ Scaffold docs:
 python .\codex-doc-first-development\scripts\scaffold_docs.py --root "C:\path\to\project" --mode standard --phase 001
 ```
 
+Preview strict mode and opt into applicable documents:
+
+```powershell
+python .\codex-doc-first-development\scripts\scaffold_docs.py --root "C:\path\to\project" --mode strict --phase 001 --include security --include api --dry-run
+```
+
 Check a Task Pack:
 
 ```powershell
 python .\codex-doc-first-development\scripts\check_task_pack.py "C:\path\to\project\docs\delivery\tasks\TASK-001.md"
+```
+
+The scaffolded Task Pack intentionally contains placeholders and should fail this check until it is completed.
+
+## Validate
+
+```powershell
+python -m unittest discover -s tests -v
 ```
 
 ## User Guide

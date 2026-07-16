@@ -2,6 +2,14 @@
 
 Use these gates to decide whether work can move from planning to docs, docs to implementation, implementation to acceptance, and acceptance to merge/archive.
 
+## Contents
+
+- [Mode Selection](#mode-selection)
+- [Formal Solution and Docs Review](#formal-solution-review)
+- [Task Pack Gate](#task-pack-gate)
+- [Test Quality and Validation](#test-quality-gate)
+- [Acceptance, Merge, and Archive](#acceptance-status)
+
 ## Mode Selection
 
 Use quick mode when all are true:
@@ -76,7 +84,10 @@ A Task Pack is executable only if it includes:
 - Test requirements.
 - Acceptance criteria.
 - Done definition.
+- Risks, including an explicit "none identified" when appropriate.
 - Required final output.
+
+Required sections must contain concrete values rather than blank text, `...`, `TODO`, `TBD`, or angle-bracket placeholders. Interfaces, data constraints, and UI constraints may say "not applicable" only with a task-specific reason.
 
 ## Test Quality Gate
 
@@ -107,6 +118,8 @@ Weak or invalid tests:
 
 Use the highest level proportional to risk. Record why any expected check was skipped.
 
+Label every result as planned, locally executed, isolated, or externally executed. A command listed in a plan is not evidence that it ran.
+
 ## Acceptance Status
 
 Return `PASS` when:
@@ -132,6 +145,8 @@ Return `BLOCKED` when:
 - Main Codex cannot reliably decide correctness.
 - A high-risk operation needs user confirmation.
 
+Before returning `BLOCKED`, exhaust safe in-scope checks and alternatives and identify the exact unresolved conflict, permission, evidence gap, or decision.
+
 ## Merge Gate
 
 Do not prepare final merge or release until:
@@ -156,4 +171,3 @@ Archive at phase end:
 - Conflict or blocked reports.
 - Known issues.
 - Next-phase recommendations.
-

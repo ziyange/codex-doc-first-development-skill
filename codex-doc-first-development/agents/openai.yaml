@@ -1,4 +1,4 @@
 interface:
   display_name: "Codex Doc-First Development"
-  short_description: "Engineering-grade Codex doc-first workflow"
-  default_prompt: "Use $codex-doc-first-development to turn my software idea into a Codex-ready engineering plan, docs source of truth, Task Packs, validation gates, and archive workflow."
+  short_description: "Plan and run Codex doc-first development"
+  default_prompt: "Use $codex-doc-first-development to plan and run this change with an approved docs source of truth, Task Packs, verification evidence, and archive records."

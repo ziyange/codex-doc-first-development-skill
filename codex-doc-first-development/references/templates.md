@@ -2,6 +2,14 @@
 
 Use these templates when the active task needs concrete docs or engineering artifacts. Keep empty sections out of final project docs unless they clarify expected future content.
 
+## Contents
+
+- [Directory Structures](#directory-structures)
+- [Core Project Documents](#agentsmd)
+- [Phase and Task Packs](#docsdeliveryphase-001md)
+- [Coordination and Verification](#locksyml)
+- [PR, Writeback, and Archive](#pr-body)
+
 ## Directory Structures
 
 Quick mode:
@@ -45,12 +53,6 @@ docs/
   requirements.md
   architecture.md
   decisions/
-    ADR-0001-example.md
-  api.md
-  data-model.md
-  security.md
-  ux.md
-  operations.md
   delivery/
     roadmap.md
     phase-001.md
@@ -63,6 +65,8 @@ docs/
     reports/
   archive/
 ```
+
+Add `api.md`, `data-model.md`, `security.md`, `ux.md`, `operations.md`, or an ADR only when the project has applicable facts to record. Do not create placeholder-only optional documents.
 
 ## AGENTS.md
 
@@ -86,6 +90,8 @@ docs/
 ## Documentation Rules
 
 ## Agent Collaboration Rules
+- Follow platform, user, and repository instructions before generated project guidance.
+- Do not create subagents unless the user has explicitly authorized them.
 
 ## Forbidden Actions
 ```
@@ -158,6 +164,7 @@ Verification:
 - UI verification:
 - Manual acceptance:
 
+Status: proposed
 Priority:
 Risk:
 Dependencies:
@@ -200,7 +207,9 @@ Dependencies:
 - REQ-001:
 
 ## Tasks
-- TASK-001:
+| Task ID | Objective | Requirements | Depends On | Parallel | Status |
+|---|---|---|---|---|---|
+| TASK-001 | | REQ-001 | none | no | planned |
 
 ## Dependencies
 
@@ -215,6 +224,7 @@ Dependencies:
 ## Risks
 
 ## Archive Path
+docs/archive/phase-001/
 ```
 
 ## Task Pack
@@ -229,6 +239,7 @@ planned
 - REQ-001
 
 ## Objective
+<state one verifiable outcome>
 
 ## Context Pack
 
@@ -237,27 +248,34 @@ planned
 - docs/architecture.md
 
 ### Allowed Files
-- src/...
-- tests/...
+- <path or glob>
 
 ### Forbidden Files
-- ...
+- None outside Allowed Files.
 
 ### Interfaces / Contracts
+- Not applicable: <explain why, or replace with contract details>.
 
 ### Data Constraints
+- Not applicable: <explain why, or replace with data constraints>.
 
 ### UI Constraints
+- Not applicable: <explain why, or replace with UI constraints>.
 
 ## Implementation Requirements
+- <required behavior and boundaries>
 
 ## Test Requirements
+- <command and expected behavior>
 
 ## Acceptance Criteria
+- <observable result>
 
 ## Done Definition
+- Acceptance criteria are met and required checks pass.
 
 ## Risks
+- None identified.
 
 ## Output Required
 - Changed files
@@ -283,6 +301,9 @@ locks:
 # Verification Report
 
 ## Commit / Branch
+
+## Evidence Source
+- planned / local execution / isolated execution / external CI
 
 ## Commands
 

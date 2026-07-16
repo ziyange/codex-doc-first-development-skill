@@ -2,6 +2,22 @@
 
 Use this reference when the user wants a complete document-first engineering workflow, not just a quick plan.
 
+## Contents
+
+- [Lifecycle Summary](#lifecycle-summary)
+- [Startup, Intake, and Planning](#s0-startup-and-authorization)
+- [Docs Source of Truth](#s6-docs-source-of-truth-creation)
+- [Phase and Task Design](#s9-phase-plan-and-task-breakdown)
+- [Implementation and Validation](#s13-agent-implementation)
+- [Acceptance and Change Control](#s16-main-agent-acceptance)
+- [Writeback, Merge, and Archive](#s20-documentation-writeback)
+
+## Authority and Capability Boundaries
+
+Follow higher-priority platform, user, and repository instructions before this methodology or generated project instructions. Treat approved docs as intended facts and reconcile them with code, tests, configuration, and runtime evidence.
+
+This workflow does not provide a background scheduler, persistent lock or deadlock service, CI provider, GitHub integration, or automatic merge system. Use available tools explicitly, keep file ownership and locks as coordination protocols, and distinguish planned operations from executed evidence.
+
 ## Lifecycle Summary
 
 ```text
@@ -43,6 +59,8 @@ Capture:
 - Dependency install and network permission.
 - Commit and draft PR permission.
 - Forbidden files, directories, systems, secrets, or production resources.
+
+Derive authorization already established by the user or environment. Ask only about missing choices that change direction or permit material external or high-risk actions.
 
 Output:
 
@@ -158,7 +176,7 @@ Artifacts:
 
 ## S4 Independent Solution Review
 
-Use in strict mode or when risk is high. Review only supplied materials. Treat missing material as missing, not implied.
+Use in strict mode or when risk is high. Review only supplied materials and treat missing material as missing, not implied. Use an independent fresh-context reviewer only when subagents are authorized; otherwise run the same rubric as a disclosed main-agent self-review.
 
 Score:
 
@@ -189,7 +207,7 @@ Use mode-specific structure:
 
 - Quick: minimum docs.
 - Standard: AGENTS, docs index, product, requirements, architecture, delivery, verification, archive.
-- Strict: standard plus ADRs, API/data/security/UX/operations docs, locks, quality gates.
+- Strict: standard plus locks and quality gates. Add ADRs and API/data/security/UX/operations docs only when applicable facts exist.
 
 Gate:
 
@@ -278,6 +296,8 @@ Multi-agent mode for:
 - Test and implementation separation.
 - Docs and code work that can safely run in parallel.
 
+Use multi-agent mode only after the user explicitly authorizes subagents. Otherwise keep the same Task Packs and execute them serially with the main agent.
+
 ## S12 Branch and Concurrency Control
 
 Recommended branch names:
@@ -342,7 +362,7 @@ Levels:
 - L3: clean worktree, clean install, container, or sandbox.
 - L4: GitHub PR checks or equivalent CI.
 
-Strict mode requires inspectable evidence. Skipped checks need reasons.
+Strict mode requires inspectable evidence. Label evidence as planned, locally executed, isolated, or externally executed. Never present a planned CI or PR check as completed; explain every skipped check.
 
 ## S16 Main-Agent Acceptance
 
@@ -435,4 +455,3 @@ Archive:
 - Roadmap update.
 
 Then either return to S9 for the next phase or move to release/maintenance/closeout.
-

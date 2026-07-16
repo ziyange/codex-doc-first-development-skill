@@ -2,6 +2,15 @@
 
 Use these prompts as starting points. Adapt them to the repository, user authorization, and workflow mode.
 
+## Contents
+
+- [Start From Zero](#start-from-zero)
+- [Existing Repository Intake](#existing-repository-intake)
+- [Formal Solution and Docs](#formal-solution)
+- [Phase and Delegation](#phase-plan)
+- [Worker Execution](#worker-task)
+- [Acceptance and Change Control](#acceptance-review)
+
 ## Start From Zero
 
 ```text
@@ -18,6 +27,8 @@ Authorization:
 - Install dependencies or use network: yes/no
 - Commit changes: yes/no
 - Create draft PR: yes/no
+
+Use authorization already established by the conversation or environment. Ask only for missing choices that change direction or permit external or high-risk actions.
 
 First:
 1. Capture the product idea and requirements.
@@ -79,6 +90,7 @@ Requirements:
 - Give every current requirement a REQ ID.
 - Make acceptance criteria verifiable.
 - Do not create empty decorative documents.
+- Create optional strict-mode documents only when applicable facts exist.
 ```
 
 ## Phase Plan
@@ -162,6 +174,7 @@ Rules:
 4. Check for unrelated changes.
 5. Check whether docs need writeback.
 6. Output PASS, REQUEST_CHANGES, or BLOCKED.
+7. Label evidence as planned, locally executed, isolated, or externally executed.
 ```
 
 ## Change Control
@@ -182,4 +195,3 @@ Classify as:
 
 Output impact, docs updates, task updates, agent impact, verification impact, and whether user confirmation is required.
 ```
-

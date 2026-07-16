@@ -1,6 +1,6 @@
 ---
 name: codex-doc-first-development
-description: Document-first Codex software development workflow for turning raw software ideas or existing repository changes into requirements, docs source of truth, phase plans, Task Packs, agent delegation plans, TDD/CI validation, PR/merge gates, and archive records. Use when the user asks to start a software project from an idea, formalize a Codex or AI development methodology, generate AGENTS.md/docs/Task Packs, plan multi-agent Codex work, or run document-first development for new projects, features, bug fixes, refactors, or long-lived engineering work.
+description: Guides Codex through document-first software development by turning raw ideas or repository changes into requirements, an approved docs source of truth, phase plans, Task Packs, bounded agent delegation, test and CI evidence, PR or merge gates, and archive records. Use when the user asks to start a software project from an idea, formalize a Codex or AI development methodology, generate AGENTS.md/docs/Task Packs, plan authorized multi-agent work, or run document-first development for projects, features, bug fixes, refactors, or long-lived engineering work.
 ---
 
 # Codex Doc-First Development
@@ -9,7 +9,7 @@ Use this skill to run a Codex-specific, document-first software development proc
 
 ## Operating Model
 
-Treat this skill as the main engineering workflow controller for Codex. Use it to convert vague intent into durable project facts, then into bounded tasks, then into verified code changes.
+Treat this skill as the main engineering workflow guide within higher-priority platform, user, and repository instructions. Use it to convert vague intent into durable project facts, then into bounded tasks, then into verified code changes.
 
 Keep three layers separate:
 
@@ -19,21 +19,25 @@ Keep three layers separate:
 
 Never let execution facts replace product or engineering facts. If implementation reveals a new fact, write it back to the correct document.
 
+Treat this skill as procedural guidance plus two local helpers, not as a background scheduler, persistent lock service, CI provider, GitHub integration, or automatic merge system.
+
 ## Core Rules
 
+- Follow system, developer, user, and applicable repository instructions before this workflow or any generated `AGENTS.md`.
 - Choose the workflow mode before creating docs or editing code: quick, standard, or strict.
 - Read existing repository context before proposing architecture or changing files.
-- Treat docs as the project source of truth, but only create documents that reduce ambiguity or future maintenance cost.
+- Treat approved docs as intended product and engineering facts. Reconcile them with code, tests, configuration, and runtime evidence instead of overwriting contradictory evidence.
 - Track current-phase requirements with `REQ-*` IDs and testable acceptance criteria.
 - Do not let a worker subagent modify code without a Task Pack.
 - Create subagents only when the user explicitly authorizes parallel agent work and file ownership does not overlap.
 - Use diff, test output, CI, screenshots, logs, or other inspectable evidence for acceptance; do not accept an agent's self-report as the only proof.
+- Label verification as planned, locally executed, isolated, or externally executed; never describe a planned CI, PR, merge, or release as completed.
 - Ask for explicit confirmation before merging to the main branch, force pushing, deleting, resetting history, publishing production releases, or touching secrets.
-- Stop and output `BLOCKED` when requirements conflict, verification is unstable, permissions are missing, or the main Codex agent cannot judge correctness reliably.
+- Exhaust safe in-scope checks and alternatives before returning `BLOCKED`. State the exact conflict, missing permission, unstable evidence, or decision that prevents reliable progress.
 
 ## Workflow Selection
 
-Start every engagement by reporting:
+For standard and strict engagements, report the following at startup. In quick mode, include only fields that affect execution:
 
 ```text
 Workflow mode:
@@ -67,7 +71,7 @@ Upgrade to strict mode when changes affect architecture, data models, security, 
 
 3. Produce a formal plan.
    - Define goal, non-goals, users, scenarios, requirements, architecture, data/interface/UI implications, branch strategy, agent strategy, validation strategy, risks, rollback, and phases.
-   - In strict mode, review the formal plan before creating the final docs.
+   - In strict mode, review the formal plan before creating the final docs. Use an independent fresh-context review only when subagents are authorized; otherwise apply `references/review-gates.md` as a disclosed main-agent self-review.
 
 4. Establish the docs source of truth.
    - Prefer the standard structure unless the task is quick or strict.
@@ -77,7 +81,7 @@ Upgrade to strict mode when changes affect architecture, data models, security, 
 5. Create the phase plan and Task Packs.
    - Put phase work in `docs/delivery/phase-001.md`.
    - Put each task in `docs/delivery/tasks/TASK-001.md`.
-   - Every Task Pack must list requirement IDs, objective, must-read context, allowed files, forbidden files, test requirements, acceptance criteria, and expected output.
+   - Every Task Pack must list requirement IDs, objective, must-read context, allowed files, forbidden files, interface/data/UI constraints or a reason they are not applicable, test requirements, acceptance criteria, and expected output.
 
 6. Choose execution strategy.
    - Use single-agent execution for tightly coupled or urgent critical-path work.
@@ -93,7 +97,7 @@ Upgrade to strict mode when changes affect architecture, data models, security, 
 8. Review test quality and validate.
    - Check that tests cover acceptance criteria and have meaningful assertions.
    - Run the closest relevant commands first; broaden to lint/test/typecheck/build or CI as risk increases.
-   - Record skipped or failed checks with reasons.
+   - Record the evidence source and record skipped or failed checks with reasons.
 
 9. Accept, write back, and archive.
    - Return `PASS`, `REQUEST_CHANGES`, or `BLOCKED`.
@@ -126,19 +130,20 @@ docs/
   archive/
 ```
 
-Quick mode may use only `AGENTS.md`, `docs/README.md`, `docs/requirements.md`, and one task file. Strict mode may add `api.md`, `data-model.md`, `security.md`, `ux.md`, `operations.md`, `docs/delivery/locks.yml`, and `docs/verification/quality-gate.md`.
+Quick mode may use only `AGENTS.md`, `docs/README.md`, `docs/requirements.md`, and one task file. Strict mode adds locks and a quality gate, and may add `api.md`, `data-model.md`, `security.md`, `ux.md`, `operations.md`, or ADRs only when applicable facts exist.
 
 ## Scripted Helpers
 
 Use scripts when the user asks to scaffold or check docs.
 
-- `scripts/scaffold_docs.py`: create the mode-specific `AGENTS.md` and `docs/` skeleton with useful templates.
-- `scripts/check_task_pack.py`: check whether a Task Pack contains required headings and basic `REQ-*` / `TASK-*` identifiers.
+- `scripts/scaffold_docs.py`: create the mode-specific skeleton without overwriting by default. Use `--dry-run` to preview and repeat `--include` for applicable optional strict-mode docs.
+- `scripts/check_task_pack.py`: reject missing headings, placeholders, missing constraints, invalid identifiers, duplicate headings, and task filename/title mismatches.
 
 Run scripts with explicit paths, for example:
 
 ```bash
 python scripts/scaffold_docs.py --root <project-root> --mode standard --phase 001
+python scripts/scaffold_docs.py --root <project-root> --mode strict --phase 001 --include security --dry-run
 python scripts/check_task_pack.py <project-root>/docs/delivery/tasks/TASK-001.md
 ```
 
@@ -168,7 +173,7 @@ For deeper coordination rules, branch patterns, locks, CI, PR, and conflict hand
 
 ## Status Outputs
 
-Use these final task statuses:
+Use these statuses for task or phase acceptance decisions, not as a replacement for ordinary progress updates:
 
 - `PASS`: acceptance criteria are met and verification evidence is sufficient.
 - `REQUEST_CHANGES`: defects are specific and fixable within the current task.

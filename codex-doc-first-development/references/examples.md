@@ -2,6 +2,15 @@
 
 Use these as patterns for how to apply the skill. Adapt artifact depth to risk.
 
+## Contents
+
+- [New SaaS MVP](#example-1-new-saas-mvp)
+- [Existing Repo Feature](#example-2-existing-repo-feature)
+- [Bug Fix](#example-3-bug-fix)
+- [Refactor](#example-4-refactor)
+- [Multi-Agent Phase](#example-5-multi-agent-phase)
+- [Docs Recovery](#example-6-docs-recovery)
+
 ## Example 1: New SaaS MVP
 
 User asks:
@@ -18,7 +27,7 @@ Recommended behavior:
 - Create docs source of truth.
 - Generate `REQ-*` requirements and phase plan.
 - Create initial Task Packs for app shell, customer model, CRUD, tests.
-- Do not implement until plan and authorization are clear.
+- Resolve direction-changing questions and high-risk authorization before implementation; otherwise continue through already authorized work without pausing for redundant confirmation.
 
 First output shape:
 
@@ -98,6 +107,7 @@ Recommended behavior:
 - Keep docs index, shared contracts, and integration under main agent.
 - Review each worker diff before merging.
 - Close subagents after review.
+- Treat file ownership and locks as coordination protocols, not as a built-in persistent lock service.
 
 ## Example 6: Docs Recovery
 
@@ -115,4 +125,3 @@ Recommended behavior:
 - Recover product/requirements/architecture facts from README, code, tests, and package config.
 - Mark uncertain items as assumptions or open questions.
 - Do not invent product facts.
-

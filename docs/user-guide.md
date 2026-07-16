@@ -1,6 +1,6 @@
 # Codex Doc-First Development Skill 用户使用手册
 
-版本：v2.0  
+文档状态：与当前仓库实现同步
 Skill 名称：`codex-doc-first-development`
 
 ## 1. 定位
@@ -17,25 +17,9 @@ Skill 名称：`codex-doc-first-development`
 6. 执行 TDD、测试质量审查、本地验证、CI/PR 验收。
 7. 进行文档回写、合并准备和阶段归档。
 
-## 2. 当前产物
+## 2. 当前仓库内容
 
-本地构建产物目录示例：
-
-```text
-<workspace>/outputs/codex-doc-first-development
-```
-
-用户手册：
-
-```text
-<workspace>/outputs/codex-doc-first-development-user-guide.md
-```
-
-打包文件如果已生成，通常位于：
-
-```text
-<workspace>/outputs/codex-doc-first-development.zip
-```
+可安装的 Skill 位于仓库根目录下的 `codex-doc-first-development/`。本手册位于 `docs/user-guide.md`。仓库不承诺预生成 `outputs/` 目录或 ZIP 包；如需打包，应以可安装 Skill 目录为输入自行生成。
 
 ## 3. Skill 包结构
 
@@ -85,13 +69,13 @@ https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc
 
 Codex Agent 应使用 `skill-installer` 的 GitHub 安装脚本，把 skill 安装到 `$CODEX_HOME/skills`；如果未设置 `CODEX_HOME`，则安装到 `~/.codex/skills`。
 
-Agent 侧安装命令应等价于：
+如果已经安装 `skill-installer`，其内部安装命令应等价于下列形式；这不是本仓库自带脚本：
 
 ```bash
 scripts/install-skill-from-github.py --url https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-development
 ```
 
-安装完成后，Codex 应提醒：
+如果安装后当前客户端没有立即发现 Skill，Codex 应提醒重启或刷新：
 
 ```text
 Restart Codex to pick up new skills.
@@ -116,7 +100,7 @@ Use $codex-doc-first-development to turn my software idea into a Codex-ready eng
 
 ```powershell
 Copy-Item `
-  -LiteralPath "<workspace>\outputs\codex-doc-first-development" `
+  -LiteralPath "<workspace>\codex-doc-first-development" `
   -Destination "$env:USERPROFILE\.codex\skills\codex-doc-first-development" `
   -Recurse `
   -Force
@@ -201,6 +185,12 @@ python scripts/scaffold_docs.py --root "C:\path\to\project" --mode standard --ph
 python scripts/scaffold_docs.py --root "C:\path\to\project" --mode strict --phase 001
 ```
 
+严格档默认只生成核心文档、锁登记和质量门禁。仅在确有相关事实时选择可选文档，并可先预览：
+
+```powershell
+python scripts/scaffold_docs.py --root "C:\path\to\project" --mode strict --phase 001 --include security --include api --dry-run
+```
+
 覆盖已有模板：
 
 ```powershell
@@ -222,7 +212,11 @@ python scripts/check_task_pack.py "C:\path\to\project\docs\delivery\tasks\TASK-0
 1. 是否有 `TASK-*` 标题。
 2. 是否引用 `REQ-*`。
 3. 是否包含 Status、Objective、Allowed Files、Forbidden Files、Test Requirements、Acceptance Criteria 等关键章节。
-4. Allowed/Forbidden Files 是否仍像占位符。
+4. Interfaces、Data、UI、Allowed/Forbidden Files 等执行边界是否存在。
+5. 必填章节是否为空或仍包含 `...`、`TODO`、`TBD`、尖括号占位符。
+6. 重复标题、任务文件名与标题 ID 是否冲突。
+
+脚手架生成的 Task Pack 有意保留待填写占位符，因此在补全前应当检查失败。
 
 ## 10. 多 Agent 使用
 
@@ -271,7 +265,13 @@ Codex 必须先征求确认：
 
 `BLOCKED`：需求、环境、权限、CI、冲突或风险导致无法可靠继续。
 
-## 13. 最佳实践
+## 13. 能力边界
+
+这个 Skill 提供工作流指令、参考材料、脚手架和 Task Pack 校验器。它不会自行提供后台 Agent 调度器、持久锁或死锁检测服务、CI 平台、GitHub 权限、密钥、自动合并或生产发布能力。Agent 必须使用当前环境真实可用且已授权的工具，并区分“计划执行”“本地已执行”“隔离环境已执行”和“外部 CI 已执行”。
+
+如果本地工作区存在被 `.gitignore` 排除的两份长篇中文方法论，它们仅是设计来源，不是安装包内容；运行时事实源是 `codex-doc-first-development/SKILL.md` 及其直接引用。
+
+## 14. 最佳实践
 
 1. 新项目默认严格档。
 2. 普通功能默认标准档。
