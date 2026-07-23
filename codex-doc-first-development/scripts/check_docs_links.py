@@ -56,6 +56,15 @@ def find_line_number(content: str, index: int) -> int:
     return content.count("\n", 0, index) + 1
 
 
+def sanitize_code_for_links(content: str) -> str:
+    """Replace content inside code blocks and inline code with spaces to preserve line numbers while ignoring syntax examples."""
+    def repl(match: re.Match) -> str:
+        return "".join("\n" if c == "\n" else " " for c in match.group(0))
+
+    no_fenced = re.sub(r"```[\s\S]*?```", repl, content)
+    return re.sub(r"`[^`\n]+`", repl, no_fenced)
+
+
 def check_markdown_file(
     file_path: Path, root_path: Path, cache: dict[Path, set[str]]
 ) -> list[dict[str, str | int]]:
@@ -75,7 +84,9 @@ def check_markdown_file(
     issues: list[dict[str, str | int]] = []
     rel_file_str = str(file_path.relative_to(root_path)) if file_path.is_relative_to(root_path) else str(file_path)
 
-    for match in LINK_PATTERN.finditer(content):
+    sanitized_content = sanitize_code_for_links(content)
+
+    for match in LINK_PATTERN.finditer(sanitized_content):
         raw_target = match.group("target").strip()
         # Handle title attributes in links, e.g. [label](path "title")
         if " " in raw_target:

@@ -147,6 +147,26 @@ class TaskPackTests(unittest.TestCase):
                     f"failed to reject broad pattern: {broad_pattern}"
                 )
 
+    def test_task_pack_cli_json(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "TASK-001.md"
+            path.write_text(VALID_TASK, encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SKILL_ROOT / "scripts/check_task_pack.py"),
+                    str(path),
+                    "--json",
+                ],
+                cwd=REPO_ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0)
+            self.assertIn('"status": "passed"', result.stdout)
+            self.assertIn('"total_issues": 0', result.stdout)
+
 
 class ScaffoldTests(unittest.TestCase):
     def test_strict_optional_docs_are_opt_in(self) -> None:
@@ -223,6 +243,28 @@ class ScaffoldTests(unittest.TestCase):
             agents_text = (root / "AGENTS.md").read_text(encoding="utf-8")
             self.assertIn("- Test: make test", agents_text)
             self.assertIn("- Build: make build", agents_text)
+
+    def test_scaffold_cli_json(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SKILL_ROOT / "scripts/scaffold_docs.py"),
+                    "--root",
+                    str(root),
+                    "--mode",
+                    "quick",
+                    "--json",
+                ],
+                cwd=REPO_ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0)
+            self.assertIn('"status": "created_or_updated"', result.stdout)
+            self.assertIn('"mode": "quick"', result.stdout)
 
 
 
