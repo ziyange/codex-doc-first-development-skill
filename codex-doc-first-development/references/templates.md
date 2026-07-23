@@ -422,3 +422,73 @@ validation:
 
 ## Next Phase Recommendations
 ```
+
+## Structured JSON Contracts & Schema
+
+Use these JSON Schemas to validate machine-readable CLI outputs and CI/CD contract payloads.
+
+### Check Results Schema (check_task_pack.py & check_docs_links.py)
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "CheckResult",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["passed", "failed", "error"]
+    },
+    "file": { "type": "string" },
+    "total_files": { "type": "integer" },
+    "total_issues": { "type": "integer" },
+    "issues": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "properties": {
+              "file": { "type": "string" },
+              "line": { "type": "integer" },
+              "target": { "type": "string" },
+              "reason": { "type": "string" }
+            },
+            "required": ["file", "line", "target", "reason"]
+          }
+        ]
+      }
+    }
+  },
+  "required": ["status", "issues"]
+}
+```
+
+### Scaffold Summary Schema (scaffold_docs.py --json)
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ScaffoldSummary",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["created_or_updated", "planned"]
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["quick", "standard", "strict"]
+    },
+    "phase": { "type": "string" },
+    "root": { "type": "string" },
+    "files": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "count": { "type": "integer" }
+  },
+  "required": ["status", "mode", "phase", "files", "count"]
+}
+```

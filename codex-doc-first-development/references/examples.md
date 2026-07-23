@@ -21,23 +21,23 @@ Use $codex-doc-first-development to build a lightweight CRM for freelancers.
 
 Recommended behavior:
 
-- Choose strict mode because this is a new project.
-- Capture target users, core workflows, MVP, non-goals, success criteria.
-- Propose stack only after asking or stating assumptions.
-- Create docs source of truth.
-- Generate `REQ-*` requirements and phase plan.
-- Create initial Task Packs for app shell, customer model, CRUD, tests.
-- Resolve direction-changing questions and high-risk authorization before implementation; otherwise continue through already authorized work without pausing for redundant confirmation.
+- **Phase 1 (Intake & Reflection)**: Choose strict mode because this is a new project. Perform self-reflection: identify missing inputs (auth needs, database choice, deployment target), check potential conflicts, and verify technical feasibility.
+- **Phase 2 (Clarification)**: Ask user to confirm essential direction-changing choices while documenting reasonable assumptions.
+- **Phase 3 (Auto-Init)**: Once information is sufficient and feasibility is confirmed, automatically trigger project initialization (`python scripts/scaffold_docs.py --mode strict --phase 001 --auto-detect`) to create `AGENTS.md` and initial `docs/` source of truth.
+- Generate `REQ-*` requirements, phase plan, and initial Task Packs for app shell, customer model, CRUD, and tests.
 
-First output shape:
+First output shape (Self-Reflection Response):
 
 ```text
 Workflow mode: strict
-Must-confirm: deployment target, auth requirement, data persistence
-Assumptions: single-user MVP, local dev first
-Artifacts: AGENTS.md, docs/product.md, docs/requirements.md, docs/architecture.md, docs/delivery/phase-001.md
-Next: create formal solution and docs source-of-truth
+Repository state: empty / new project
+Information gaps & reflection: missing deployment target, auth requirement, data persistence choice
+Feasibility & conflict checks: feasible under Node/TypeScript stack; no existing codebase collisions
+Must-confirm: 1) Local DB vs Cloud DB? 2) Auth provider preference?
+Reasonable assumptions: single-user MVP, local dev first
+Recommended next step: clarify Must-Confirm items; upon response, Agent will auto-init AGENTS.md and docs/
 ```
+
 
 ## Example 2: Existing Repo Feature
 

@@ -87,9 +87,13 @@ Never execute by default:
 - Delete user files.
 - Overwrite uncommitted user changes.
 
-## S1 Raw Idea Capture
+## S1 Raw Idea Capture, Reflection, and Feasibility Check
 
-Turn natural language into product input. Ask only for information that changes direction; otherwise record assumptions.
+Turn natural language into structured product input through mandatory self-reflection. Ask only for information that changes direction or resolves feasibility bottlenecks; otherwise record reasonable assumptions.
+
+Mandatory Reflection & Feasibility Rules:
+- **Never produce final specs immediately**: Upon receiving raw ideas, the agent's first block output MUST be `## CoT Intake Reflection`, detailing Missing Facts, Codebase Conflicts, and Technical Feasibility Bottlenecks.
+- **Feasibility Verification**: Confirm that the requested feature can be realistically built under existing project constraints before writing formal architecture or docs.
 
 Capture:
 
@@ -104,7 +108,11 @@ Capture:
 - Design, brand, performance, security, compliance constraints.
 - Delivery shape: site, app, API, CLI, library, plugin, automation.
 
+Auto-Init Trigger:
+Once sufficient information is gathered and feasibility is confirmed, automatically trigger project initialization (`python scripts/scaffold_docs.py --auto-detect`) to auto-populate `AGENTS.md` with detected stack commands (including Monorepo / sub-directory scan for Makefile, Dockerfile, pnpm-workspace, go.work, Cargo workspace, etc.) and create `docs/` source of truth.
+
 Artifact: `docs/product.md`.
+
 
 ## S2 Project Scan and Current-State Analysis
 
@@ -227,6 +235,8 @@ Review:
 - Task Pack executability.
 - Test strategy executability.
 - Subagent boundaries.
+- Relative link and anchor validity (via `scripts/check_docs_links.py`).
+- Automated script compliance and JSON output schemas.
 - Branch and concurrency safety.
 - Change handling.
 - Archive completeness.
@@ -268,7 +278,7 @@ Each Task Pack must include:
 - Related `REQ-*` IDs.
 - Objective.
 - Must-read documents.
-- Allowed files.
+- Allowed files (must list explicit subdirectories or file patterns, e.g. `src/auth/*.ts`; broad wildcards such as `*`, `**`, `.` are strictly rejected).
 - Forbidden files.
 - Interface/data/UI constraints.
 - Implementation requirements.
@@ -360,7 +370,7 @@ Levels:
 - L1: local targeted command.
 - L2: local lint/test/typecheck/build.
 - L3: clean worktree, clean install, container, or sandbox.
-- L4: GitHub PR checks or equivalent CI.
+- L4: GitHub PR checks or equivalent CI (consuming `--json` outputs from `check_task_pack.py` and `check_docs_links.py`).
 
 Strict mode requires inspectable evidence. Label evidence as planned, locally executed, isolated, or externally executed. Never present a planned CI or PR check as completed; explain every skipped check.
 

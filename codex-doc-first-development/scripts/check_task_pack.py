@@ -105,6 +105,21 @@ def check_task_pack(path: Path) -> list[str]:
         if content is not None and looks_like_placeholder(content):
             issues.append(f"section is empty or still contains placeholders: {heading}")
 
+    allowed_files_content = section_content(text, "Allowed Files")
+    if allowed_files_content is not None:
+        lines = [line.strip() for line in allowed_files_content.splitlines() if line.strip()]
+        for line in lines:
+            item = re.sub(r"^(?:[-*+]|\d+\.)\s*", "", line).strip()
+            if not item:
+                continue
+            if (
+                item in {"*", "**", ".", "*.*", "./*", "./**", "**/*"}
+                or re.fullmatch(r"^(?:\.|\*+|\./\*+|\*\*/\*+|(?:[a-zA-Z0-9_-]+)/\*+)$", item)
+            ):
+                issues.append(
+                    f"Allowed Files is overly broad: '{item}' is forbidden without explicit narrow file patterns"
+                )
+
     return issues
 
 
@@ -113,27 +128,62 @@ def main() -> int:
         description="Check whether a Codex doc-first Task Pack is ready for execution."
     )
     parser.add_argument("task_pack", help="Path to TASK-*.md")
+    parser.add_argument("--json", action="store_true", help="Output results in structured JSON format")
     args = parser.parse_args()
 
     path = Path(args.task_pack)
     if not path.is_file():
-        print(f"Task Pack check failed:\n- file not found: {path}", file=sys.stderr)
+        if args.json:
+            print(
+                json.dumps(
+                    {"status": "error", "file": str(path), "issues": [f"file not found: {path}"]},
+                    indent=2,
+                    ensure_ascii=False,
+                )
+            )
+        else:
+            print(f"Task Pack check failed:\n- file not found: {path}", file=sys.stderr)
         return 2
 
     try:
         issues = check_task_pack(path)
     except (OSError, UnicodeError) as exc:
-        print(f"Task Pack check failed:\n- cannot read {path}: {exc}", file=sys.stderr)
+        if args.json:
+            print(
+                json.dumps(
+                    {"status": "error", "file": str(path), "issues": [f"cannot read {path}: {exc}"]},
+                    indent=2,
+                    ensure_ascii=False,
+                )
+            )
+        else:
+            print(f"Task Pack check failed:\n- cannot read {path}: {exc}", file=sys.stderr)
         return 2
-    if issues:
-        print("Task Pack check failed:")
-        for issue in issues:
-            print(f"- {issue}")
-        return 1
-    print("Task Pack check passed.")
-    return 0
+
+    status = "failed" if issues else "passed"
+    if args.json:
+        print(
+            json.dumps(
+                {
+                    "status": status,
+                    "file": str(path),
+                    "total_issues": len(issues),
+                    "issues": issues,
+                },
+                indent=2,
+                ensure_ascii=False,
+            )
+        )
+    else:
+        if issues:
+            print("Task Pack check failed:")
+            for issue in issues:
+                print(f"- {issue}")
+        else:
+            print("Task Pack check passed.")
+
+    return 1 if issues else 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

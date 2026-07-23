@@ -21,6 +21,7 @@ codex-doc-first-development/
   scripts/
     scaffold_docs.py
     check_task_pack.py
+    check_docs_links.py
 ```
 
 ## Install With Codex
@@ -65,21 +66,23 @@ Chinese prompt:
 
 ## What It Does
 
-- Selects quick, standard, or strict workflow mode.
-- Captures product ideas and converts them into `REQ-*` requirements.
-- Creates a Codex-friendly docs source of truth.
-- Generates phase plans and Task Packs.
+- Performs mandatory structured self-reflection (`## CoT Intake Reflection`): identifies missing inputs, codebase conflicts, and technical feasibility bottlenecks before producing specs.
+- Automatically initializes project docs (`/init` action) and creates `AGENTS.md` with auto-detected project commands (`--auto-detect`), including Monorepo and composite stack probing (Makefile, Dockerfile, pnpm-workspace, go.work, Cargo workspace, CMakeLists.txt).
+- Selects quick, standard, or strict workflow mode based on impact and risk.
+- Captures product ideas and converts them into `REQ-*` requirements with clear acceptance criteria.
+- Creates a Codex-friendly docs source of truth (`docs/`).
+- Generates phase plans and Task Packs with fine-grained `Allowed Files` scope checking (blocking overly broad wildcards like `*` or `**`).
 - Defines subagent, branch, file ownership, lock, and CI rules.
-- Guides TDD, validation, acceptance, docs writeback, PR preparation, and archival.
+- Guides TDD, anti-fake test quality gates, validation, acceptance, docs writeback, PR preparation, and archival.
 
 The skill is procedural guidance plus two local helper scripts. It does not provide a background scheduler, persistent lock service, CI provider, GitHub credentials, or automatic merge authority.
 
 ## Scripts
 
-Scaffold docs:
+Scaffold docs with auto-detection of project stack commands:
 
 ```powershell
-python .\codex-doc-first-development\scripts\scaffold_docs.py --root "C:\path\to\project" --mode standard --phase 001
+python .\codex-doc-first-development\scripts\scaffold_docs.py --root "C:\path\to\project" --mode standard --phase 001 --auto-detect
 ```
 
 Preview strict mode and opt into applicable documents:
@@ -88,13 +91,20 @@ Preview strict mode and opt into applicable documents:
 python .\codex-doc-first-development\scripts\scaffold_docs.py --root "C:\path\to\project" --mode strict --phase 001 --include security --include api --dry-run
 ```
 
+
 Check a Task Pack:
 
 ```powershell
-python .\codex-doc-first-development\scripts\check_task_pack.py "C:\path\to\project\docs\delivery\tasks\TASK-001.md"
+python .\codex-doc-first-development\scripts\check_task_pack.py "C:\path\to\project\docs\delivery\tasks\TASK-001.md" --json
 ```
 
-The scaffolded Task Pack intentionally contains placeholders and should fail this check until it is completed.
+Check documentation relative links and heading anchors:
+
+```powershell
+python .\codex-doc-first-development\scripts\check_docs_links.py "C:\path\to\project\docs" --json
+```
+
+All helper scripts support `--json` output for seamless integration with GitHub Actions or GitLab CI. The scaffolded Task Pack intentionally contains placeholders and should fail `check_task_pack.py` until completed.
 
 ## Validate
 

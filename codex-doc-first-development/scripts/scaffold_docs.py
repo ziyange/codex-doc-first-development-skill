@@ -4,19 +4,20 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 from pathlib import Path
 
 
-AGENTS = """# AGENTS.md
+AGENTS_TEMPLATE = """# AGENTS.md
 
 ## Project Commands
-- Install:
-- Dev:
-- Test:
-- Lint:
-- Typecheck:
-- Build:
+- Install:{install}
+- Dev:{dev}
+- Test:{test}
+- Lint:{lint}
+- Typecheck:{typecheck}
+- Build:{build}
 
 ## Coding Rules
 
@@ -31,6 +32,7 @@ AGENTS = """# AGENTS.md
 - Do not create subagents unless the user has explicitly authorized them.
 
 ## Forbidden Actions
+
 """
 
 DOCS_INDEX = """# Docs Index
@@ -292,6 +294,130 @@ OPTIONAL_STRICT_DOCS = {
 }
 
 
+def detect_stack(root: Path) -> dict[str, str]:
+    """Detect project stack and return default commands for single or Monorepo projects."""
+    commands = {
+        "install": "",
+        "dev": "",
+        "test": "",
+        "lint": "",
+        "typecheck": "",
+        "build": "",
+    }
+
+    # Collect paths to check: root first, then 1st & 2nd level subdirectories (e.g. packages/*, services/*)
+    search_dirs = [root]
+    if root.exists() and root.is_dir():
+        for child in sorted(root.iterdir()):
+            if (
+                child.is_dir()
+                and not child.name.startswith(".")
+                and child.name not in {"node_modules", "venv", "env", "target", "build", "dist", "vendor", "docs", "tests", "archive"}
+            ):
+                search_dirs.append(child)
+                try:
+                    for grandchild in sorted(child.iterdir()):
+                        if (
+                            grandchild.is_dir()
+                            and not grandchild.name.startswith(".")
+                            and grandchild.name not in {"node_modules", "venv", "env", "target", "build", "dist", "vendor"}
+                        ):
+                            search_dirs.append(grandchild)
+                except OSError:
+                    pass
+
+    # 1. Monorepo / Workspace level detectors at root
+    if (root / "pnpm-workspace.yaml").exists():
+        commands["install"] = "pnpm install"
+        commands["dev"] = "pnpm dev"
+        commands["test"] = "pnpm -r test"
+        commands["build"] = "pnpm -r build"
+        return commands
+
+    if (root / "go.work").exists():
+        commands["install"] = "go work sync"
+        commands["test"] = "go test ./..."
+        commands["build"] = "go build ./..."
+        return commands
+
+    if (root / "Cargo.toml").exists():
+        cargo_content = ""
+        try:
+            cargo_content = (root / "Cargo.toml").read_text(encoding="utf-8")
+        except OSError:
+            pass
+        if "[workspace]" in cargo_content:
+            commands["install"] = "cargo build"
+            commands["test"] = "cargo test --workspace"
+            commands["lint"] = "cargo clippy"
+            commands["build"] = "cargo build --release"
+            return commands
+
+    # 2. Iterate search_dirs for primary stack detection
+    for d in search_dirs:
+        # Makefile
+        makefile = d / "Makefile"
+        if makefile.exists() and not commands["test"]:
+            try:
+                content = makefile.read_text(encoding="utf-8")
+                if re.search(r"^test\s*:", content, re.MULTILINE):
+                    commands["test"] = "make test"
+                if re.search(r"^build\s*:", content, re.MULTILINE):
+                    commands["build"] = "make build"
+                if re.search(r"^dev\s*:", content, re.MULTILINE):
+                    commands["dev"] = "make dev"
+                if re.search(r"^lint\s*:", content, re.MULTILINE):
+                    commands["lint"] = "make lint"
+            except OSError:
+                pass
+
+        # package.json
+        if (d / "package.json").exists() and not commands["test"]:
+            commands["install"] = commands["install"] or "npm install"
+            commands["dev"] = commands["dev"] or "npm run dev"
+            commands["test"] = commands["test"] or "npm test"
+            commands["lint"] = commands["lint"] or "npm run lint"
+            commands["build"] = commands["build"] or "npm run build"
+
+        # Python
+        if (
+            (d / "pyproject.toml").exists()
+            or (d / "requirements.txt").exists()
+            or (d / "setup.py").exists()
+        ) and not commands["test"]:
+            commands["install"] = commands["install"] or "pip install -r requirements.txt"
+            commands["test"] = commands["test"] or "pytest"
+            commands["lint"] = commands["lint"] or "flake8"
+
+        # Cargo.toml
+        if (d / "Cargo.toml").exists() and not commands["test"]:
+            commands["install"] = commands["install"] or "cargo build"
+            commands["test"] = commands["test"] or "cargo test"
+            commands["lint"] = commands["lint"] or "cargo clippy"
+            commands["build"] = commands["build"] or "cargo build --release"
+
+        # go.mod
+        if (d / "go.mod").exists() and not commands["test"]:
+            commands["install"] = commands["install"] or "go mod download"
+            commands["test"] = commands["test"] or "go test ./..."
+            commands["build"] = commands["build"] or "go build ./..."
+
+        # CMakeLists.txt
+        if (d / "CMakeLists.txt").exists() and not commands["build"]:
+            commands["build"] = commands["build"] or "cmake -B build && cmake --build build"
+            commands["test"] = commands["test"] or "ctest --test-dir build"
+
+        # Dockerfile / docker-compose
+        if (d / "docker-compose.yml").exists() or (d / "docker-compose.yaml").exists():
+            if not commands["dev"]:
+                commands["dev"] = "docker compose up"
+        elif (d / "Dockerfile").exists():
+            if not commands["build"]:
+                commands["build"] = "docker build -t app ."
+
+    return commands
+
+
 def write_if_missing(
     path: Path, content: str, overwrite: bool, dry_run: bool = False
 ) -> bool:
@@ -311,6 +437,7 @@ def scaffold(
     overwrite: bool,
     include: tuple[str, ...] = (),
     dry_run: bool = False,
+    auto_detect: bool = False,
 ) -> list[Path]:
     if not re.fullmatch(r"\d{3,}", phase):
         raise ValueError("phase must contain at least three digits, for example 001")
@@ -324,7 +451,16 @@ def scaffold(
         if write_if_missing(path, content, overwrite, dry_run):
             written.append(path)
 
-    add("AGENTS.md", AGENTS)
+    default_map = {"install": "", "dev": "", "test": "", "lint": "", "typecheck": "", "build": ""}
+    if auto_detect:
+        detected = detect_stack(root)
+        default_map.update(detected)
+    cmd_map = {k: f" {v}" if v else "" for k, v in default_map.items()}
+    agents_content = AGENTS_TEMPLATE.format(**cmd_map)
+
+
+
+    add("AGENTS.md", agents_content)
     add("docs/README.md", DOCS_INDEX)
     add("docs/requirements.md", REQUIREMENTS)
     add("docs/delivery/TASK-001.md" if mode == "quick" else "docs/delivery/tasks/TASK-001.md", TASK)
@@ -371,6 +507,12 @@ def main() -> int:
     parser.add_argument(
         "--dry-run", action="store_true", help="List files without creating or changing them."
     )
+    parser.add_argument(
+        "--auto-detect", action="store_true", help="Detect project stack and populate AGENTS.md commands."
+    )
+    parser.add_argument(
+        "--json", action="store_true", help="Output scaffolding results in structured JSON format."
+    )
     args = parser.parse_args()
 
     if args.include and args.mode != "strict":
@@ -385,16 +527,29 @@ def main() -> int:
             args.overwrite,
             tuple(args.include),
             args.dry_run,
+            args.auto_detect,
         )
     except ValueError as exc:
         parser.error(str(exc))
-    for path in written:
-        print(path)
+
     label = "planned" if args.dry_run else "created_or_updated"
-    print(f"{label}={len(written)}")
+    if args.json:
+        rel_files = [str(p.relative_to(root)) if p.is_relative_to(root) else str(p) for p in written]
+        output = {
+            "status": label,
+            "mode": args.mode,
+            "phase": args.phase,
+            "root": str(root),
+            "files": rel_files,
+            "count": len(written),
+        }
+        print(json.dumps(output, indent=2, ensure_ascii=False))
+    else:
+        for path in written:
+            print(path)
+        print(f"{label}={len(written)}")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

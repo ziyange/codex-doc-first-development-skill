@@ -36,6 +36,7 @@ def fenced_template(markdown: str, heading: str) -> str:
 
 checker = load_module("check_task_pack", "scripts/check_task_pack.py")
 scaffolder = load_module("scaffold_docs", "scripts/scaffold_docs.py")
+link_checker = load_module("check_docs_links", "scripts/check_docs_links.py")
 
 
 VALID_TASK = """# TASK-001: Add CSV export
@@ -134,6 +135,18 @@ class TaskPackTests(unittest.TestCase):
             self.assertTrue(any("does not match filename" in issue for issue in issues))
             self.assertIn("duplicate heading: Risks", issues)
 
+    def test_overly_broad_allowed_files_is_rejected(self) -> None:
+        for broad_pattern in ["- *", "- src/**"]:
+            with tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "TASK-001.md"
+                text = VALID_TASK.replace("- src/export.py\n- tests/test_export.py", broad_pattern)
+                path.write_text(text, encoding="utf-8")
+                issues = checker.check_task_pack(path)
+                self.assertTrue(
+                    any("Allowed Files is overly broad" in issue for issue in issues),
+                    f"failed to reject broad pattern: {broad_pattern}"
+                )
+
 
 class ScaffoldTests(unittest.TestCase):
     def test_strict_optional_docs_are_opt_in(self) -> None:
@@ -183,6 +196,35 @@ class ScaffoldTests(unittest.TestCase):
             scaffolder.scaffold(root, "quick", "001", True)
             self.assertIn("# AGENTS.md", agents.read_text(encoding="utf-8"))
 
+    def test_auto_detect_stack(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "package.json").write_text('{"name": "test"}', encoding="utf-8")
+            scaffolder.scaffold(root, "standard", "001", False, auto_detect=True)
+            agents_text = (root / "AGENTS.md").read_text(encoding="utf-8")
+            self.assertIn("- Test: npm test", agents_text)
+            self.assertIn("- Build: npm run build", agents_text)
+
+    def test_auto_detect_monorepo_and_composite_stack(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "pnpm-workspace.yaml").write_text("packages:\n  - 'apps/*'\n", encoding="utf-8")
+            scaffolder.scaffold(root, "standard", "001", False, auto_detect=True)
+            agents_text = (root / "AGENTS.md").read_text(encoding="utf-8")
+            self.assertIn("- Test: pnpm -r test", agents_text)
+            self.assertIn("- Build: pnpm -r build", agents_text)
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            sub = root / "services" / "api"
+            sub.mkdir(parents=True)
+            (sub / "Makefile").write_text("test:\n\tpytest\nbuild:\n\tmake compile\n", encoding="utf-8")
+            scaffolder.scaffold(root, "standard", "001", False, auto_detect=True)
+            agents_text = (root / "AGENTS.md").read_text(encoding="utf-8")
+            self.assertIn("- Test: make test", agents_text)
+            self.assertIn("- Build: make build", agents_text)
+
+
 
 class PackageTests(unittest.TestCase):
     def test_skill_metadata_and_references(self) -> None:
@@ -213,11 +255,14 @@ class PackageTests(unittest.TestCase):
     def test_script_templates_match_reference(self) -> None:
         markdown = (SKILL_ROOT / "references/templates.md").read_text(encoding="utf-8")
         expected = {
-            "AGENTS.md": scaffolder.AGENTS,
+            "AGENTS.md": scaffolder.AGENTS_TEMPLATE.format(install="", dev="", test="", lint="", typecheck="", build=""),
             "docs/requirements.md": scaffolder.REQUIREMENTS,
             "docs/delivery/phase-001.md": scaffolder.PHASE.format(phase="001"),
             "Task Pack": scaffolder.TASK,
         }
+
+
+
         for heading, template in expected.items():
             self.assertEqual(fenced_template(markdown, heading), template.strip(), heading)
 
@@ -226,6 +271,57 @@ class PackageTests(unittest.TestCase):
             lines = path.read_text(encoding="utf-8").splitlines()
             if len(lines) > 100:
                 self.assertIn("## Contents", lines, path.name)
+
+
+class LinkCheckerTests(unittest.TestCase):
+    def test_valid_links_and_anchors_pass(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            doc_a = root / "doc_a.md"
+            doc_b = root / "doc_b.md"
+            doc_a.write_text(
+                "# Document A\n\nSee [Doc B](doc_b.md) and [Section B](doc_b.md#section-two).\n",
+                encoding="utf-8",
+            )
+            doc_b.write_text(
+                "# Document B\n\n## Section Two\n\nContent.\n",
+                encoding="utf-8",
+            )
+            res = link_checker.check_docs_links(root)
+            self.assertEqual(res["status"], "passed")
+            self.assertEqual(res["total_issues"], 0)
+
+    def test_broken_relative_link_and_anchor_fail(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            doc = root / "readme.md"
+            doc.write_text(
+                "# Readme\n\n- [Missing File](missing.md)\n- [Bad Anchor](#non-existent)\n",
+                encoding="utf-8",
+            )
+            res = link_checker.check_docs_links(root)
+            self.assertEqual(res["status"], "failed")
+            self.assertEqual(res["total_issues"], 2)
+
+    def test_link_checker_cli_json(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "test.md").write_text("# Test\n\n[Link](missing.md)\n", encoding="utf-8")
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SKILL_ROOT / "scripts/check_docs_links.py"),
+                    str(root),
+                    "--json",
+                ],
+                cwd=REPO_ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 1)
+            self.assertIn('"status": "failed"', result.stdout)
+            self.assertIn('"total_issues": 1', result.stdout)
 
 
 if __name__ == "__main__":

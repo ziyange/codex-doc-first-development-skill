@@ -25,6 +25,9 @@ Treat this skill as procedural guidance plus two local helpers, not as a backgro
 
 - Follow system, developer, user, and applicable repository instructions before this workflow or any generated `AGENTS.md`.
 - Choose the workflow mode before creating docs or editing code: quick, standard, or strict.
+- **Mandatory Reflection on Intake**: When receiving raw user ideas, NEVER directly produce final specs or docs. First output a structured `## CoT Intake Reflection` block analyzing missing information, codebase conflicts, and technical feasibility bottlenecks.
+- **Narrow Scope Authorization**: Do not permit overly broad wildcards in `Allowed Files` (such as `*`, `**`, or `.`). Every Task Pack must list explicit subdirectories or file patterns.
+- **Automatic Initialization**: Once sufficient information is gathered and feasibility is validated, automatically trigger project initialization (using `/init` / `scaffold_docs.py --auto-detect`) to create `AGENTS.md` and initial docs source of truth without requiring manual user commands.
 - Read existing repository context before proposing architecture or changing files.
 - Treat approved docs as intended product and engineering facts. Reconcile them with code, tests, configuration, and runtime evidence instead of overwriting contradictory evidence.
 - Track current-phase requirements with `REQ-*` IDs and testable acceptance criteria.
@@ -43,6 +46,8 @@ For standard and strict engagements, report the following at startup. In quick m
 Workflow mode:
 Repository state:
 Current authorization:
+Information gaps & reflection:
+Feasibility & conflict checks:
 Must-confirm questions:
 Reasonable assumptions:
 Recommended first artifacts:
@@ -61,13 +66,18 @@ Upgrade to strict mode when changes affect architecture, data models, security, 
 
 ## Main Workflow
 
-1. Intake and authorize.
-   - Capture the user idea, target outcome, repo status, allowed operations, and high-risk boundaries.
-   - Separate must-confirm questions from reasonable assumptions and later refinements.
+1. Intake, reflect, and clarify.
+   - Output the initial response block as `## CoT Intake Reflection` containing:
+     - `Missing Facts`: list missing product, business logic, or technical details.
+     - `Codebase Conflicts`: analyze potential collisions with existing code, patterns, or tools.
+     - `Feasibility Bottlenecks`: evaluate technical feasibility under existing constraints.
+   - Ask clarifying questions for missing inputs rather than making unverified architectural assumptions.
+   - Proceed to auto-initialization only after CoT Intake Reflection is complete and feasibility is confirmed.
 
-2. Scan context.
-   - For existing repos, inspect README, docs, `AGENTS.md`, package/build/test configs, CI, tests, architecture entry points, and git status.
-   - For new projects, identify product type, target platform, stack constraints, deployment assumptions, and test approach.
+2. Auto-initialize and scan context.
+   - Once sufficient information is gathered and feasibility is confirmed, automatically trigger initialization (`python scripts/scaffold_docs.py --auto-detect`).
+   - Auto-populate `AGENTS.md` with detected project stack commands (build/test/lint) and generate initial `docs/` structure.
+   - Scan existing repo status, package configs, entry points, and test harnesses.
 
 3. Produce a formal plan.
    - Define goal, non-goals, users, scenarios, requirements, architecture, data/interface/UI implications, branch strategy, agent strategy, validation strategy, risks, rollback, and phases.
@@ -75,7 +85,7 @@ Upgrade to strict mode when changes affect architecture, data models, security, 
 
 4. Establish the docs source of truth.
    - Prefer the standard structure unless the task is quick or strict.
-   - Create `AGENTS.md` for Codex-facing rules and `docs/README.md` as the docs entry point.
+   - Ensure `AGENTS.md` and `docs/README.md` reflect verified project and engineering facts.
    - Keep optional docs such as `api.md`, `data-model.md`, `security.md`, `ux.md`, and `operations.md` only when they have real content.
 
 5. Create the phase plan and Task Packs.
@@ -107,6 +117,7 @@ Upgrade to strict mode when changes affect architecture, data models, security, 
 
 For the full S0-S22 lifecycle, read `references/methodology.md`.
 
+
 ## Docs Structure
 
 Use these defaults and trim or expand by mode:
@@ -134,17 +145,18 @@ Quick mode may use only `AGENTS.md`, `docs/README.md`, `docs/requirements.md`, a
 
 ## Scripted Helpers
 
-Use scripts when the user asks to scaffold or check docs.
+Use scripts when the user asks to scaffold or check docs. All scripts support `--json` for structured CI/CD output.
 
-- `scripts/scaffold_docs.py`: create the mode-specific skeleton without overwriting by default. Use `--dry-run` to preview and repeat `--include` for applicable optional strict-mode docs.
-- `scripts/check_task_pack.py`: reject missing headings, placeholders, missing constraints, invalid identifiers, duplicate headings, and task filename/title mismatches.
+- `scripts/scaffold_docs.py`: create the mode-specific skeleton without overwriting by default. Use `--dry-run` to preview, `--auto-detect` for stack detection, and `--json` for machine-readable output.
+- `scripts/check_task_pack.py`: reject missing headings, placeholders, missing constraints, invalid identifiers, duplicate headings, overly broad `Allowed Files`, and task filename/title mismatches. Use `--json` for CI/CD integration.
+- `scripts/check_docs_links.py`: statically validate relative links (`[text](path.md)`) and heading anchors (`#anchor-name`) in Markdown files. Use `--json` for CI/CD integration.
 
 Run scripts with explicit paths, for example:
 
 ```bash
-python scripts/scaffold_docs.py --root <project-root> --mode standard --phase 001
-python scripts/scaffold_docs.py --root <project-root> --mode strict --phase 001 --include security --dry-run
-python scripts/check_task_pack.py <project-root>/docs/delivery/tasks/TASK-001.md
+python scripts/scaffold_docs.py --root <project-root> --mode standard --phase 001 --auto-detect --json
+python scripts/check_task_pack.py <project-root>/docs/delivery/tasks/TASK-001.md --json
+python scripts/check_docs_links.py <project-root>/docs --json
 ```
 
 ## Agent Delegation

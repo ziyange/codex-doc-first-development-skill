@@ -34,6 +34,17 @@ Use strict mode when any are true:
 - CI/PR/release process matters.
 - Failure has high user or business impact.
 
+## Information Sufficiency & Feasibility Gate
+
+Apply this gate during initial intake before Agent auto-initialization (`/init` / `scaffold_docs.py`):
+
+| Check Item | Pass Criterion | Required Action if Failed |
+|---|---|---|
+| **Self-Reflection** | Mandatory reflection executed; no critical ambiguity in core user goals or scope. | Ask user targeted clarifying questions; do not generate final specs. |
+| **Codebase Conflict** | Proposed change evaluated against existing codebase structure and dependencies without unhandled collisions. | Raise conflict warning to user; adjust architectural boundaries. |
+| **Feasibility Bottlenecks** | Solution is technically achievable under given stack, OS, performance, and permission limits. | Flag feasibility risk as `BLOCKED` or suggest alternative technical path. |
+
+
 ## Formal Solution Review
 
 Score or inspect these dimensions before building docs in strict mode:
@@ -66,6 +77,8 @@ Docs can support implementation when:
 - Each Task Pack has allowed and forbidden files.
 - Test strategy and expected commands are explicit.
 - Agent collaboration rules are present when subagents are used.
+- All relative Markdown links and heading anchors are verified valid via `scripts/check_docs_links.py`.
+- Automated check scripts (`check_task_pack.py`, `check_docs_links.py`, `scaffold_docs.py`) pass or produce JSON Schema compliant `--json` payloads for CI/CD pipelines.
 - Merge and high-risk operation rules require user confirmation.
 
 ## Task Pack Gate
@@ -89,23 +102,26 @@ A Task Pack is executable only if it includes:
 
 Required sections must contain concrete values rather than blank text, `...`, `TODO`, `TBD`, or angle-bracket placeholders. Interfaces, data constraints, and UI constraints may say "not applicable" only with a task-specific reason.
 
+`Allowed Files` must specify explicit subdirectories or file patterns (e.g. `src/auth/*.ts`, `src/export.py`). Overly broad wildcards (such as `*`, `**`, or `.`) are strictly rejected.
+
 ## Test Quality Gate
 
 Good tests:
 
 - Cover acceptance criteria.
 - Assert behavior, state, output, or side effects.
-- Include failure paths or edge cases where relevant.
+- Include failure paths, edge cases, and boundary conditions for modified logic.
 - Avoid mocking the core behavior being tested.
 - Can run reliably in local or CI environments.
 
-Weak or invalid tests:
+Weak or invalid tests (Strictly Rejected Anti-Patterns):
 
-- `assert(true)` or equivalent.
-- Only checks HTTP 200 without content or state.
-- Checks only non-null output when exact behavior matters.
-- Mocks away the business logic under test.
-- Does not verify permission, error, or boundary behavior for risky flows.
+- Empty test functions or tests without assertions (e.g., `def test_foo(): pass`).
+- `assert True`, `assertTrue(True)`, or `expect(true).toBe(true)`.
+- HTTP status checks (e.g., checking status code 200) without verifying payload, state, or contract facts.
+- Checking only non-null/truthy output when exact field values or behavior matter.
+- Mocks that replace the actual unit/component under test instead of its dependencies.
+- Omitting boundary, permission, or error path test coverage for changed logic.
 
 ## Validation Levels
 

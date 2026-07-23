@@ -28,16 +28,18 @@ Authorization:
 - Commit changes: yes/no
 - Create draft PR: yes/no
 
-Use authorization already established by the conversation or environment. Ask only for missing choices that change direction or permit external or high-risk actions.
-
 First:
-1. Capture the product idea and requirements.
-2. Choose quick, standard, or strict mode.
-3. Separate must-confirm questions from reasonable assumptions.
-4. Recommend the docs source-of-truth structure.
-5. Draft the phase plan and task breakdown.
+1. Output the first response block as `## CoT Intake Reflection` containing:
+   - Missing Facts
+   - Codebase Conflicts
+   - Feasibility Bottlenecks
+2. Ask clarifying questions for missing inputs; do not generate final specs immediately.
+3. Once sufficient information is gathered and feasibility is verified, automatically trigger initialization (`scaffold_docs.py --auto-detect`) to create AGENTS.md and docs source of truth.
+4. Choose quick, standard, or strict mode.
+5. Draft the phase plan and task breakdown with narrow Allowed Files scoping.
 6. Explain whether subagents are useful.
 ```
+
 
 ## Existing Repository Intake
 
@@ -50,7 +52,14 @@ Goal:
 Constraints:
 <<<constraints>>>
 
-Please scan README, docs, AGENTS.md, package/build/test config, tests, CI, architecture entry points, and git status before proposing changes. Then output workflow mode, risks, docs updates needed, test strategy, branch strategy, and the first Task Pack.
+Please scan README, docs, AGENTS.md, package/build/test config, tests, CI, architecture entry points, and git status before proposing changes.
+
+First:
+1. Output the initial response block as `## CoT Intake Reflection` containing:
+   - Missing Facts
+   - Codebase Conflicts
+   - Feasibility Bottlenecks
+2. Output workflow mode, risks, docs updates needed, test strategy, branch strategy, and the first Task Pack with narrow Allowed Files scoping.
 ```
 
 ## Formal Solution

@@ -9,13 +9,14 @@ Skill 名称：`codex-doc-first-development`
 
 它覆盖：
 
-1. 从 0 捕获项目想法。
-2. 判断快速档、标准档、严格档。
-3. 生成产品、需求、架构、阶段计划、Task Pack。
-4. 规划 Codex 子智能体并行协作。
-5. 管理分支、文件所有权、锁协议和 Git 冲突。
-6. 执行 TDD、测试质量审查、本地验证、CI/PR 验收。
-7. 进行文档回写、合并准备和阶段归档。
+1. 从 0 捕获项目想法并进行强制反思质疑与可行性评估。
+2. 在信息澄清充分后，由 Agent 自动触发初始化（创建 AGENTS.md 与 docs 事实源）。
+3. 判断快速档、标准档、严格档。
+4. 生成产品、需求、架构、阶段计划、Task Pack。
+5. 规划 Codex 子智能体并行协作。
+6. 管理分支、文件所有权、锁协议和 Git 冲突。
+7. 执行 TDD、测试质量审查、本地验证、CI/PR 验收。
+8. 进行文档回写、合并准备和阶段归档。
 
 ## 2. 当前仓库内容
 
@@ -38,6 +39,7 @@ codex-doc-first-development/
   scripts/
     scaffold_docs.py
     check_task_pack.py
+    check_docs_links.py
 ```
 
 `SKILL.md` 是 Codex 触发后首先读取的核心工作流。
@@ -69,28 +71,10 @@ https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc
 
 Codex Agent 应使用 `skill-installer` 的 GitHub 安装脚本，把 skill 安装到 `$CODEX_HOME/skills`；如果未设置 `CODEX_HOME`，则安装到 `~/.codex/skills`。
 
-如果已经安装 `skill-installer`，其内部安装命令应等价于下列形式；这不是本仓库自带脚本：
-
-```bash
-scripts/install-skill-from-github.py --url https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-development
-```
-
-如果安装后当前客户端没有立即发现 Skill，Codex 应提醒重启或刷新：
-
-```text
-Restart Codex to pick up new skills.
-```
-
 重启或刷新后即可使用：
 
 ```text
-Use $codex-doc-first-development to turn my software idea into a Codex-ready engineering plan.
-```
-
-中文：
-
-```text
-使用 $codex-doc-first-development，从这个项目想法开始，帮我生成需求、docs 事实源、阶段计划、Task Pack、验证门禁和归档流程：
+使用 $codex-doc-first-development，从这个项目想法开始，帮我进行反思质疑、自动初始化 docs 事实源、阶段计划、Task Pack 与验证门禁：
 <<<粘贴项目想法>>>
 ```
 
@@ -108,7 +92,7 @@ Copy-Item `
 
 手动复制后同样需要重启 Codex。
 
-## 6. 基础调用
+## 6. 基础调用与自动初始化流程
 
 从 0 开始：
 
@@ -123,12 +107,23 @@ Copy-Item `
 - 允许创建 Git 分支：是/否
 - 允许创建子智能体：是/否
 - 允许使用 GitHub/PR/CI：是/否
-- 允许安装依赖或联网：是/否
-- 允许提交 commit：是/否
-- 允许创建 draft PR：是/否
 
-请先输出项目理解、流程档位、必须确认问题、可默认假设、docs 结构建议、阶段计划草案。
+请先对我的想法进行反思质疑（分析缺失信息、代码库冲突与可行性瓶颈），在信息澄清充分后，自动触发初始化并生成 AGENTS.md 与 docs 结构。
 ```
+
+## 6.1 需求反思、可行性排查与 Agent 自动初始化
+
+为了避免 AI Agent 在需求不明确时盲目生成大量无效文档或错误代码，本 Skill 引入了**强制反思**与**自动初始化**机制：
+
+1. **第 1 步：强制反思（CoT Intake Reflection）**：
+   Agent 收到需求想法后，第一个输出 Block 必须为 `## CoT Intake Reflection`，明确包含：
+   - **Missing Facts（缺失事实）**：有哪些边界条件或业务规则未交代？
+   - **Codebase Conflicts（代码库冲突）**：与现有代码库框架、接口、模式是否存在冲突？
+   - **Feasibility Bottlenecks（技术可行性瓶颈）**：在当前约束下，项目目标是否具备技术可行性？
+2. **第 2 步：交互澄清与可行性确认**：
+   Agent 向用户列出必须澄清的问题与可行性评估结论，协助用户补充必要事实。
+3. **第 3 步：信息充分后 Agent 自动初始化**：
+   当收集到足够信息且确认可行后，Agent **自动执行初始化动作**（调用 `scaffold_docs.py --auto-detect`），自动扫描根目录及子目录中的复合技术栈与 Monorepo 配置文件（支持 Makefile, Dockerfile, pnpm-workspace.yaml, go.work, Cargo.toml, CMakeLists.txt 等），自动生成预填构建命令的 `AGENTS.md` 和 `docs/` 事实源结构，无需用户手动输入 `/init`。
 
 已有项目功能：
 
@@ -171,18 +166,18 @@ Bug 修复：
 
 适用于新项目、架构变更、安全、支付、数据迁移、多 Agent 并发、发布链路。需要完整 docs、评审、TDD、CI/PR、阶段归档。
 
-## 8. docs 脚手架生成
+## 8. docs 脚手架生成与 Monorepo / 复合技术栈感知
 
-安装后或在 Skill 目录中，可以使用：
+安装后或在 Skill 目录中，可以使用自动技术栈感知。探针已升级，支持递归扫描根目录及子目录中的 `Makefile` (`make test`), `Dockerfile` / `docker-compose.yml`, `pnpm-workspace.yaml` (`pnpm -r test`), `go.work`, `Cargo.toml` (workspace), `CMakeLists.txt` (`ctest`) 等：
 
 ```powershell
-python scripts/scaffold_docs.py --root "C:\path\to\project" --mode standard --phase 001
+python scripts/scaffold_docs.py --root "C:\path\to\project" --mode standard --phase 001 --auto-detect
 ```
 
 严格档：
 
 ```powershell
-python scripts/scaffold_docs.py --root "C:\path\to\project" --mode strict --phase 001
+python scripts/scaffold_docs.py --root "C:\path\to\project" --mode strict --phase 001 --auto-detect
 ```
 
 严格档默认只生成核心文档、锁登记和质量门禁。仅在确有相关事实时选择可选文档，并可先预览：
@@ -197,86 +192,25 @@ python scripts/scaffold_docs.py --root "C:\path\to\project" --mode strict --phas
 python scripts/scaffold_docs.py --root "C:\path\to\project" --mode standard --phase 001 --overwrite
 ```
 
-默认不会覆盖已有文件。
+## 9. Task Pack 授权范围与防虚假测试硬门禁
 
-## 9. Task Pack 检查
+1. **Allowed Files 授权细粒度管控**：
+   Task Pack 中的 `Allowed Files` 严禁使用全盘通配符（如 `*`、`**`、`.`）。`scripts/check_task_pack.py` 将会自动拦截过宽授权，强制要求 Agent 列出具体子目录或文件名规则（如 `src/auth/*.ts`）。
+2. **防虚假测试与断言质量审计**：
+   Test Quality Gate 严格拦截假测试反面模式（如 `assert True`、无断言空测试、纯 HTTP 200 无 payload 断言、过度 Mock 核心逻辑等），强制要求变动逻辑必须覆盖边缘情况与异常路径。
 
-检查一个 Task Pack：
+## 10. 静态死链检查器与 CI/CD 结构化 Output 契约
 
-```powershell
-python scripts/check_task_pack.py "C:\path\to\project\docs\delivery\tasks\TASK-001.md"
-```
+1. **文档相对链接与锚点静态检查器 (`scripts/check_docs_links.py`)**：
+   用于自动化解析 Markdown 文档中的相对文件路径 (`[text](relative/path.md)`) 与标题锚点 (`#anchor-name` / `file.md#anchor-name`)，无需启动 HTTP 服务即可进行静态死链阻断：
+   ```powershell
+   python scripts/check_docs_links.py "C:\path\to\project\docs"
+   ```
 
-它会检查：
-
-1. 是否有 `TASK-*` 标题。
-2. 是否引用 `REQ-*`。
-3. 是否包含 Status、Objective、Allowed Files、Forbidden Files、Test Requirements、Acceptance Criteria 等关键章节。
-4. Interfaces、Data、UI、Allowed/Forbidden Files 等执行边界是否存在。
-5. 必填章节是否为空或仍包含 `...`、`TODO`、`TBD`、尖括号占位符。
-6. 重复标题、任务文件名与标题 ID 是否冲突。
-
-脚手架生成的 Task Pack 有意保留待填写占位符，因此在补全前应当检查失败。
-
-## 10. 多 Agent 使用
-
-只有你明确授权时，Codex 才应该创建子智能体。
-
-授权提示：
-
-```text
-我允许你使用子智能体并行开发。
-只允许为互不重叠的任务创建 worker。
-explorer 只读调查。
-主控 Codex 负责复核、集成、测试和最终验收。
-```
-
-适合多 Agent：
-
-1. 多模块互不重叠。
-2. 一个 Agent 做只读探索，另一个做实现。
-3. 测试补充和功能实现可以分离。
-4. 文档整理和代码实现可以并行。
-
-不适合多 Agent：
-
-1. 需求未清楚。
-2. 写入范围重叠。
-3. 共享接口还没设计。
-4. 主控无法可靠复核。
-
-## 11. 高风险操作
-
-Codex 必须先征求确认：
-
-1. 合并到主分支。
-2. push 到远程主分支。
-3. force push。
-4. 删除分支或文件。
-5. 重置 Git 历史。
-6. 发布生产版本。
-7. 使用真实密钥、生产数据库或付费外部服务。
-
-## 12. 标准输出状态
-
-`PASS`：满足验收标准，验证证据充分。
-
-`REQUEST_CHANGES`：存在明确可修复问题。
-
-`BLOCKED`：需求、环境、权限、CI、冲突或风险导致无法可靠继续。
-
-## 13. 能力边界
-
-这个 Skill 提供工作流指令、参考材料、脚手架和 Task Pack 校验器。它不会自行提供后台 Agent 调度器、持久锁或死锁检测服务、CI 平台、GitHub 权限、密钥、自动合并或生产发布能力。Agent 必须使用当前环境真实可用且已授权的工具，并区分“计划执行”“本地已执行”“隔离环境已执行”和“外部 CI 已执行”。
-
-如果本地工作区存在被 `.gitignore` 排除的两份长篇中文方法论，它们仅是设计来源，不是安装包内容；运行时事实源是 `codex-doc-first-development/SKILL.md` 及其直接引用。
-
-## 14. 最佳实践
-
-1. 新项目默认严格档。
-2. 普通功能默认标准档。
-3. 高风险改动自动升级严格档。
-4. 不要为小任务制造文档负担。
-5. 不要让 worker 在没有 Task Pack 的情况下写代码。
-6. 不要把 Agent 自报测试通过当作唯一验收证据。
-7. 阶段结束必须归档，降低下一阶段冷启动成本。
+2. **结构化 JSON Output 与 CI/CD 流水线无缝集成 (`--json`)**：
+   所有检查与脚手架工具脚本 (`check_task_pack.py` / `check_docs_links.py` / `scaffold_docs.py`) 均内置 `--json` 选项，可直接输出符合 JSON Schema 契约的机器可读 Payload，便于无缝集成至 GitHub Actions 或 GitLab CI 流水线：
+   ```powershell
+   python scripts/check_task_pack.py "docs/delivery/tasks/TASK-001.md" --json
+   python scripts/check_docs_links.py "docs" --json
+   python scripts/scaffold_docs.py --root "." --mode standard --auto-detect --json
+   ```
