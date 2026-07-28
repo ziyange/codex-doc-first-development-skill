@@ -50,7 +50,7 @@ Main agent SKILL.md handles non-Exit-0 CLI outputs by **strictly looking up the 
 | `exit_code` | `runtime_event_reason` | Scenario Description | Main-Agent SKILL.md Dispatch Action |
 |:---:|:---:|---|---|
 | `0` | `null` | AuditLog, Trace, and Merkle chain fully valid | **Pass**: Proceed with current iteration execution. |
-| `1` | `null` | Iteration limit exceeded ($k > \text{MAX\_ITERATIONS}$) | **Circuit-Break Halt**: Terminate autonomous self-healing, report `BLOCKED`. |
+| `1` | `null` | Iteration limit exceeded (`k > MAX_ITERATIONS`) | **Circuit-Break Halt**: Terminate autonomous self-healing, report `BLOCKED`. |
 | `2` | `"EXPANSION_LIMIT_EXCEEDED"` | Expansion count exceeded limit (max 2) | **Fuse & Downgrade**: Force downgrade Goal mode to Plan mode. |
 | `2` | `null` | File edit out of whitelist boundary | **Issue Expansion**: Parse `offending_files`, request user expansion approval. |
 | `3` | `null` | Schema missing, file corrupt, or parse failure | **Fail-Close**: Halt immediately, prompt user to repair environment. |

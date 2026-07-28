@@ -16,7 +16,7 @@ This document contains 6 core domain pain-point cards. During `CoT Intake Reflec
 
 - **Binary Feature Hits**: Mandatory keywords and pattern context rules count as binary (0 or 1) hits.
 - **Weighted Formula**:
-  $$S(C) = \frac{2.0 \times N_{\text{mandatory\_hits}} + 1.0 \times N_{\text{pattern\_hits}}}{2.0 \times N_{\text{mandatory\_total}} + 1.0 \times N_{\text{pattern\_total}}}$$
+  $$S(C) = \frac{2.0 \times N_{\text{mandatory-hits}} + 1.0 \times N_{\text{pattern-hits}}}{2.0 \times N_{\text{mandatory-total}} + 1.0 \times N_{\text{pattern-total}}}$$
 - **Thresholds**:
   - $S(C) \ge 0.8$: High confidence match. Trigger targeted inspection checklist.
   - $0.5 \le S(C) < 0.8$: Mid confidence. Require `user_confirmed: true` in Task Pack.
