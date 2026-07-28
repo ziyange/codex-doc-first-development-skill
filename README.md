@@ -40,79 +40,94 @@
 
 ```mermaid
 flowchart TD
-    classDef startEnd fill:#1f2937,stroke:#6b7280,stroke-width:2px,color:#fff
-    classDef process fill:#1e3a8a,stroke:#3b82f6,stroke-width:1px,color:#fff
-    classDef decision fill:#581c87,stroke:#a855f7,stroke-width:2px,color:#fff
-    classDef exitPass fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#fff
-    classDef exitFail fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#fff
-    classDef exitWarn fill:#78350f,stroke:#f59e0b,stroke-width:2px,color:#fff
+    S0["S0: 启动与权限握手 (Startup & Handshake)"]
+    S0_Handshake["建立安全基线并选择模式 (Goal / Plan / Build)"]
+    S1_Intake["S1: 需求捕获与 CoT 难点反思"]
+    S1_CardMatch{"计算难点卡置信度 S(C)"}
+    S1_HighConf["高置信度: 强行加载领域排查清单"]
+    S1_MidConf["中置信度: 需用户显式确认"]
+    S1_NoMatch["无命中: 执行标准 CoT 反思"]
+    S2_Scan["S2: 项目上下文扫描 (scaffold_docs.py)"]
+    S3_Draft["S3 - S5: 正式方案与架构设计"]
+    S6_Docs["S6 - S8: 建立文档事实源 (AGENTS.md, README.md)"]
+    S7_CheckLinks{"check_docs_links.py 链接校验"}
+    S9_Phase["S9 - S10: 阶段计划与 Task Pack 拆解"]
+    S10_CheckTask{"check_task_pack.py Task Pack 门禁"}
+    S11_Strat["S11 - S12: 执行策略与互斥锁配置 (.log.lock)"]
+    S13_Exec["S13: 代码修改与事务写入 (两阶段提交)"]
+    S13_AuditLog["写入 AuditLog (PENDING) 并计算 Merkle 链"]
+    S13_WriteLock{"互斥锁内写入物理文件"}
+    S13_CleanLock["清理文件并翻转 AuditLog 为 ABORTED"]
+    S13_Commit["AuditLog 翻转 COMMITTED, 写入 execution-trace.json"]
+    S14_TestQuality["S14: 单元测试质量审查 (拒绝假测试)"]
+    S15_TraceVerify["S15: 物理门禁校验 (verify_runtime_trace.py --json)"]
+    ExitBranch{"解析退出码 Exit Code (0 - 6)"}
+    S16_Acceptance["S16: 主控验收通过 (PASS)"]
+    Exit1_Halt["熔断终止: 轮次超过 MAX_ITERATIONS -> 标记 BLOCKED"]
+    Exit2_Check{"检查 runtime_event_reason"}
+    Exit2_Fuse["扩界超过 2 次: 强行将 Goal 模式降级为 Plan 模式"]
+    Exit2_Expand["解析 offending_files, 发起单次扩界申请"]
+    Exit3_Halt["Fail-Close: Schema 缺失或日志损坏 -> 强行终止"]
+    Exit4_Check{"检查 (4, runtime_event_reason)"}
+    Exit4_Retry["安全作废: 提示已安全作废, 允许重新尝试"]
+    Exit4_ParseReason{"解析 reason_details 字典"}
+    Exit4_Pending["提示重试动作或翻转为 ABORTED"]
+    Exit4_MissingTrace["仅补写 Result 凭证, 严格禁止重试代码写入!"]
+    Exit5_Halt["安全警报 (短路): Merkle 链断链或 Hash 篡改 -> 强行终止!"]
+    Exit6_Halt["数据审计 (短路): PENDING/ABORTED 带有 Result -> 强行终止!"]
+    S17_Git["S17 - S19: Git 冲突处理与阶段集成验收"]
+    S20_DFX["S20: 文档写回与 DFX 知识库沉淀 (写回 pain-points.md)"]
+    S21_PR["S21: 合并 / PR / 发布准备 (需人工显式确认)"]
+    S22_Archive["S22: 阶段归档 (docs/archive/)"]
 
-    S0["S0: 启动与权限握手 (Startup & Handshake)"] :::startEnd
-    S0 --> S0_Handshake["建立安全基线并选择模式 (Goal / Plan / Build)"] :::process
-    S0_Handshake --> S1_Intake["S1: 需求捕获与 CoT 难点反思"] :::process
-    
-    S1_Intake --> S1_CardMatch{"计算难点卡置信度 S(C)"} :::decision
-    S1_CardMatch -- "S(C) >= 0.8" --> S1_HighConf["高置信度: 强行加载领域排查清单"] :::process
-    S1_CardMatch -- "0.5 <= S(C) < 0.8" --> S1_MidConf["中置信度: 需用户显式确认"] :::process
-    S1_CardMatch -- "S(C) < 0.5" --> S1_NoMatch["无命中: 执行标准 CoT 反思"] :::process
-    
-    S1_HighConf --> S2_Scan["S2: 项目上下文扫描 (scaffold_docs.py)"] :::process
+    S0 --> S0_Handshake
+    S0_Handshake --> S1_Intake
+    S1_Intake --> S1_CardMatch
+    S1_CardMatch -- "S(C) >= 0.8" --> S1_HighConf
+    S1_CardMatch -- "0.5 <= S(C) < 0.8" --> S1_MidConf
+    S1_CardMatch -- "S(C) < 0.5" --> S1_NoMatch
+    S1_HighConf --> S2_Scan
     S1_MidConf --> S2_Scan
     S1_NoMatch --> S2_Scan
-
-    S2_Scan --> S3_Draft["S3 - S5: 正式方案与架构设计"] :::process
-    S3_Draft --> S6_Docs["S6 - S8: 建立文档事实源 (AGENTS.md, README.md)"] :::process
-    S6_Docs --> S7_CheckLinks{"check_docs_links.py 链接校验"} :::decision
+    S2_Scan --> S3_Draft
+    S3_Draft --> S6_Docs
+    S6_Docs --> S7_CheckLinks
     S7_CheckLinks -- "存在坏链/坏锚点" --> S6_Docs
-    S7_CheckLinks -- "校验通过" --> S9_Phase["S9 - S10: 阶段计划与 Task Pack 拆解"] :::process
-
-    S9_Phase --> S10_CheckTask{"check_task_pack.py Task Pack 门禁"} :::decision
+    S7_CheckLinks -- "校验通过" --> S9_Phase
+    S9_Phase --> S10_CheckTask
     S10_CheckTask -- "包含通配符或轮次超限" --> S9_Phase
-    S10_CheckTask -- "校验通过" --> S11_Strat["S11 - S12: 执行策略与互斥锁配置 (.log.lock)"] :::process
-
-    S11_Strat --> S13_Exec["S13: 代码修改与事务写入 (两阶段提交)"] :::process
-    S13_Exec --> S13_AuditLog["写入 AuditLog (PENDING) 并计算 Merkle 链"] :::process
-    
-    S13_AuditLog --> S13_WriteLock{"互斥锁内写入物理文件"} :::decision
-    S13_WriteLock -- "写入异常 (如磁盘满/中断)" --> S13_CleanLock["清理文件并翻转 AuditLog 为 ABORTED"] :::process
+    S10_CheckTask -- "校验通过" --> S11_Strat
+    S11_Strat --> S13_Exec
+    S13_Exec --> S13_AuditLog
+    S13_AuditLog --> S13_WriteLock
+    S13_WriteLock -- "写入异常 (如磁盘满/中断)" --> S13_CleanLock
     S13_CleanLock --> S15_TraceVerify
-    
-    S13_WriteLock -- "写入成功" --> S13_Commit["AuditLog 翻转 COMMITTED, 写入 execution-trace.json"] :::process
-    S13_Commit --> S14_TestQuality["S14: 单元测试质量审查 (拒绝假测试)"] :::process
-
-    S14_TestQuality --> S15_TraceVerify["S15: 物理门禁校验 (verify_runtime_trace.py --json)"] :::process
-    
-    S15_TraceVerify --> ExitBranch{"解析退出码 Exit Code (0 - 6)"} :::decision
-
-    ExitBranch -- "Exit 0: SUCCESS" --> S16_Acceptance["S16: 主控验收通过 (PASS)"] :::exitPass
-    
-    ExitBranch -- "Exit 1: ITERATION_EXCEEDED" --> Exit1_Halt["熔断终止: 轮次超过 MAX_ITERATIONS -> 标记 BLOCKED"] :::exitFail
-    
-    ExitBranch -- "Exit 2: OFF_BOUNDARY_VIOLATION" --> Exit2_Check{"检查 runtime_event_reason"} :::decision
-    Exit2_Check -- "EXPANSION_LIMIT_EXCEEDED" --> Exit2_Fuse["扩界超过 2 次: 强行将 Goal 模式降级为 Plan 模式"] :::exitWarn
-    Exit2_Check -- "null (普通文件越界)" --> Exit2_Expand["解析 offending_files, 发起单次扩界申请"] :::exitWarn
+    S13_WriteLock -- "写入成功" --> S13_Commit
+    S13_Commit --> S14_TestQuality
+    S14_TestQuality --> S15_TraceVerify
+    S15_TraceVerify --> ExitBranch
+    ExitBranch -- "Exit 0: SUCCESS" --> S16_Acceptance
+    ExitBranch -- "Exit 1: ITERATION_EXCEEDED" --> Exit1_Halt
+    ExitBranch -- "Exit 2: OFF_BOUNDARY_VIOLATION" --> Exit2_Check
+    Exit2_Check -- "EXPANSION_LIMIT_EXCEEDED" --> Exit2_Fuse
+    Exit2_Check -- "null (普通文件越界)" --> Exit2_Expand
     Exit2_Fuse --> S9_Phase
     Exit2_Expand --> S9_Phase
-
-    ExitBranch -- "Exit 3: SCHEMA_OR_PARSE_FAILURE" --> Exit3_Halt["Fail-Close: Schema 缺失或日志损坏 -> 强行终止"] :::exitFail
-    
-    ExitBranch -- "Exit 4: UNCOMMITTED_TRANSACTION" --> Exit4_Check{"检查 (4, runtime_event_reason)"} :::decision
-    Exit4_Check -- "SAFELY_ABORTED_OPERATION" --> Exit4_Retry["安全作废: 提示已安全作废, 允许重新尝试动作"] :::exitWarn
-    Exit4_Check -- "null (静态链节点缺漏)" --> Exit4_ParseReason{"解析 reason_details 字典"} :::decision
-    Exit4_ParseReason -- "UNCOMMITTED_PENDING" --> Exit4_Pending["提示重试动作或翻转为 ABORTED"] :::exitWarn
-    Exit4_ParseReason -- "COMMITTED_RESULT_MISSING" --> Exit4_MissingTrace["仅补写 Result 凭证, 严格禁止重试代码写入!"] :::exitWarn
+    ExitBranch -- "Exit 3: SCHEMA_OR_PARSE_FAILURE" --> Exit3_Halt
+    ExitBranch -- "Exit 4: UNCOMMITTED_TRANSACTION" --> Exit4_Check
+    Exit4_Check -- "SAFELY_ABORTED_OPERATION" --> Exit4_Retry
+    Exit4_Check -- "null (静态链节点缺漏)" --> Exit4_ParseReason
+    Exit4_ParseReason -- "UNCOMMITTED_PENDING" --> Exit4_Pending
+    Exit4_ParseReason -- "COMMITTED_RESULT_MISSING" --> Exit4_MissingTrace
     Exit4_Retry --> S13_Exec
     Exit4_Pending --> S13_Exec
     Exit4_MissingTrace --> S13_Commit
-
-    ExitBranch -- "Exit 5: TAMPER_OR_HASH_MISMATCH" --> Exit5_Halt["安全警报 (短路): Merkle 链断链或 Hash 篡改 -> 强行终止!"] :::exitFail
-    
-    ExitBranch -- "Exit 6: ILLEGAL_TRANSACTION_STATE" --> Exit6_Halt["数据审计 (短路): PENDING/ABORTED 带有 Result -> 强行终止!"] :::exitFail
-
-    S16_Acceptance --> S17_Git["S17 - S19: Git 冲突处理与阶段集成验收"] :::process
-    S17_Git --> S20_DFX["S20: 文档写回与 DFX 知识库沉淀 (写回 pain-points.md)"] :::process
-    S20_DFX --> S21_PR["S21: 合并 / PR / 发布准备 (需人工显式确认)"] :::process
-    S21_PR --> S22_Archive["S22: 阶段归档 (docs/archive/)"] :::startEnd
+    ExitBranch -- "Exit 5: TAMPER_OR_HASH_MISMATCH" --> Exit5_Halt
+    ExitBranch -- "Exit 6: ILLEGAL_TRANSACTION_STATE" --> Exit6_Halt
+    S16_Acceptance --> S17_Git
+    S17_Git --> S20_DFX
+    S20_DFX --> S21_PR
+    S21_PR --> S22_Archive
 ```
 
 ---
