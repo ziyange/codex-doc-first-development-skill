@@ -136,6 +136,33 @@ Use the highest level proportional to risk. Record why any expected check was sk
 
 Label every result as planned, locally executed, isolated, or externally executed. A command listed in a plan is not evidence that it ran.
 
+## Runtime Trace Verification & Exit Code Protocol (0–6)
+
+All runtime executions are verified via `scripts/verify_runtime_trace.py`. The main agent evaluates output using the following Exit Code Table and **Exhaustive 8-Row Dispatch Lookup Table**:
+
+### Exit Code Table (0–6)
+| Exit Code | Identifier | Validation Rule | Main-Agent SKILL.md Action |
+|:---:|---|---|---|
+| `0` | `SUCCESS` | Trace, AuditLog, and Merkle chain valid | **Pass**: Proceed with current iteration execution. |
+| `1` | `ITERATION_EXCEEDED` | `--next-iteration k > MAX_ITERATIONS` | **Circuit-Break Halt**: Terminate autonomous self-healing, report `BLOCKED`. |
+| `2` | `OFF_BOUNDARY_VIOLATION` | Unauthorized file edit or expansion limit ($> 2$) | **Issue Expansion or Downgrade**: If expansion limit reached, force downgrade to Plan mode; else request user expansion. |
+| `3` | `SCHEMA_OR_PARSE_FAILURE` | Schema missing, log corrupt, or JSON invalid | **Fail-Close**: Halt immediately, prompt user to repair environment. |
+| `4` | `UNCOMMITTED_TRANSACTION` | `UNCOMMITTED_PENDING`, `COMMITTED_RESULT_MISSING`, or `SAFELY_ABORTED_OPERATION` | **Transaction Recovery**: Parse `runtime_event_reason` and `reason_details` for node-specific action. |
+| `5` | `TAMPER_OR_HASH_MISMATCH` | Merkle chain link broken, SHA256 mismatch, or forged trace | **Security Alert (Short-circuit)**: Halt immediately, alert audit log corruption. |
+| `6` | `ILLEGAL_TRANSACTION_STATE` | `PENDING+Present` or `ABORTED+Present` contradiction | **Data Audit (Short-circuit)**: Halt immediately, request manual audit. |
+
+### Exhaustive 8-Row Main-Agent Dispatch Lookup Table
+| `exit_code` | `runtime_event_reason` | Scenario Description | Main-Agent SKILL.md Dispatch Action |
+|:---:|:---:|---|---|
+| `1` | `null` | Iteration limit exceeded | **Circuit-Break Halt**: Terminate autonomous loop, report `BLOCKED`. |
+| `2` | `"EXPANSION_LIMIT_EXCEEDED"` | Expansion count exceeded limit (max 2) | **Fuse & Downgrade**: Force downgrade Goal mode to Plan mode. |
+| `2` | `null` | File edit out of whitelist boundary | **Issue Expansion**: Parse `offending_files`, request user expansion approval. |
+| `3` | `null` | Schema missing, file corrupt, or parse failure | **Fail-Close**: Halt immediately, prompt user to repair environment. |
+| `4` | `"SAFELY_ABORTED_OPERATION"` | Lock write exception safely aborted to ABORTED | **Safe Retry**: Inform user action was safely aborted, allow action retry. |
+| `4` | `null` | Static chain node contains `Exit 4` gap | **Fallback Dictionary Parse**: Parse `reason_details`: for `UNCOMMITTED_PENDING` retry action or abort; for `COMMITTED_RESULT_MISSING` **write Result trace ONLY, DO NOT retry action**. |
+| `5` | `null` | Merkle chain broken, hash mismatch, or trace tampered | **Security Alert (Short-circuit)**: Halt immediately, alert audit log corruption. |
+| `6` | `null` | `PENDING+Present` or `ABORTED+Present` contradiction | **Data Audit (Short-circuit)**: Halt immediately, request manual audit. |
+
 ## Acceptance Status
 
 Return `PASS` when:

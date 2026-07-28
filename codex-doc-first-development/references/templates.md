@@ -6,6 +6,8 @@ Use these templates when the active task needs concrete docs or engineering arti
 
 - [Directory Structures](#directory-structures)
 - [Core Project Documents](#agentsmd)
+- [Permission & Action Plan](#permission-action-plan)
+- [Pain-Point Card Template](#pain-point-card-template)
 - [Phase and Task Packs](#docsdeliveryphase-001md)
 - [Coordination and Verification](#locksyml)
 - [PR, Writeback, and Archive](#pr-body)
@@ -67,6 +69,47 @@ docs/
 ```
 
 Add `api.md`, `data-model.md`, `security.md`, `ux.md`, `operations.md`, or an ADR only when the project has applicable facts to record. Do not create placeholder-only optional documents.
+
+## Permission & Action Plan
+
+```markdown
+# Permission & Action Plan: [Task / Feature Title]
+
+## Summary of Action Intent
+- Action Type: [FILE_WRITE / FILE_DELETE / COMMAND_EXEC / MODE_SWITCH]
+- Target Paths: [explicit path list]
+- Reason: [business or technical rationale]
+
+## Autonomy & Scope Bounds
+- Autonomy Mode: [Goal Mode / Plan Mode / Build Mode]
+- MAX_ITERATIONS: [1 - 10]
+- Whitelist Patterns:
+  - `src/auth/*.ts`
+- Blacklist Patterns:
+  - `.git/*`
+  - `docs/delivery/.log.lock`
+  - `docs/delivery/permission-audit.log`
+
+## Execution Intent Pairing
+- Intent Hash: `SHA256(prev_hash + ":" + action_type + ":" + normalized_path + ":" + tx_id)`
+```
+
+## Pain-Point Card Template
+
+```json
+{
+  "card_id": "CARD_NAME",
+  "title": "Card Descriptive Title",
+  "category": "CONCURRENCY_RACE",
+  "trigger_rules": {
+    "mandatory_keywords": ["keyword1", "keyword2"],
+    "pattern_contexts": ["context1", "context2"]
+  },
+  "inspection_cmd": "python scripts/verify_runtime_trace.py --json",
+  "version": "1.0.0",
+  "last_validated": "2026-07-28"
+}
+```
 
 ## AGENTS.md
 

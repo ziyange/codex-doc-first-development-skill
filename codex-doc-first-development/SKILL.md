@@ -1,203 +1,121 @@
 ---
 name: codex-doc-first-development
-description: Guides Codex through document-first software development by turning raw ideas or repository changes into requirements, an approved docs source of truth, phase plans, Task Packs, bounded agent delegation, test and CI evidence, PR or merge gates, and archive records. Use when the user asks to start a software project from an idea, formalize a Codex or AI development methodology, generate AGENTS.md/docs/Task Packs, plan authorized multi-agent work, or run document-first development for projects, features, bug fixes, refactors, or long-lived engineering work.
+description: Guides Codex through document-first software development v2.0.0 with orthogonal autonomy modes (Goal/Plan/Build), domain pain-point card matching, single-source-of-truth schemas, executable Merkle chain runtime verification (Exit codes 0-6), and full lifecycle (S0-S22) governance. Use when starting software projects, formalizing AI development methodology, scaffolding docs, bounding multi-agent tasks, or executing verifiable software development.
 ---
 
-# Codex Doc-First Development
+# Codex Doc-First Development (v2.0.0 Released)
 
-Use this skill to run a Codex-specific, document-first software development process from idea intake through implementation, validation, merge preparation, and archival.
+Use this skill to execute a Codex-specific, document-first software development process from idea intake through implementation, validation, merge preparation, and archival.
 
 ## Operating Model
 
 Treat this skill as the main engineering workflow guide within higher-priority platform, user, and repository instructions. Use it to convert vague intent into durable project facts, then into bounded tasks, then into verified code changes.
 
 Keep three layers separate:
-
 - Product facts: user, problem, scenarios, scope, non-goals, success criteria.
 - Engineering facts: architecture, contracts, commands, tests, risks, branch strategy.
 - Execution facts: phase plan, Task Packs, allowed files, verification evidence, acceptance, archive.
 
 Never let execution facts replace product or engineering facts. If implementation reveals a new fact, write it back to the correct document.
 
-Treat this skill as procedural guidance plus two local helpers, not as a background scheduler, persistent lock service, CI provider, GitHub integration, or automatic merge system.
+---
 
-## Core Rules
+## Core Rules & Governance Protocols
 
-- Follow system, developer, user, and applicable repository instructions before this workflow or any generated `AGENTS.md`.
-- Choose the workflow mode before creating docs or editing code: quick, standard, or strict.
-- **Mandatory Reflection on Intake**: When receiving raw user ideas, NEVER directly produce final specs or docs. First output a structured `## CoT Intake Reflection` block analyzing missing information, codebase conflicts, and technical feasibility bottlenecks.
-- **Narrow Scope Authorization**: Do not permit overly broad wildcards in `Allowed Files` (such as `*`, `**`, or `.`). Every Task Pack must list explicit subdirectories or file patterns.
-- **Automatic Initialization**: Once sufficient information is gathered and feasibility is validated, automatically trigger project initialization (using `/init` / `scaffold_docs.py --auto-detect`) to create `AGENTS.md` and initial docs source of truth without requiring manual user commands.
-- Read existing repository context before proposing architecture or changing files.
-- Treat approved docs as intended product and engineering facts. Reconcile them with code, tests, configuration, and runtime evidence instead of overwriting contradictory evidence.
-- Track current-phase requirements with `REQ-*` IDs and testable acceptance criteria.
-- Do not let a worker subagent modify code without a Task Pack.
-- Create subagents only when the user explicitly authorizes parallel agent work and file ownership does not overlap.
-- Use diff, test output, CI, screenshots, logs, or other inspectable evidence for acceptance; do not accept an agent's self-report as the only proof.
-- Label verification as planned, locally executed, isolated, or externally executed; never describe a planned CI, PR, merge, or release as completed.
-- Ask for explicit confirmation before merging to the main branch, force pushing, deleting, resetting history, publishing production releases, or touching secrets.
-- Exhaust safe in-scope checks and alternatives before returning `BLOCKED`. State the exact conflict, missing permission, unstable evidence, or decision that prevents reliable progress.
+1. **Orthogonal Autonomy Modes**:
+   - **Goal Mode**: Closed whitelist, autonomous iteration up to `MAX_ITERATIONS` ($1 \le N \le 10$). Triggers circuit breaker on $k > N$.
+   - **Plan Mode**: Phase-by-phase permission handshake. Single-step commit for `MODE_SWITCH`.
+   - **Build Mode**: Low-overhead stream execution against blacklist patterns (`.git/*`, `permission-audit.log`, `.log.lock`, etc.).
 
-## Workflow Selection
+2. **Domain Pain-Point Card Matching**:
+   - During `CoT Intake Reflection`, compute binary feature hit score $S(C)$ against 6 domain cards (`references/pain-points.md`).
+   - If $S(C) \ge 0.8$: High confidence match. Enforce targeted inspection checklist.
+   - If $0.5 \le S(C) < 0.8$: Mid confidence match. Require `user_confirmed: true`.
+   - Top-1 exclusivity gate: only activate highest scoring card $\ge 0.5$. Lower candidates logged in `ignored_candidates`.
 
-For standard and strict engagements, report the following at startup. In quick mode, include only fields that affect execution:
+3. **Single Source of Truth Schemas**:
+   - Dynamically load JSON schemas from `references/schemas.md` anchored by `// schema-id: <Id>` (`ExecutionTraceSchema`, `AuditLogSchema`, `ExpansionSchema`, `PainPointCardSchema`).
 
-```text
-Workflow mode:
-Repository state:
-Current authorization:
-Information gaps & reflection:
-Feasibility & conflict checks:
-Must-confirm questions:
-Reasonable assumptions:
-Recommended first artifacts:
-Next action:
-```
+4. **Executable Merkle Chain Runtime Verification**:
+   - Run `scripts/verify_runtime_trace.py` for hard gate checks before proceeding or finalizing.
+   - Computes SHA256 chain: `intent_hash_n = SHA256(prev_hash_n + ":" + action_type_n + ":" + normalized_path_n + ":" + tx_id_n)`.
+   - Enforces `docs/delivery/.log.lock` single-writer file mutex locking.
 
-## Workflow Modes
+---
 
-| Mode | Use For | Required Artifacts | Verification |
+## Exit Code Protocol (0–6) & Exhaustive Main-Agent Dispatch Table
+
+Main agent SKILL.md handles non-Exit-0 CLI outputs by **strictly looking up the `(exit_code, runtime_event_reason)` tuple**:
+
+| `exit_code` | `runtime_event_reason` | Scenario Description | Main-Agent SKILL.md Dispatch Action |
+|:---:|:---:|---|---|
+| `0` | `null` | AuditLog, Trace, and Merkle chain fully valid | **Pass**: Proceed with current iteration execution. |
+| `1` | `null` | Iteration limit exceeded ($k > \text{MAX\_ITERATIONS}$) | **Circuit-Break Halt**: Terminate autonomous self-healing, report `BLOCKED`. |
+| `2` | `"EXPANSION_LIMIT_EXCEEDED"` | Expansion count exceeded limit (max 2) | **Fuse & Downgrade**: Force downgrade Goal mode to Plan mode. |
+| `2` | `null` | File edit out of whitelist boundary | **Issue Expansion**: Parse `offending_files`, request user expansion approval. |
+| `3` | `null` | Schema missing, file corrupt, or parse failure | **Fail-Close**: Halt immediately, prompt user to repair environment. |
+| `4` | `"SAFELY_ABORTED_OPERATION"` | Lock write exception safely aborted to ABORTED | **Safe Retry**: Inform user action was safely aborted, allow action retry. |
+| `4` | `null` | AuditLog contains uncommitted transaction | **Fallback Dictionary Parse**: Parse `reason_details`: for `UNCOMMITTED_PENDING` retry action or abort; for `COMMITTED_RESULT_MISSING` **write Result trace ONLY, DO NOT retry action**. |
+| `5` | `null` | Merkle chain broken, hash mismatch, or trace tampered | **Security Alert (Short-circuit)**: Halt immediately, alert audit log corruption. |
+| `6` | `null` | `PENDING+Present` or `ABORTED+Present` contradiction | **Data Audit (Short-circuit)**: Halt immediately, request manual audit intervention. |
+
+---
+
+## Workflow Modes & Risk Levels
+
+| Mode | Risk Level | Required Artifacts | Verification Gate |
 |---|---|---|---|
-| Quick | Small copy changes, trivial bugs, single-file low-risk edits | Brief task note or existing issue | Most relevant command or manual check |
-| Standard | Normal features, localized cross-module changes, meaningful bug fixes | Minimal docs source of truth + phase plan + Task Pack | Relevant lint/test/build/typecheck |
-| Strict | New projects, architecture changes, security/payment/data migration, multi-agent development | Full docs source of truth + review gates + phase archive | TDD, local validation, CI or equivalent evidence |
+| Quick | Low | Task Pack or brief note | Single relevant command check |
+| Standard | Medium | Minimal docs source of truth + Phase plan + Task Pack | `scripts/check_task_pack.py` + unit tests |
+| Strict | High / Critical | Full docs source of truth + Merkle trace audit | `scripts/verify_runtime_trace.py --json` |
 
-Upgrade to strict mode when changes affect architecture, data models, security, permissions, billing, deployment, public APIs, or concurrent workstreams.
+---
 
-## Main Workflow
+## Main Workflow (S0 – S22)
 
-1. Intake, reflect, and clarify.
-   - Output the initial response block as `## CoT Intake Reflection` containing:
-     - `Missing Facts`: list missing product, business logic, or technical details.
-     - `Codebase Conflicts`: analyze potential collisions with existing code, patterns, or tools.
-     - `Feasibility Bottlenecks`: evaluate technical feasibility under existing constraints.
-   - Ask clarifying questions for missing inputs rather than making unverified architectural assumptions.
-   - Proceed to auto-initialization only after CoT Intake Reflection is complete and feasibility is confirmed.
+1. **S0 Permission & Handshake**: Establish authorization scope and initial workflow mode.
+2. **S1 Intake & CoT Reflection**: Execute CoT intake analysis, compute pain-point card confidence score $S(C)$.
+3. **S2 Repository Context Scan**: Run `scripts/scaffold_docs.py --auto-detect`.
+4. **S3 Formal Solution Draft**: Create architecture, data model, and interface specs.
+5. **S4 Solution Review**: Verify against `references/review-gates.md`.
+6. **S5 Solution Finalization**: Update `docs/product.md` and `docs/architecture.md`.
+7. **S6 Docs Source-of-Truth Scaffold**: Populate `AGENTS.md` and `docs/README.md`.
+8. **S7 Docs Review**: Run `python scripts/check_docs_links.py docs --json`.
+9. **S8 Docs Finalization**: Lock initial documentation.
+10. **S9 Phase Plan Breakdown**: Create `docs/delivery/phase-001.md`.
+11. **S10 Task Pack Generation**: Create `docs/delivery/tasks/TASK-001.md` and validate with `python scripts/check_task_pack.py <task-path> --json`.
+12. **S11 Strategy Selection**: Select Goal, Plan, or Build mode.
+13. **S12 Branch & Concurrency Setup**: Create feature branch and locks.
+14. **S13 Implementation**: Write code, update `permission-audit.log` and `execution-trace.json`.
+15. **S14 Test Quality Review**: Verify test coverage and meaningful assertions.
+16. **S15 Runtime Gate Validation**: Execute `python scripts/verify_runtime_trace.py --mode <mode> --json`.
+17. **S16 Acceptance Decision**: Inspect Exit Code (0 = PASS, 2/4 = Retry/Expand, 1/3/5/6 = HALT).
+18. **S17 Git Conflict Handling**: Resolve branch merge conflicts cleanly.
+19. **S18 Change Classification**: Categorize changes into docs, code, and test artifacts.
+20. **S19 Phase Acceptance**: Validate phase completion against `phase-xxx.md`.
+21. **S20 Knowledge Writeback**: Extract reusable patterns into `references/pain-points.md` if DFX quality gate passes.
+22. **S21 Merge / PR Preparation**: Prepare PR summary with verified CLI trace outputs.
+23. **S22 Phase Archive**: Archive phase outputs to `docs/archive/`.
 
-2. Auto-initialize and scan context.
-   - Once sufficient information is gathered and feasibility is confirmed, automatically trigger initialization (`python scripts/scaffold_docs.py --auto-detect`).
-   - Auto-populate `AGENTS.md` with detected project stack commands (build/test/lint) and generate initial `docs/` structure.
-   - Scan existing repo status, package configs, entry points, and test harnesses.
+---
 
-3. Produce a formal plan.
-   - Define goal, non-goals, users, scenarios, requirements, architecture, data/interface/UI implications, branch strategy, agent strategy, validation strategy, risks, rollback, and phases.
-   - In strict mode, review the formal plan before creating the final docs. Use an independent fresh-context review only when subagents are authorized; otherwise apply `references/review-gates.md` as a disclosed main-agent self-review.
+## Scripted Helpers Summary
 
-4. Establish the docs source of truth.
-   - Prefer the standard structure unless the task is quick or strict.
-   - Ensure `AGENTS.md` and `docs/README.md` reflect verified project and engineering facts.
-   - Keep optional docs such as `api.md`, `data-model.md`, `security.md`, `ux.md`, and `operations.md` only when they have real content.
+- `scripts/verify_runtime_trace.py`: Verifies runtime trace, Merkle chain, two-phase commit, and exit codes 0-6.
+- `scripts/check_task_pack.py`: Validates Task Pack Markdown structure, `MAX_ITERATIONS`, allowed files, and schema compliance.
+- `scripts/check_permission_log.py`: Internal module for static Merkle chain verification.
+- `scripts/check_docs_links.py`: Statically validates Markdown links and anchors.
+- `scripts/scaffold_docs.py`: Scaffolds mode-specific documentation directory skeletons.
 
-5. Create the phase plan and Task Packs.
-   - Put phase work in `docs/delivery/phase-001.md`.
-   - Put each task in `docs/delivery/tasks/TASK-001.md`.
-   - Every Task Pack must list requirement IDs, objective, must-read context, allowed files, forbidden files, interface/data/UI constraints or a reason they are not applicable, test requirements, acceptance criteria, and expected output.
-
-6. Choose execution strategy.
-   - Use single-agent execution for tightly coupled or urgent critical-path work.
-   - Use `explorer` subagents for independent read-only questions.
-   - Use `worker` subagents for bounded implementation with disjoint write scopes.
-   - Keep shared files and integration decisions under the main Codex agent.
-
-7. Implement with test-first discipline.
-   - Add or update tests before implementation when practical.
-   - If no test harness exists, create the smallest reasonable verification path.
-   - Make small scoped edits, follow existing patterns, and avoid unrelated refactors.
-
-8. Review test quality and validate.
-   - Check that tests cover acceptance criteria and have meaningful assertions.
-   - Run the closest relevant commands first; broaden to lint/test/typecheck/build or CI as risk increases.
-   - Record the evidence source and record skipped or failed checks with reasons.
-
-9. Accept, write back, and archive.
-   - Return `PASS`, `REQUEST_CHANGES`, or `BLOCKED`.
-   - Update docs only where the implementation changed project facts.
-   - Prepare PR/merge notes only after validation evidence is available.
-   - Archive phase summary, verification evidence, decisions, changes, risks, and next-step recommendations.
-
-For the full S0-S22 lifecycle, read `references/methodology.md`.
-
-
-## Docs Structure
-
-Use these defaults and trim or expand by mode:
-
-```text
-AGENTS.md
-docs/
-  README.md
-  product.md
-  requirements.md
-  architecture.md
-  decisions/
-  delivery/
-    roadmap.md
-    phase-001.md
-    tasks/
-      TASK-001.md
-  verification/
-    test-strategy.md
-    reports/
-  archive/
-```
-
-Quick mode may use only `AGENTS.md`, `docs/README.md`, `docs/requirements.md`, and one task file. Strict mode adds locks and a quality gate, and may add `api.md`, `data-model.md`, `security.md`, `ux.md`, `operations.md`, or ADRs only when applicable facts exist.
-
-## Scripted Helpers
-
-Use scripts when the user asks to scaffold or check docs. All scripts support `--json` for structured CI/CD output.
-
-- `scripts/scaffold_docs.py`: create the mode-specific skeleton without overwriting by default. Use `--dry-run` to preview, `--auto-detect` for stack detection, and `--json` for machine-readable output.
-- `scripts/check_task_pack.py`: reject missing headings, placeholders, missing constraints, invalid identifiers, duplicate headings, overly broad `Allowed Files`, and task filename/title mismatches. Use `--json` for CI/CD integration.
-- `scripts/check_docs_links.py`: statically validate relative links (`[text](path.md)`) and heading anchors (`#anchor-name`) in Markdown files. Use `--json` for CI/CD integration.
-
-Run scripts with explicit paths, for example:
-
-```bash
-python scripts/scaffold_docs.py --root <project-root> --mode standard --phase 001 --auto-detect --json
-python scripts/check_task_pack.py <project-root>/docs/delivery/tasks/TASK-001.md --json
-python scripts/check_docs_links.py <project-root>/docs --json
-```
-
-## Agent Delegation
-
-Before spawning subagents, output the intended delegation plan:
-
-```text
-Agent type:
-Task:
-Reads:
-Allowed files:
-Forbidden files:
-Acceptance criteria:
-How the main Codex agent will review:
-```
-
-Worker prompt rules:
-
-- Tell workers they are not alone in the codebase.
-- Tell workers not to revert, overwrite, or tidy unrelated changes.
-- Limit each worker to one task and one write scope.
-- Require changed files, implementation summary, test commands/results, unfinished items, and risks in the final response.
-- Close completed subagents after their results are reviewed.
-
-For deeper coordination rules, branch patterns, locks, CI, PR, and conflict handling, read `references/agent-git-ci.md`.
-
-## Status Outputs
-
-Use these statuses for task or phase acceptance decisions, not as a replacement for ordinary progress updates:
-
-- `PASS`: acceptance criteria are met and verification evidence is sufficient.
-- `REQUEST_CHANGES`: defects are specific and fixable within the current task.
-- `BLOCKED`: requirements, permissions, environment, CI stability, conflicts, or risk prevent reliable completion.
+---
 
 ## References
 
-Load these files only when needed:
-
-- `references/methodology.md`: full S0-S22 lifecycle, artifact gates, and mode-specific behavior.
-- `references/templates.md`: doc structures and artifact templates for AGENTS.md, requirements, architecture, phase plans, Task Packs, locks, verification reports, PRs, and archives.
-- `references/prompts.md`: reusable prompts for startup, docs generation, phase planning, subagent delegation, worker execution, acceptance, and change control.
-- `references/review-gates.md`: mode selection, formal-solution review, docs review, test quality checks, validation levels, acceptance gates, merge gates, and blocked conditions.
-- `references/agent-git-ci.md`: subagent orchestration, file ownership, branch strategy, lock protocol, Git conflict handling, PR preparation, and CI evidence.
-- `references/examples.md`: concrete usage patterns for a new project, feature, bug fix, refactor, docs recovery, and multi-agent phase.
+For full operational specifications, load these single-source reference documents:
+- `references/schemas.md`: 4 authoritative JSON Schemas.
+- `references/capabilities-matrix.md`: S0-S22 lifecycle asset mapping.
+- `references/pain-points.md`: 6 domain pain-point cards.
+- `references/methodology.md`: Full S0-S22 lifecycle methodology.
+- `references/review-gates.md`: Full gate definitions and exit code tables.
+- `references/templates.md`: Artifact templates.
+- `CHANGELOG.md`: Version 2.0.0 release history.

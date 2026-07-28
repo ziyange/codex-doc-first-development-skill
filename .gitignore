@@ -2,3 +2,8 @@
 AI 文档优先软件开发方法论.md
 Codex 文档优先软件开发方法论.md
 .agents
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo

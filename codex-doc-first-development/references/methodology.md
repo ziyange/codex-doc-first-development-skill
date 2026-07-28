@@ -51,8 +51,8 @@ S22 Phase archive
 Capture:
 
 - Project or task name.
-- Existing repository or new project.
-- Allowed file modifications.
+- Autonomy Mode: Goal Mode (closed whitelist, max iterations), Plan Mode (phase-by-phase permission handshake), or Build Mode (stream execution).
+- Allowed file modifications (`Allowed Files`).
 - Branch creation permission.
 - Subagent permission.
 - GitHub / PR / CI permission.
@@ -66,7 +66,7 @@ Output:
 
 ```text
 Project / task:
-Workflow mode:
+Workflow mode: Goal / Plan / Build
 Authorization:
 Known restrictions:
 High-risk operations:
@@ -93,6 +93,9 @@ Turn natural language into structured product input through mandatory self-refle
 
 Mandatory Reflection & Feasibility Rules:
 - **Never produce final specs immediately**: Upon receiving raw ideas, the agent's first block output MUST be `## CoT Intake Reflection`, detailing Missing Facts, Codebase Conflicts, and Technical Feasibility Bottlenecks.
+- **Pain-Point Card Matching**: Match user input against 6 domain cards in `references/pain-points.md` using binary (0/1) feature hit score $S(C)$:
+  $$S(C) = \frac{2.0 \times N_{\text{mandatory\_hits}} + 1.0 \times N_{\text{pattern\_hits}}}{2.0 \times N_{\text{mandatory\_total}} + 1.0 \times N_{\text{pattern\_total}}}$$
+  Top-1 exclusivity applies for $S(C) \ge 0.5$.
 - **Feasibility Verification**: Confirm that the requested feature can be realistically built under existing project constraints before writing formal architecture or docs.
 
 Capture:

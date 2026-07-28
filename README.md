@@ -1,47 +1,183 @@
-# Codex Doc-First Development Skill
+# Codex Doc-First Development Skill (v2.0.0 正式版)
 
-Practical document-first software development workflow for Codex.
+> **专为 AI Agent 打造的工业级“文档优先 + 密码学物理门禁”软件工程技能包**
+> **An Industrial-Grade Document-First Software Engineering Skill for AI Agents**
 
-This repository contains a reusable Codex skill that guides raw software ideas or existing repository changes through requirements, an approved docs source of truth, phase plans, Task Packs, authorized subagent delegation, validation gates, PR/merge preparation, and archive records.
+---
 
-## Skill
+## 💡 核心背景：为什么需要本项目？
 
-```text
-codex-doc-first-development/
-  SKILL.md
-  agents/
-    openai.yaml
-  references/
-    methodology.md
-    templates.md
-    prompts.md
-    review-gates.md
-    agent-git-ci.md
-    examples.md
-  scripts/
-    scaffold_docs.py
-    check_task_pack.py
-    check_docs_links.py
+在当前的 AI 辅助软件开发中，大语言模型（如 OpenAI Codex、Claude Engineer、Antigravity 等）在自主编写代码时经常面临以下 5 大致命痛点：
+
+1. **暗箱操作与随意改码**：Agent 在未经用户许可的情况下，直接改动主干代码、删除已有配置文件或改动无关模块。
+2. **黑盒死循环与 Token 浪费**：遇到编译或测试报错时，Agent 盲目反复修改、陷入死循环，消耗大量 Token 却无法解决问题。
+3. **伪测试与虚假报告**：Agent 编写空断言（如 `assert True`）或把测试断言注释掉，欺骗主控程序并虚报成功。
+4. **历史凭证篡改**：Agent 在修改失败后，偷改审计日志以掩盖错误。
+5. **开局一次性越权授权**：传统的静态授权要么导致 Agent 中途频繁询问被打扰，要么开局一次性授权导致风险失控。
+
+`codex-doc-first-development` 技能包就是为了**彻底解决上述痛点**而生的工业级治理方案。
+
+---
+
+## 🛡️ 核心治理机制
+
+本项目不仅是一套指导 Agent 行为的“文档规范”，更是一套拥有**物理 Python 脚本硬门禁**的防御体系：
+
+- **密码学 Merkle 链防篡改**：所有授权与意图记录写入 `permission-audit.log`，通过 SHA256 链式 Hash 进行校验。一旦 Agent 试图篡改历史日志，脚本会立刻触发 **Exit Code 5 (短路终止)**。
+- **正交自治交互模式**：
+  - **Goal (目标自治) 模式**：封闭白名单，自主执行“修改-测试-修复”循环，设定最高轮次限制 (`MAX_ITERATIONS`)，超限自动熔断。
+  - **Plan (阶段计划) 模式**：多阶段交互，每一步提交修改方案与权限申请，经人工确认后方可编码。
+  - **Build (流式构建) 模式**：低延迟实时改动，针对黑名单文件进行硬性保护。
+- **主动工程风险诊断卡**：内置 6 大领域工程难点卡片库 (`references/pain-points.md`)，基于特征命中算子 $S(C)$，在需求捕获阶段主动挖出并发竞态、内存泄漏、破坏性数据库迁移等深层工程隐患。
+- **单写者互斥文件锁**：在代码物理写入阶段，通过 `docs/delivery/.log.lock` 进行进程锁定，防止多 Agent 或多线程并发竞争导致数据损坏。
+- **退出码硬门禁协议 (0–6)**：提供确定性、Fail-Close 机制的 CLI 退出码与 JSON 输出体，主控程序严格依据 `(exit_code, runtime_event_reason)` 二元组进行无歧义的处置分流。
+
+---
+
+## 🔄 全生命周期工作流程图 (Mermaid)
+
+下图展示了从 `S0 启动握手` 到 `S22 阶段归档` 的完整控制流、决策门禁与分支路线：
+
+```mermaid
+flowchart TD
+    classDef startEnd fill:#1f2937,stroke:#6b7280,stroke-width:2px,color:#fff
+    classDef process fill:#1e3a8a,stroke:#3b82f6,stroke-width:1px,color:#fff
+    classDef decision fill:#581c87,stroke:#a855f7,stroke-width:2px,color:#fff
+    classDef exitPass fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#fff
+    classDef exitFail fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#fff
+    classDef exitWarn fill:#78350f,stroke:#f59e0b,stroke-width:2px,color:#fff
+
+    S0["S0: 启动与权限握手 (Startup & Handshake)"] :::startEnd
+    S0 --> S0_Handshake["建立安全基线并选择模式 (Goal / Plan / Build)"] :::process
+    S0_Handshake --> S1_Intake["S1: 需求捕获与 CoT 难点反思"] :::process
+    
+    S1_Intake --> S1_CardMatch{"计算难点卡置信度 S(C)"} :::decision
+    S1_CardMatch -- "S(C) >= 0.8" --> S1_HighConf["高置信度: 强行加载领域排查清单"] :::process
+    S1_CardMatch -- "0.5 <= S(C) < 0.8" --> S1_MidConf["中置信度: 需用户显式确认"] :::process
+    S1_CardMatch -- "S(C) < 0.5" --> S1_NoMatch["无命中: 执行标准 CoT 反思"] :::process
+    
+    S1_HighConf --> S2_Scan["S2: 项目上下文扫描 (scaffold_docs.py)"] :::process
+    S1_MidConf --> S2_Scan
+    S1_NoMatch --> S2_Scan
+
+    S2_Scan --> S3_Draft["S3 - S5: 正式方案与架构设计"] :::process
+    S3_Draft --> S6_Docs["S6 - S8: 建立文档事实源 (AGENTS.md, README.md)"] :::process
+    S6_Docs --> S7_CheckLinks{"check_docs_links.py 链接校验"} :::decision
+    S7_CheckLinks -- "存在坏链/坏锚点" --> S6_Docs
+    S7_CheckLinks -- "校验通过" --> S9_Phase["S9 - S10: 阶段计划与 Task Pack 拆解"] :::process
+
+    S9_Phase --> S10_CheckTask{"check_task_pack.py Task Pack 门禁"} :::decision
+    S10_CheckTask -- "包含通配符或轮次超限" --> S9_Phase
+    S10_CheckTask -- "校验通过" --> S11_Strat["S11 - S12: 执行策略与互斥锁配置 (.log.lock)"] :::process
+
+    S11_Strat --> S13_Exec["S13: 代码修改与事务写入 (两阶段提交)"] :::process
+    S13_Exec --> S13_AuditLog["写入 AuditLog (PENDING) 并计算 Merkle 链"] :::process
+    
+    S13_AuditLog --> S13_WriteLock{"互斥锁内写入物理文件"} :::decision
+    S13_WriteLock -- "写入异常 (如磁盘满/中断)" --> S13_CleanLock["清理文件并翻转 AuditLog 为 ABORTED"] :::process
+    S13_CleanLock --> S15_TraceVerify
+    
+    S13_WriteLock -- "写入成功" --> S13_Commit["AuditLog 翻转 COMMITTED, 写入 execution-trace.json"] :::process
+    S13_Commit --> S14_TestQuality["S14: 单元测试质量审查 (拒绝假测试)"] :::process
+
+    S14_TestQuality --> S15_TraceVerify["S15: 物理门禁校验 (verify_runtime_trace.py --json)"] :::process
+    
+    S15_TraceVerify --> ExitBranch{"解析退出码 Exit Code (0 - 6)"} :::decision
+
+    ExitBranch -- "Exit 0: SUCCESS" --> S16_Acceptance["S16: 主控验收通过 (PASS)"] :::exitPass
+    
+    ExitBranch -- "Exit 1: ITERATION_EXCEEDED" --> Exit1_Halt["熔断终止: 轮次超过 MAX_ITERATIONS -> 标记 BLOCKED"] :::exitFail
+    
+    ExitBranch -- "Exit 2: OFF_BOUNDARY_VIOLATION" --> Exit2_Check{"检查 runtime_event_reason"} :::decision
+    Exit2_Check -- "EXPANSION_LIMIT_EXCEEDED" --> Exit2_Fuse["扩界超过 2 次: 强行将 Goal 模式降级为 Plan 模式"] :::exitWarn
+    Exit2_Check -- "null (普通文件越界)" --> Exit2_Expand["解析 offending_files, 发起单次扩界申请"] :::exitWarn
+    Exit2_Fuse --> S9_Phase
+    Exit2_Expand --> S9_Phase
+
+    ExitBranch -- "Exit 3: SCHEMA_OR_PARSE_FAILURE" --> Exit3_Halt["Fail-Close: Schema 缺失或日志损坏 -> 强行终止"] :::exitFail
+    
+    ExitBranch -- "Exit 4: UNCOMMITTED_TRANSACTION" --> Exit4_Check{"检查 (4, runtime_event_reason)"} :::decision
+    Exit4_Check -- "SAFELY_ABORTED_OPERATION" --> Exit4_Retry["安全作废: 提示已安全作废, 允许重新尝试动作"] :::exitWarn
+    Exit4_Check -- "null (静态链节点缺漏)" --> Exit4_ParseReason{"解析 reason_details 字典"} :::decision
+    Exit4_ParseReason -- "UNCOMMITTED_PENDING" --> Exit4_Pending["提示重试动作或翻转为 ABORTED"] :::exitWarn
+    Exit4_ParseReason -- "COMMITTED_RESULT_MISSING" --> Exit4_MissingTrace["仅补写 Result 凭证, 严格禁止重试代码写入!"] :::exitWarn
+    Exit4_Retry --> S13_Exec
+    Exit4_Pending --> S13_Exec
+    Exit4_MissingTrace --> S13_Commit
+
+    ExitBranch -- "Exit 5: TAMPER_OR_HASH_MISMATCH" --> Exit5_Halt["安全警报 (短路): Merkle 链断链或 Hash 篡改 -> 强行终止!"] :::exitFail
+    
+    ExitBranch -- "Exit 6: ILLEGAL_TRANSACTION_STATE" --> Exit6_Halt["数据审计 (短路): PENDING/ABORTED 带有 Result -> 强行终止!"] :::exitFail
+
+    S16_Acceptance --> S17_Git["S17 - S19: Git 冲突处理与阶段集成验收"] :::process
+    S17_Git --> S20_DFX["S20: 文档写回与 DFX 知识库沉淀 (写回 pain-points.md)"] :::process
+    S20_DFX --> S21_PR["S21: 合并 / PR / 发布准备 (需人工显式确认)"] :::process
+    S21_PR --> S22_Archive["S22: 阶段归档 (docs/archive/)"] :::startEnd
 ```
 
-## Install With Codex
+---
 
-Recommended: send this GitHub skill URL to Codex and ask it to install the skill.
+## 🚦 确定性 0–6 退出码硬门禁协议表
+
+校验 CLI `scripts/verify_runtime_trace.py` 输出确定性退出码，主控 Agent 严格按照以下**完备分发表**进行动作处置：
+
+| 退出码 | 标识符 | 运行时事件原因 | 场景说明 | 主控 SKILL.md 处置动作 |
+|:---:|---|:---:|---|---|
+| `0` | `SUCCESS` | `null` | 审计日志、执行轨迹与 Merkle 链完全合法自洽 | **通过放行**：允许执行本轮代码或进入下一阶段 |
+| `1` | `ITERATION_EXCEEDED` | `null` | 自动自愈循环轮次超过设定的上限 | **熔断终止**：强行终止自愈循环，标记阻塞并提交报告 |
+| `2` | `OFF_BOUNDARY_VIOLATION` | `"EXPANSION_LIMIT_EXCEEDED"` | 扩界申请次数超过上限 (最多 2 次) | **降级融合**：强行将 Goal 模式降级为 Plan 模式 |
+| `2` | `OFF_BOUNDARY_VIOLATION` | `null` | 拟改动文件超出白名单授权范围 | **发起扩界**：解析越界文件清单，向用户申请单次扩界 |
+| `3` | `SCHEMA_OR_PARSE_FAILURE` | `null` | Schema 配置文件缺失、日志坏损或解析失败 | **Fail-Close**：强行卡死，提示人工修复环境 |
+| `4` | `UNCOMMITTED_TRANSACTION` | `"SAFELY_ABORTED_OPERATION"` | 写入异常已在互斥锁内安全回滚为作废状态 | **安全重试**：提示本次写入已安全作废，允许重新尝试 |
+| `4` | `UNCOMMITTED_TRANSACTION` | `null` | 静态链节点存在未提交或缺凭证记录 | **字典解析**：未完成事务允许重试；缺凭证事务**仅补写凭证，严禁重试代码写入** |
+| `5` | `TAMPER_OR_HASH_MISMATCH` | `null` | Merkle 链断链、Hash 校验不符或轨迹伪造 | **安全警报 (短路)**：提示审计日志遭破坏，强行终止 |
+| `6` | `ILLEGAL_TRANSACTION_STATE` | `null` | 未提交或已作废节点带有执行凭证的数据矛盾 | **数据审计 (短路)**：提示数据非法，强行终止人工介入 |
+
+---
+
+## 📂 仓库目录结构
+
+```text
+codex-doc-first-development-skill/
+├── README.md                             # 项目使用说明与流程图
+├── CHANGELOG.md                          # 版本变更新鲜事
+├── tests/                                # 单元测试基准套件
+│   ├── test_check_task_pack.py           # 基准用例 TC-C01 ~ TC-C02
+│   └── test_verify_runtime_trace.py      # 基准用例 TC-V01 ~ TC-V19
+└── codex-doc-first-development/
+    ├── SKILL.md                          # Skill 核心主控指南
+    ├── agents/
+    │   └── openai.yaml
+    ├── references/
+    │   ├── schemas.md                    # 4 大权威 JSON Schema 源
+    │   ├── capabilities-matrix.md        # S0-S22 阶段资产映射表
+    │   ├── pain-points.md                # 6 大领域工程难点卡片库
+    │   ├── methodology.md                # S0-S22 完整方法论指南
+    │   ├── templates.md                  # 标准文档模板
+    │   ├── review-gates.md               # 评审门禁与退出码表
+    │   └── agent-git-ci.md               # 分支与 Agent 协作规约
+    └── scripts/
+        ├── verify_runtime_trace.py       # 物理硬门禁校验 CLI (Exit 0-6)
+        ├── check_permission_log.py       # Merkle 链静态校验模块
+        ├── check_task_pack.py            # Task Pack 规范校验器
+        ├── check_docs_links.py           # Markdown 链接与锚点校验器
+        └── scaffold_docs.py              # 文档脚手架生成器
+```
+
+---
+
+## ⚡ 快速安装与使用指南
+
+### 1. 使用 Codex Skill Installer 自动安装（推荐）
+
+直接将本仓库的 GitHub Skill URL 发送给 AI 助手：
 
 ```text
 Use $skill-installer to install this Codex skill:
 https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-development
 ```
 
-Codex should install it into your `$CODEX_HOME/skills` directory, or `~/.codex/skills` when `CODEX_HOME` is unset. Restart or refresh Codex only if the new skill is not discovered immediately.
-
-The equivalent command belongs to the installed `skill-installer` skill; it is not a script in this repository:
-
-```bash
-scripts/install-skill-from-github.py --url https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-development
-```
-
-Manual fallback:
+### 2. 本地手动拷贝安装
 
 ```powershell
 Copy-Item `
@@ -51,67 +187,33 @@ Copy-Item `
   -Force
 ```
 
-## Use
-
-```text
-Use $codex-doc-first-development to turn my software idea into a Codex-ready engineering plan.
-```
-
-Chinese prompt:
+### 3. 触发指令 Prompt
 
 ```text
 使用 $codex-doc-first-development，从这个项目想法开始，帮我生成需求、docs 事实源、阶段计划、Task Pack、验证门禁和归档流程：
-<<<粘贴项目想法>>>
+<<<粘贴你的项目想法或需求描述>>>
 ```
 
-## What It Does
+---
 
-- Performs mandatory structured self-reflection (`## CoT Intake Reflection`): identifies missing inputs, codebase conflicts, and technical feasibility bottlenecks before producing specs.
-- Automatically initializes project docs (`/init` action) and creates `AGENTS.md` with auto-detected project commands (`--auto-detect`), including Monorepo and composite stack probing (Makefile, Dockerfile, pnpm-workspace, go.work, Cargo workspace, CMakeLists.txt).
-- Selects quick, standard, or strict workflow mode based on impact and risk.
-- Captures product ideas and converts them into `REQ-*` requirements with clear acceptance criteria.
-- Creates a Codex-friendly docs source of truth (`docs/`).
-- Generates phase plans and Task Packs with fine-grained `Allowed Files` scope checking (blocking overly broad wildcards like `*` or `**`).
-- Defines subagent, branch, file ownership, lock, and CI rules.
-- Guides TDD, anti-fake test quality gates, validation, acceptance, docs writeback, PR preparation, and archival.
+## 🧪 单元测试验证
 
-The skill is procedural guidance plus two local helper scripts. It does not provide a background scheduler, persistent lock service, CI provider, GitHub credentials, or automatic merge authority.
-
-## Scripts
-
-Scaffold docs with auto-detection of project stack commands:
-
-```powershell
-python .\codex-doc-first-development\scripts\scaffold_docs.py --root "C:\path\to\project" --mode standard --phase 001 --auto-detect
-```
-
-Preview strict mode and opt into applicable documents:
-
-```powershell
-python .\codex-doc-first-development\scripts\scaffold_docs.py --root "C:\path\to\project" --mode strict --phase 001 --include security --include api --dry-run
-```
-
-
-Check a Task Pack:
-
-```powershell
-python .\codex-doc-first-development\scripts\check_task_pack.py "C:\path\to\project\docs\delivery\tasks\TASK-001.md" --json
-```
-
-Check documentation relative links and heading anchors:
-
-```powershell
-python .\codex-doc-first-development\scripts\check_docs_links.py "C:\path\to\project\docs" --json
-```
-
-All helper scripts support `--json` output for seamless integration with GitHub Actions or GitLab CI. The scaffolded Task Pack intentionally contains placeholders and should fail `check_task_pack.py` until completed.
-
-## Validate
+在技能包根目录下运行以下命令，验证全量 41 项基准单元测试：
 
 ```powershell
 python -m unittest discover -s tests -v
 ```
 
-## User Guide
+预期输出：
 
-See [docs/user-guide.md](docs/user-guide.md).
+```text
+Ran 41 tests in 1.475s
+
+OK
+```
+
+---
+
+## 📄 开源协议
+
+本项目采用 [MIT License](LICENSE) 协议开源。

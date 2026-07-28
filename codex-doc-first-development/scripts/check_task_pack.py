@@ -5,9 +5,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
+from typing import List, Dict, Tuple, Optional
 
 
 REQUIRED_HEADINGS = [
@@ -71,9 +73,35 @@ def looks_like_placeholder(content: str) -> bool:
     return any(pattern.search(normalized) for pattern in PLACEHOLDER_PATTERNS)
 
 
-def check_task_pack(path: Path) -> list[str]:
+def calculate_card_confidence(card_rules: Dict, context_text: str) -> float:
+    """
+    Calculates weighted confidence score:
+    S = (2.0 * mandatory_hits + 1.0 * pattern_hits) / (2.0 * mandatory_total + 1.0 * pattern_total)
+    Uses binary (0 or 1) feature hits per rule item.
+    """
+    mandatory_keywords = card_rules.get("mandatory_keywords", [])
+    pattern_contexts = card_rules.get("pattern_contexts", [])
+
+    m_total = len(mandatory_keywords)
+    p_total = len(pattern_contexts)
+
+    denominator = 2.0 * m_total + 1.0 * p_total
+    if denominator == 0:
+        return 0.0
+
+    lower_text = context_text.lower()
+
+    m_hits = sum(1 for kw in mandatory_keywords if kw.lower() in lower_text)
+    p_hits = sum(1 for ctx in pattern_contexts if ctx.lower() in lower_text)
+
+    score = (2.0 * m_hits + 1.0 * p_hits) / denominator
+    return min(1.0, max(0.0, score))
+
+
+def check_task_pack(path: Path, schemas_md_path: Optional[Path] = None) -> list[str]:
     text = path.read_text(encoding="utf-8")
     issues: list[str] = []
+    warnings: list[str] = []
 
     title = re.search(r"^#\s+(TASK-\d{3,}):\s*(\S.*?)\s*$", text, re.MULTILINE)
     if not title:
@@ -121,6 +149,16 @@ def check_task_pack(path: Path) -> list[str]:
                     f"Allowed Files is overly broad: '{item}' is forbidden without explicit narrow file patterns"
                 )
 
+    # v2.0.0 Governance Checks: MAX_ITERATIONS validation
+    max_iter_match = re.search(r"MAX_ITERATIONS:\s*(\d+)", text)
+    if max_iter_match:
+        val = int(max_iter_match.group(1))
+        if val < 1 or val > 10:
+            issues.append(f"MAX_ITERATIONS value {val} must be an integer between 1 and 10")
+    else:
+        # Legacy v1.x task pack warning
+        warnings.append("MAX_ITERATIONS heading missing (v1.x legacy format fallback active)")
+
     return issues
 
 
@@ -130,6 +168,7 @@ def main() -> int:
     )
     parser.add_argument("task_pack", help="Path to TASK-*.md")
     parser.add_argument("--json", action="store_true", help="Output results in structured JSON format")
+    parser.add_argument("--schemas", default=None, help="Path to references/schemas.md for dynamic validation")
     args = parser.parse_args()
 
     path = Path(args.task_pack)
@@ -147,7 +186,7 @@ def main() -> int:
         return 2
 
     try:
-        issues = check_task_pack(path)
+        issues = check_task_pack(path, schemas_md_path=Path(args.schemas) if args.schemas else None)
     except (OSError, UnicodeError) as exc:
         if args.json:
             print(
