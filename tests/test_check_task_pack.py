@@ -13,7 +13,7 @@ import os
 # Add scripts directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "codex-doc-first-development" / "scripts"))
 
-from check_task_pack import check_task_pack, calculate_card_confidence
+from check_task_pack import check_task_pack, calculate_card_confidence, detect_dummy_test_patterns
 
 
 class TestCheckTaskPack(unittest.TestCase):
@@ -24,6 +24,21 @@ class TestCheckTaskPack(unittest.TestCase):
 
     def tearDown(self):
         self.temp_dir.cleanup()
+
+    def test_detect_dummy_test_patterns(self):
+        code_snippet = """
+        def test_foo():
+            assert True
+
+        def test_bar():
+            # assert result == 42
+            self.assertTrue(True)
+        """
+        findings = detect_dummy_test_patterns(code_snippet)
+        self.assertGreaterEqual(len(findings), 3)
+        self.assertTrue(any("assert True" in f for f in findings))
+        self.assertTrue(any("assertTrue(True)" in f for f in findings))
+        self.assertTrue(any("Commented out" in f for f in findings))
 
     def test_tc_c01_binary_confidence_score(self):
         """

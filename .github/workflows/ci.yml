@@ -1,0 +1,36 @@
+name: CI Workflow
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run Unit Tests (unittest)
+      run: |
+        python -m unittest discover -s tests -v
+
+    - name: Run End-to-End Integration Verification
+      run: |
+        python codex-doc-first-development/scripts/verify_runtime_trace.py --trace tests/fixtures/valid_trace.json --permission-log tests/fixtures/valid_audit.log --task-pack tests/fixtures/valid_task_pack.md --schemas codex-doc-first-development/references/schemas.md --mode goal --next-iteration 1 --json

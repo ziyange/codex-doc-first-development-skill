@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "codex-doc-first-development-skill"
+version = "2.1.0"
+description = "Document-first AI agent collaboration and hard governance framework"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "jsonschema>=4.0.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0"
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

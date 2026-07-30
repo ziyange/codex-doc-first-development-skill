@@ -1,0 +1,22 @@
+[
+  {
+    "tx_id": "TX-002",
+    "iteration_index": 1,
+    "timestamp": "2026-07-30T10:05:00Z",
+    "action_type": "FILE_WRITE",
+    "normalized_path": "src/app.py",
+    "intent_hash": "6acba78ab0415ad6524d240158b8242284946586ab31cfeead55281c88dce181",
+    "result_status": "COMPLETED",
+    "ignored_candidates": []
+  },
+  {
+    "tx_id": "TX-003",
+    "iteration_index": 1,
+    "timestamp": "2026-07-30T10:10:00Z",
+    "action_type": "FILE_WRITE",
+    "normalized_path": "unauthorized/secret.py",
+    "intent_hash": "1a10fe0e196638591f018c7a17641713c24c5a7799f85d978c111ca43ea1caaa",
+    "result_status": "COMPLETED",
+    "ignored_candidates": []
+  }
+]

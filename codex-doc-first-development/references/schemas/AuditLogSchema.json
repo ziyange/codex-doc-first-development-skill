@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AuditLogSchema",
+  "type": "object",
+  "required": [
+    "tx_id",
+    "timestamp",
+    "action_type",
+    "normalized_path",
+    "prev_hash",
+    "intent_hash",
+    "status"
+  ],
+  "properties": {
+    "tx_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": ["FILE_WRITE", "FILE_DELETE", "COMMAND_EXEC", "PERMISSION_GRANT", "MODE_SWITCH"]
+    },
+    "normalized_path": {
+      "type": "string"
+    },
+    "prev_hash": {
+      "type": "string"
+    },
+    "intent_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["PENDING", "COMMITTED", "ABORTED"]
+    },
+    "artifact_metadata": {
+      "type": "object",
+      "properties": {
+        "size_bytes": { "type": "integer", "minimum": 0 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "mime_type": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

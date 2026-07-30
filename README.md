@@ -1,6 +1,6 @@
-# Codex Doc-First Development Skill (v2.0.0 正式版)
+# Codex Doc-First Development Skill (v2.1.0 正式版)
 
-> **专为 AI Agent 打造的工业级“文档优先 + 密码学物理门禁”软件工程技能包**
+> **专为 AI Agent 打造的工业级“文档优先 + 密码学物理门禁”软件工程技能包**  
 > **An Industrial-Grade Document-First Software Engineering Skill for AI Agents**
 
 ---
@@ -19,18 +19,15 @@
 
 ---
 
-## 🛡️ 核心治理机制
+## 🛡️ 核心治理机制 (v2.1.0 重磅升级)
 
 本项目不仅是一套指导 Agent 行为的“文档规范”，更是一套拥有**物理 Python 脚本硬门禁**的防御体系：
 
-- **密码学 Merkle 链防篡改**：所有授权与意图记录写入 `permission-audit.log`，通过 SHA256 链式 Hash 进行校验。一旦 Agent 试图篡改历史日志，脚本会立刻触发 **Exit Code 5 (短路终止)**。
-- **正交自治交互模式**：
-  - **Goal (目标自治) 模式**：封闭白名单，自主执行“修改-测试-修复”循环，设定最高轮次限制 (`MAX_ITERATIONS`)，超限自动熔断。
-  - **Plan (阶段计划) 模式**：多阶段交互，每一步提交修改方案与权限申请，经人工确认后方可编码。
-  - **Build (流式构建) 模式**：低延迟实时改动，针对黑名单文件进行硬性保护。
-- **主动工程风险诊断卡**：内置 6 大领域工程难点卡片库 (`references/pain-points.md`)，基于特征命中算子 $S(C)$，在需求捕获阶段主动挖出并发竞态、内存泄漏、破坏性数据库迁移等深层工程隐患。
-- **单写者互斥文件锁**：在代码物理写入阶段，通过 `docs/delivery/.log.lock` 进行进程锁定，防止多 Agent 或多线程并发竞争导致数据损坏。
-- **退出码硬门禁协议 (0–6)**：提供确定性、Fail-Close 机制的 CLI 退出码与 JSON 输出体，主控程序严格依据 `(exit_code, runtime_event_reason)` 二元组进行无歧义的处置分流。
+- **离线 JSON Schema 机器校验**：将 Schema 从 Markdown 锚点解析解耦，独立存放于 `references/schemas/*.json`（标准 JSON Schema 规范），并保留 Markdown 提取的降级兼容。
+- **跨平台 Advisory Lock & 锁抢占清理**：在代码写入阶段，通过 `lock_manager.py` 对 `docs/delivery/.log.lock` 进行基于 OS-level 咨询锁 (`fcntl`/`msvcrt`) 的互斥锁定，支持基于 PID 存活检查与 TTL 超时的死锁自动清理。
+- **密码学 Merkle 链防篡改与 Artifact SHA-256 哈希审计**：所有授权与意图记录写入 `permission-audit.log`，支持多模态与二进制文件 Artifact SHA-256 哈希比对。
+- **伪测试与假占位符启发式检测**：`check_task_pack.py` 内置静态分析算子，自动拦截 `assert True`、`self.assertTrue(True)`、注释断言与空 `pass` 测试块。
+- **Exit Code 确定性物理退出码 (0–6)**：提供确定性、Fail-Close 机制的 CLI 退出码与 JSON 输出体。
 
 ---
 
@@ -53,7 +50,7 @@ flowchart TD
     S7_CheckLinks{"check_docs_links.py 链接校验"}
     S9_Phase["S9 - S10: 阶段计划与 Task Pack 拆解"]
     S10_CheckTask{"check_task_pack.py Task Pack 门禁"}
-    S11_Strat["S11 - S12: 执行策略与互斥锁配置 (.log.lock)"]
+    S11_Strat["S11 - S12: 执行策略与互斥锁配置 (lock_manager.py)"]
     S13_Exec["S13: 代码修改与事务写入 (两阶段提交)"]
     S13_AuditLog["写入 AuditLog (PENDING) 并计算 Merkle 链"]
     S13_WriteLock{"互斥锁内写入物理文件"}
@@ -95,7 +92,7 @@ flowchart TD
     S7_CheckLinks -- "存在坏链/坏锚点" --> S6_Docs
     S7_CheckLinks -- "校验通过" --> S9_Phase
     S9_Phase --> S10_CheckTask
-    S10_CheckTask -- "包含通配符或轮次超限" --> S9_Phase
+    S10_CheckTask -- "包含通配符或伪测试" --> S9_Phase
     S10_CheckTask -- "校验通过" --> S11_Strat
     S11_Strat --> S13_Exec
     S13_Exec --> S13_AuditLog
@@ -156,15 +153,31 @@ flowchart TD
 codex-doc-first-development-skill/
 ├── README.md                             # 项目使用说明与流程图
 ├── CHANGELOG.md                          # 版本变更新鲜事
-├── tests/                                # 单元测试基准套件
-│   ├── test_check_task_pack.py           # 基准用例 TC-C01 ~ TC-C02
-│   └── test_verify_runtime_trace.py      # 基准用例 TC-V01 ~ TC-V19
+├── LICENSE                               # 开源许可协议 (MIT)
+├── pyproject.toml                        # 项目打包与依赖声明
+├── requirements.txt                      # 依赖列表 (jsonschema, pytest)
+├── .github/
+│   └── workflows/
+│       └── ci.yml                        # GitHub Actions CI 跨平台自动化构建流程
+├── tests/                                # 单元测试与端到端集成测试套件
+│   ├── fixtures/                         # 标准集成测试数据 (valid, tampered, unauthorized)
+│   ├── test_check_task_pack.py           # 基准用例 TC-C01 ~ TC-C02 及伪测试检测
+│   ├── test_lock_manager.py              # LockManager Advisory Lock 单元测试
+│   ├── test_skill.py                     # Skill 完整性与链路测试
+│   ├── test_verify_runtime_trace.py      # 基准用例 TC-V01 ~ TC-V19
+│   └── test_verify_runtime_trace_end2end.py # CLI 端到端 Exit Codes (0, 2, 5) 校验
 └── codex-doc-first-development/
-    ├── SKILL.md                          # Skill 核心主控指南
+    ├── SKILL.md                          # Skill 核心主控指南 (v2.1.0)
     ├── agents/
     │   └── openai.yaml
     ├── references/
-    │   ├── schemas.md                    # 4 大权威 JSON Schema 源
+    │   ├── schemas/                      # 离线独立 JSON Schema 文件
+    │   │   ├── AuditLogSchema.json
+    │   │   ├── ExecutionTraceSchema.json
+    │   │   ├── ExpansionSchema.json
+    │   │   ├── PainPointCardSchema.json
+    │   │   └── TaskPackSchema.json
+    │   ├── schemas.md                    # JSON Schema 人类可读说明文档
     │   ├── capabilities-matrix.md        # S0-S22 阶段资产映射表
     │   ├── pain-points.md                # 6 大领域工程难点卡片库
     │   ├── methodology.md                # S0-S22 完整方法论指南
@@ -173,8 +186,9 @@ codex-doc-first-development-skill/
     │   └── agent-git-ci.md               # 分支与 Agent 协作规约
     └── scripts/
         ├── verify_runtime_trace.py       # 物理硬门禁校验 CLI (Exit 0-6)
-        ├── check_permission_log.py       # Merkle 链静态校验模块
-        ├── check_task_pack.py            # Task Pack 规范校验器
+        ├── check_permission_log.py       # Merkle 链与 Artifact Hash 静态校验模块
+        ├── lock_manager.py               # 跨平台 Advisory Lock 锁管理器
+        ├── check_task_pack.py            # Task Pack 规范与伪测试校验器
         ├── check_docs_links.py           # Markdown 链接与锚点校验器
         └── scaffold_docs.py              # 文档脚手架生成器
 ```
@@ -183,7 +197,15 @@ codex-doc-first-development-skill/
 
 ## ⚡ 快速安装与使用指南
 
-### 1. 使用 Codex Skill Installer 自动安装（推荐）
+### 1. 环境准备与依赖安装
+
+克隆仓库后，推荐安装必要依赖（`jsonschema` 等）：
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. 使用 Codex Skill Installer 自动安装（推荐）
 
 直接将本仓库的 GitHub Skill URL 发送给 AI 助手：
 
@@ -192,7 +214,7 @@ Use $skill-installer to install this Codex skill:
 https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-development
 ```
 
-### 2. 本地手动拷贝安装
+### 3. 本地手动拷贝安装
 
 ```powershell
 Copy-Item `
@@ -202,7 +224,7 @@ Copy-Item `
   -Force
 ```
 
-### 3. 触发指令 Prompt
+### 4. 触发指令 Prompt
 
 ```text
 使用 $codex-doc-first-development，从这个项目想法开始，帮我生成需求、docs 事实源、阶段计划、Task Pack、验证门禁和归档流程：
@@ -211,20 +233,25 @@ Copy-Item `
 
 ---
 
-## 🧪 单元测试验证
+## 🧪 单元测试与端到端验证
 
-在技能包根目录下运行以下命令，验证全量 41 项基准单元测试：
+在技能包根目录下运行以下命令，验证全量 48 项单元与集成测试：
 
-```powershell
+```bash
 python -m unittest discover -s tests -v
 ```
 
-预期输出：
+你也可以直接使用 Fixtures 测试 `verify_runtime_trace.py` 物理门禁 CLI 的 JSON 输出：
 
-```text
-Ran 41 tests in 1.475s
-
-OK
+```bash
+python codex-doc-first-development/scripts/verify_runtime_trace.py \
+  --trace tests/fixtures/valid_trace.json \
+  --permission-log tests/fixtures/valid_audit.log \
+  --task-pack tests/fixtures/valid_task_pack.md \
+  --schemas codex-doc-first-development/references/schemas.md \
+  --mode goal \
+  --next-iteration 1 \
+  --json
 ```
 
 ---

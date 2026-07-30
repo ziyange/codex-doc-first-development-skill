@@ -53,9 +53,22 @@ BUILD_MODE_BLACKLIST = [
 
 def load_schema_from_markdown(schemas_md_path: str, schema_id: str) -> Optional[Dict]:
     """
-    Extracts a JSON Schema block from references/schemas.md marked with // schema-id: <id>.
-    Fail-close: returns None if file missing or anchor not found.
+    Loads JSON Schema. Prioritizes standalone JSON file under references/schemas/<schema_id>.json.
+    Falls back to parsing references/schemas.md anchor `// schema-id: <id>` for backward compatibility.
+    Fail-close: returns None if missing or invalid.
     """
+    # 1. Try loading standalone JSON file
+    if schemas_md_path:
+        schemas_dir = os.path.join(os.path.dirname(schemas_md_path), "schemas")
+        standalone_json_path = os.path.join(schemas_dir, f"{schema_id}.json")
+        if os.path.exists(standalone_json_path):
+            try:
+                with open(standalone_json_path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+
+    # 2. Fallback to extracting from Markdown file
     if not os.path.exists(schemas_md_path):
         return None
 

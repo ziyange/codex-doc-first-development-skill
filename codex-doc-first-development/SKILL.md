@@ -1,9 +1,9 @@
 ---
 name: codex-doc-first-development
-description: Guides Codex through document-first software development v2.0.0 with orthogonal autonomy modes (Goal/Plan/Build), domain pain-point card matching, single-source-of-truth schemas, executable Merkle chain runtime verification (Exit codes 0-6), and full lifecycle (S0-S22) governance. Use when starting software projects, formalizing AI development methodology, scaffolding docs, bounding multi-agent tasks, or executing verifiable software development.
+description: Guides Codex through document-first software development v2.1.0 with orthogonal autonomy modes (Goal/Plan/Build), domain pain-point card matching, standalone JSON schemas, executable Merkle chain runtime verification (Exit codes 0-6), advisory file lock management, and full lifecycle (S0-S22) governance. Use when starting software projects, formalizing AI development methodology, scaffolding docs, bounding multi-agent tasks, or executing verifiable software development.
 ---
 
-# Codex Doc-First Development (v2.0.0 Released)
+# Codex Doc-First Development (v2.1.0 Released)
 
 Use this skill to execute a Codex-specific, document-first software development process from idea intake through implementation, validation, merge preparation, and archival.
 
@@ -33,13 +33,13 @@ Never let execution facts replace product or engineering facts. If implementatio
    - If $0.5 \le S(C) < 0.8$: Mid confidence match. Require `user_confirmed: true`.
    - Top-1 exclusivity gate: only activate highest scoring card $\ge 0.5$. Lower candidates logged in `ignored_candidates`.
 
-3. **Single Source of Truth Schemas**:
-   - Dynamically load JSON schemas from `references/schemas.md` anchored by `// schema-id: <Id>` (`ExecutionTraceSchema`, `AuditLogSchema`, `ExpansionSchema`, `PainPointCardSchema`).
+3. **Machine-First Standalone JSON Schemas**:
+   - Load JSON schemas directly from standalone files (`references/schemas/ExecutionTraceSchema.json`, `references/schemas/AuditLogSchema.json`, `references/schemas/ExpansionSchema.json`, `references/schemas/TaskPackSchema.json`, `references/schemas/PainPointCardSchema.json`), with Markdown fallback.
 
-4. **Executable Merkle Chain Runtime Verification**:
+4. **Executable Merkle Chain Runtime Verification & Lock Manager**:
    - Run `scripts/verify_runtime_trace.py` for hard gate checks before proceeding or finalizing.
    - Computes SHA256 chain: `intent_hash_n = SHA256(prev_hash_n + ":" + action_type_n + ":" + normalized_path_n + ":" + tx_id_n)`.
-   - Enforces `docs/delivery/.log.lock` single-writer file mutex locking.
+   - Enforces `docs/delivery/.log.lock` single-writer file mutex locking using `lock_manager.py` with PID & timestamp stale lock cleanup.
 
 ---
 

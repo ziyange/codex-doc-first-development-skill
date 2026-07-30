@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ExpansionSchema",
+  "type": "object",
+  "required": [
+    "expansion_seq",
+    "tx_id",
+    "approved_pattern",
+    "approved_at",
+    "approved_by"
+  ],
+  "properties": {
+    "expansion_seq": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "tx_id": {
+      "type": "string"
+    },
+    "approved_pattern": {
+      "type": "string"
+    },
+    "approved_at": {
+      "type": "string"
+    },
+    "approved_by": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

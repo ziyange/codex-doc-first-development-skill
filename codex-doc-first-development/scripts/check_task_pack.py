@@ -42,6 +42,26 @@ PLACEHOLDER_PATTERNS = [
     re.compile(r"\b(?:TODO|TBD)\b", re.IGNORECASE),
 ]
 
+DUMMY_TEST_PATTERNS = [
+    (re.compile(r"\bassert\s+True\b"), "Tautological 'assert True' detected"),
+    (re.compile(r"\bassert\s+1\s*==\s*1\b"), "Tautological 'assert 1 == 1' detected"),
+    (re.compile(r"\bself\.assertTrue\(\s*True\s*\)"), "Tautological 'assertTrue(True)' detected"),
+    (re.compile(r"#\s*(?:self\.)?assert\b"), "Commented out assertion detected"),
+    (re.compile(r"def\s+test_\w+\([^)]*\):\s*(?:pass|\.\.\.)\s*(?:\n|$)"), "Empty pass/ellipsis test body detected"),
+]
+
+
+def detect_dummy_test_patterns(text: str) -> List[str]:
+    """
+    Detects fake or dummy test patterns in code or task specification blocks.
+    Returns list of warning descriptions.
+    """
+    findings = []
+    for pattern, desc in DUMMY_TEST_PATTERNS:
+        if pattern.search(text):
+            findings.append(desc)
+    return findings
+
 
 def heading_matches(text: str, heading: str) -> list[re.Match[str]]:
     return [

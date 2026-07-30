@@ -1,6 +1,6 @@
-# JSON Schemas Authority Source
+# JSON Schemas Authority Source (v2.1.0)
 
-This document contains the authoritative JSON Schemas for `codex-doc-first-development` v2.0.0 governance files. Python validation scripts dynamically load these schemas at runtime using the `// schema-id` anchors.
+This document contains human-readable references for `codex-doc-first-development` v2.1.0 governance files. Standard standalone machine-readable JSON Schemas are stored in `references/schemas/*.json`. Python validation scripts load from `references/schemas/*.json` first and fall back to this Markdown file.
 
 ## Contents
 

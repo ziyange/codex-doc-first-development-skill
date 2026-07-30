@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TaskPackSchema",
+  "type": "object",
+  "required": [
+    "task_id",
+    "title",
+    "status",
+    "allowed_files",
+    "max_iterations"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "pattern": "^TASK-[0-9]{3,}$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "APPROVED", "IN_PROGRESS", "COMPLETED", "REJECTED"]
+    },
+    "allowed_files": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "max_iterations": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    }
+  },
+  "additionalProperties": true
+}

@@ -13,13 +13,13 @@ import hashlib
 from typing import List, Dict, Tuple, Optional
 
 
-def normalize_path(path_str: str, root_dir: str = ".") -> str:
+def normalize_path(path_str: str, root_dir: str = ".", case_sensitive: Optional[bool] = None) -> str:
     """
     Normalizes a path string:
     1. Relative to root_dir
     2. Forward slashes
     3. Collapse ./ and ../
-    4. Lowercase for case-insensitive comparison
+    4. Platform-aware case normalization (case-sensitive on POSIX by default, case-insensitive on Windows)
     """
     if not path_str or path_str == "N/A":
         return "N/A"
@@ -30,8 +30,32 @@ def normalize_path(path_str: str, root_dir: str = ".") -> str:
     # Remove leading ./ if present
     if clean_path.startswith("./"):
         clean_path = clean_path[2:]
+
+    # Platform-aware case normalization
+    if case_sensitive is None:
+        case_sensitive = (sys.platform != "win32")
+
+    if not case_sensitive:
+        clean_path = clean_path.lower()
         
-    return clean_path.lower()
+    return clean_path
+
+
+def compute_file_sha256(file_path: str) -> Optional[str]:
+    """
+    Computes SHA256 checksum of any file (text or binary/artifact).
+    Returns hex digest string, or None if file does not exist.
+    """
+    if not os.path.isfile(file_path):
+        return None
+    hasher = hashlib.sha256()
+    try:
+        with open(file_path, "rb") as f:
+            while chunk := f.read(65536):
+                hasher.update(chunk)
+        return hasher.hexdigest()
+    except Exception:
+        return None
 
 
 def compute_intent_hash(prev_hash: str, action_type: str, normalized_path: str, tx_id: str) -> str:

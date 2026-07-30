@@ -1,0 +1,2 @@
+{"tx_id": "TX-001", "timestamp": "2026-07-30T10:00:00Z", "action_type": "PERMISSION_GRANT", "normalized_path": "src/app.py", "prev_hash": "GENESIS", "intent_hash": "f42c15bf4c615553cf41a6ef6b10d1e09d3ebcb1c62aff79e4f2efae955f9254", "status": "COMMITTED"}
+{"tx_id": "TX-002", "timestamp": "2026-07-30T10:05:00Z", "action_type": "FILE_WRITE", "normalized_path": "src/app.py", "prev_hash": "f42c15bf4c615553cf41a6ef6b10d1e09d3ebcb1c62aff79e4f2efae955f9254", "intent_hash": "6acba78ab0415ad6524d240158b8242284946586ab31cfeead55281c88dce181", "status": "COMMITTED"}
