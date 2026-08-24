@@ -5,10 +5,10 @@ Use these gates to decide whether work can move from planning to docs, docs to i
 ## Contents
 
 - [Mode Selection](#mode-selection)
-- [Formal Solution and Docs Review](#formal-solution-review)
+- [Formal Solution and Pre-Dev UX Gate](#formal-solution-review)
 - [Task Pack Gate](#task-pack-gate)
-- [Test Quality and Validation](#test-quality-gate)
-- [Acceptance, Merge, and Archive](#acceptance-status)
+- [Test Quality and DRY Reusability](#test-quality-dry-reusability-gate)
+- [Acceptance, Merge, and Archive](#acceptance-status-code-doc-traceability)
 
 ## Mode Selection
 
@@ -55,6 +55,7 @@ Score or inspect these dimensions before building docs in strict mode:
 | Business loop | Main workflows have a complete start, action, outcome, and failure path |
 | Functional boundaries | MVP and later work are separated |
 | Architecture feasibility | Modules, contracts, and dependencies are implementable |
+| **Modular Independence & DRY** | Common data requests and external API calls are abstracted into a single reusable service/client module; backend provides dynamic field projection; no duplicate request logic across components |
 | Data and state | Data objects and state changes are explicit when relevant |
 | Security and permissions | Sensitive flows and access rules are addressed |
 | Interface/integration | API, UI, CLI, or integration contracts are defined |
@@ -66,15 +67,28 @@ Score or inspect these dimensions before building docs in strict mode:
 
 Do not proceed when a blocking issue affects architecture, data, security, or acceptance.
 
+## Pre-Dev Product UI/UX & API Alignment Gate (Mandatory Before Coding)
+
+Apply this gate in S6-S8 prior to generating Phase Plans and coding:
+
+| Check Item | Pass Criterion | Required Action if Failed |
+|---|---|---|
+| **Product Prototype & Flow** | Wireframes and screen navigation paths are confirmed by user. | Re-align with user on page hierarchy and user flow. |
+| **Screen UI Layouts** | Component breakdown, form controls, and responsive layouts are defined for all core screens. | Draft UI layouts in `docs/ux.md` and confirm with user. |
+| **UI-to-API Binding Table** | Every UI trigger / component is mapped to its centralized API module, parameters, projected response fields, and UI feedback states. | Complete the UI-API binding matrix in `docs/ux.md`. |
+| **Multimodal UI Preview** | If image generation tools (`generate_image`) are available, high-fidelity UI mockup images are generated and embedded in `docs/ux.md`. | Proactively invoke `generate_image` or fallback to structured ASCII wireframes. |
+| **Full Documentation** | All agreed UI layouts, bindings, and states are fully recorded in project docs (`docs/ux.md`, `docs/architecture.md`). | Write specs into `docs/` before proceeding to S9. |
+
 ## Docs Review
 
 Docs can support implementation when:
 
 - `docs/README.md` points to active requirements, phase, tasks, verification, and archive.
 - Current requirements have `REQ-*` IDs.
+- UI/UX mockups, prototypes, and Component-to-API binding matrices are fully documented in `docs/ux.md`.
 - Acceptance criteria are testable.
-- The phase plan names tasks and dependencies.
-- Each Task Pack has allowed and forbidden files.
+- The phase plan names tasks and dependencies (prioritizing shared infrastructure and reusable modules).
+- Each Task Pack has allowed and forbidden files and explicit Must-Read contract anchors.
 - Test strategy and expected commands are explicit.
 - Agent collaboration rules are present when subagents are used.
 - All relative Markdown links and heading anchors are verified valid via `scripts/check_docs_links.py`.
@@ -88,12 +102,12 @@ A Task Pack is executable only if it includes:
 - Task ID and status.
 - Requirement IDs.
 - Objective.
-- Must-read context.
+- Must-read context (including explicit architecture and UI-API binding anchors).
 - Allowed files.
 - Forbidden files.
-- Interfaces/contracts or "not applicable".
-- Data/UI constraints or "not applicable".
-- Implementation requirements.
+- Interfaces/contracts (referencing unified client/service modules) or "not applicable".
+- Data/UI constraints (referencing documented UI specs) or "not applicable".
+- Implementation requirements (enforcing spec-driven development & DRY reusability).
 - Test requirements.
 - Acceptance criteria.
 - Done definition.
@@ -104,14 +118,15 @@ Required sections must contain concrete values rather than blank text, `...`, `T
 
 `Allowed Files` must specify explicit subdirectories or file patterns (e.g. `src/auth/*.ts`, `src/export.py`). Overly broad wildcards (such as `*`, `**`, or `.`) are strictly rejected.
 
-## Test Quality Gate
+## Test Quality & DRY Reusability Gate
 
-Good tests:
+Good tests & implementation:
 
 - Cover acceptance criteria.
 - Assert behavior, state, output, or side effects.
 - Include failure paths, edge cases, and boundary conditions for modified logic.
 - Avoid mocking the core behavior being tested.
+- **DRY Reusability**: Reuses centralized data client / service modules without duplicating API call logic in multiple places.
 - Can run reliably in local or CI environments.
 
 Weak or invalid tests (Strictly Rejected Anti-Patterns):
@@ -122,6 +137,7 @@ Weak or invalid tests (Strictly Rejected Anti-Patterns):
 - Checking only non-null/truthy output when exact field values or behavior matter.
 - Mocks that replace the actual unit/component under test instead of its dependencies.
 - Omitting boundary, permission, or error path test coverage for changed logic.
+- Introducing duplicate network request boilerplate instead of calling the centralized service module.
 
 ## Validation Levels
 
@@ -163,19 +179,24 @@ All runtime executions are verified via `scripts/verify_runtime_trace.py`. The m
 | `5` | `null` | Merkle chain broken, hash mismatch, or trace tampered | **Security Alert (Short-circuit)**: Halt immediately, alert audit log corruption. |
 | `6` | `null` | `PENDING+Present` or `ABORTED+Present` contradiction | **Data Audit (Short-circuit)**: Halt immediately, request manual audit. |
 
-## Acceptance Status
+## Acceptance Status & Code-Doc Traceability
 
 Return `PASS` when:
 
 - Acceptance criteria are satisfied.
+- **Code-Doc Traceability**: Implemented code strictly adheres to documented API contracts, data models, and UI component bindings.
+- **DRY Compliance**: Data requests use the unified client/service module with no duplicate endpoints or duplicate call logic.
+- **Synchronous Doc Sync**: All architectural, API, or interaction changes made during development are fully reflected in `docs/`.
 - Verification evidence is sufficient.
 - Diff is scoped.
-- Docs are updated or intentionally unchanged.
 - Known risks are acceptable.
 
 Return `REQUEST_CHANGES` when:
 
 - A fix is clear and local to the current task.
+- Implementation diverges from documented contracts or UI specs.
+- Duplicate API request logic was introduced instead of reusing the centralized module.
+- Architecture/API/UI was modified without updating corresponding `docs/` files.
 - Tests or docs are missing but can be added.
 - Diff includes unrelated changes that can be removed safely.
 

@@ -23,8 +23,10 @@ Recommended behavior:
 
 - **Phase 1 (Intake & Reflection)**: Choose strict mode because this is a new project. Perform self-reflection: identify missing inputs (auth needs, database choice, deployment target), check potential conflicts, and verify technical feasibility.
 - **Phase 2 (Clarification)**: Ask user to confirm essential direction-changing choices while documenting reasonable assumptions.
-- **Phase 3 (Auto-Init)**: Once information is sufficient and feasibility is confirmed, automatically trigger project initialization (`python scripts/scaffold_docs.py --mode strict --phase 001 --auto-detect`) to create `AGENTS.md` and initial `docs/` source of truth.
-- Generate `REQ-*` requirements, phase plan, and initial Task Packs for app shell, customer model, CRUD, and tests.
+- **Phase 3 (Auto-Init & Docs)**: Once information is sufficient and feasibility is confirmed, automatically trigger project initialization (`python scripts/scaffold_docs.py --mode strict --phase 001 --auto-detect`) to create `AGENTS.md` and initial `docs/` source of truth.
+- **Phase 4 (Modular Architecture & DRY Design)**: Design centralized `ApiClient` / service layer and generic backend field projection (`fields` parameter) to eliminate duplicate request boilerplate.
+- **Phase 5 (Pre-Dev UI/UX Gate & Image Prototyping)**: Proactively generate high-fidelity UI visual mockups using `generate_image`, draft component-to-API binding matrices and interaction states, confirm with the user, and record all designs into `docs/ux.md`.
+- **Phase 6 (Phase Plan & Spec-Driven Implementation)**: Generate phase plan prioritizing shared API client infrastructure, generate Task Packs, and execute spec-driven targeted implementation.
 
 First output shape (Self-Reflection Response):
 
@@ -35,7 +37,7 @@ Information gaps & reflection: missing deployment target, auth requirement, data
 Feasibility & conflict checks: feasible under Node/TypeScript stack; no existing codebase collisions
 Must-confirm: 1) Local DB vs Cloud DB? 2) Auth provider preference?
 Reasonable assumptions: single-user MVP, local dev first
-Recommended next step: clarify Must-Confirm items; upon response, Agent will auto-init AGENTS.md and docs/
+Recommended next step: clarify Must-Confirm items; upon response, Agent will auto-init AGENTS.md, present UI mockups & API binding tables, and scaffold docs/
 ```
 
 

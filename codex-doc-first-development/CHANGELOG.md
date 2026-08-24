@@ -5,6 +5,18 @@ All notable changes to the `codex-doc-first-development` skill will be documente
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2026-08-24
+
+### Added
+- **Functional Independence & DRY Reusability Architecture**: Mandated centralized API client / service layers (`client.ts` / `service.py`) for all data requests and backend dynamic field projection (`fields` parameter), eliminating duplicate request logic across multiple components.
+- **Pre-Dev Interactive UI/UX Design & Prototyping Gate**: Added mandatory alignment with user on product prototypes, screen UI layouts, component-to-API binding matrices, and user interaction states before coding begins.
+- **Multimodal Image Generation Integration**: Added support for proactively generating high-fidelity UI visual mockups via `generate_image` and embedding them into `docs/ux.md`.
+- **Strict Spec-Driven Targeted Development**: Added spec-driven execution rules ensuring code 100% conforms to documented API contracts, parameter names, and UI structures without ad-hoc drift.
+- **Synchronous Two-Way Documentation Sync**: Mandated that any user feedback, architectural modification, API change, or UI interaction update must synchronously update `docs/` in lockstep with or prior to code changes.
+- **Code-Doc Traceability Acceptance Gate**: Enhanced S14 (DRY Review) and S16 (Acceptance) to block PRs/commits that introduce duplicate requests, diverge from documented contracts, or lack synchronous doc updates.
+
+---
+
 ## [2.0.0] - 2026-07-28
 
 ### Added

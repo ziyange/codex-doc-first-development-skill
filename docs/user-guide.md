@@ -214,3 +214,18 @@ python scripts/scaffold_docs.py --root "C:\path\to\project" --mode standard --ph
    python scripts/check_docs_links.py "docs" --json
    python scripts/scaffold_docs.py --root "." --mode standard --auto-detect --json
    ```
+
+## 11. v2.2.0 功能独立化、UI原型生图与同步联动规范
+
+1. **功能独立化与 DRY 模块复用**：
+   - 所有的 API 请求与数据调用逻辑必须抽象封装为独立的客户端/服务层模块（如 `api/client.ts` 或 `services/data_service.py`）。
+   - 严禁在多个业务页面/组件中重复编写相同的请求调用。后端服务统一提供动态字段筛选参数（如 `fields` 投影参数），由后端按需过滤字段返回前端，避免为类似需求冗余开发多套接口。
+
+2. **开发前产品 UI/UX 深度沟通 & 多模态生图联动**：
+   - 需求分析与接口架构完毕后，在正式编码之前，Agent 必须与用户对齐：产品原型图、各界面 UI 布局、UI 组件与接口调用映射表（组件 -> 统一API模块 -> 传参 -> 筛选字段 -> 状态机）及交互状态机。
+   - 所有 UI 设计全量记录在 `docs/ux.md` 中。
+   - 若智能体环境支持生图工具（如 `generate_image`），Agent 会主动生成高保真 UI 原型图并使用 `![UI Mockup](path/to/image.png)` 语法嵌入 `docs/ux.md` 供用户直观确认。
+
+3. **严格按文档专项开发与同步联动**：
+   - 编码阶段必须 100% 严格执行 Must Read 文档和 Task Pack 中约定的接口契约与 UI 规范，禁止脱节开发。
+   - 当用户提出修改建议或技术调整涉及架构、接口、UI/交互变动时，必须同步在改代码前或同一步骤中更新 `docs/` 对应文件，确保代码与文档永远保持一致。

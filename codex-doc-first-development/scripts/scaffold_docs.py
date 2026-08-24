@@ -106,7 +106,9 @@ ARCHITECTURE = """# Architecture
 
 ## Module Boundaries
 
-## Data Flow
+## Unified Service Layer & DRY API Design
+
+## Data Flow & Backend Field Projection
 
 ## Interface Contracts
 
@@ -267,13 +269,21 @@ SECURITY = """# Security
 ## Threats, Secrets, and Audit Requirements
 """
 
-UX = """# UX
+UX = """# UX & UI Design
 
 ## Applicability
 
-## User Flows and States
+## Product Prototype & Navigation Flow
 
-## Accessibility and Visual Verification
+## Screen UI Layouts & Visual Mockups
+<!-- Embed generated UI preview images here if multimodal/generate_image is available: ![Screen Preview](path/to/image.png) -->
+
+## UI Component to API Interface Binding Table
+| Screen / Component | User Action | Unified API Module / Route | Request Parameters | Projected Fields | UI State (Loading/Empty/Error) |
+|---|---|---|---|---|---|
+| ExampleScreen / SubmitBtn | Click Submit | ApiClient.submitData() | `{ id: 123 }` | `status, result` | Button spinner, inline error toast |
+
+## User Interaction & State Transitions
 """
 
 OPERATIONS = """# Operations

@@ -1,30 +1,35 @@
-# Codex Doc-First Development Skill (v2.1.0 正式版)
+# Codex Doc-First Development Skill (v2.2.0 正式版)
 
-> **专为 AI Agent 打造的工业级“文档优先 + 密码学物理门禁”软件工程技能包**  
+> **专为 AI Agent 打造的工业级“文档优先 + 密码学物理门禁 + UI原型生图 + 功能独立化”软件工程技能包**  
 > **An Industrial-Grade Document-First Software Engineering Skill for AI Agents**
 
 ---
 
 ## 💡 核心背景：为什么需要本项目？
 
-在当前的 AI 辅助软件开发中，大语言模型（如 OpenAI Codex、Claude Engineer、Antigravity 等）在自主编写代码时经常面临以下 5 大致命痛点：
+在当前的 AI 辅助软件开发中，大语言模型（如 OpenAI Codex、Claude Engineer、Antigravity 等）在自主编写代码时经常面临以下 6 大致命痛点：
 
-1. **暗箱操作与随意改码**：Agent 在未经用户许可的情况下，直接改动主干代码、删除已有配置文件或改动无关模块。
-2. **黑盒死循环与 Token 浪费**：遇到编译或测试报错时，Agent 盲目反复修改、陷入死循环，消耗大量 Token 却无法解决问题。
-3. **伪测试与虚假报告**：Agent 编写空断言（如 `assert True`）或把测试断言注释掉，欺骗主控程序并虚报成功。
-4. **历史凭证篡改**：Agent 在修改失败后，偷改审计日志以掩盖错误。
-5. **开局一次性越权授权**：传统的静态授权要么导致 Agent 中途频繁询问被打扰，要么开局一次性授权导致风险失控。
+1. **文档设计与后续开发脱节**：前期设计了详尽的文档和接口，但进入编码后 Agent 凭感觉自由发挥，未按文档规格与接口契约专项开发。
+2. **代码缺乏模块独立化与严重冗余**：同一个数据请求接口在 4 处业务组件中写了 4 遍，缺少统一的公共请求客户端/服务层与后端动态字段筛选（投影）机制。
+3. **开发前缺少 UI/原型与接口绑定的用户对齐**：需求分析后直接编码，未提前与用户对齐各界面 UI 布局、原型图以及组件-接口调用映射表，未利用智能体生图能力生成直观界面预览。
+4. **用户提修改建议后文档与代码不同步**：用户提出需求或修改建议后，Agent 仅修改代码而未同步更新 `docs/` 事实源，导致文档失真滞后。
+5. **黑盒死循环与伪测试报告**：Agent 编写空断言（如 `assert True`）或注释掉测试断言以虚报测试通过。
+6. **暗箱操作与随意越权改码**：Agent 在未经用户许可的情况下篡改未授权文件或主干配置。
 
 `codex-doc-first-development` 技能包就是为了**彻底解决上述痛点**而生的工业级治理方案。
 
 ---
 
-## 🛡️ 核心治理机制 (v2.1.0 重磅升级)
+## 🛡️ 核心治理机制 (v2.2.0 重磅升级)
 
-本项目不仅是一套指导 Agent 行为的“文档规范”，更是一套拥有**物理 Python 脚本硬门禁**的防御体系：
+本项目不仅是一套指导 Agent 行为的“文档规范”，更是一套拥有**物理 Python 脚本硬门禁**与**前置设计交互标准**的完整体系：
 
-- **离线 JSON Schema 机器校验**：将 Schema 从 Markdown 锚点解析解耦，独立存放于 `references/schemas/*.json`（标准 JSON Schema 规范），并保留 Markdown 提取的降级兼容。
-- **跨平台 Advisory Lock & 锁抢占清理**：在代码写入阶段，通过 `lock_manager.py` 对 `docs/delivery/.log.lock` 进行基于 OS-level 咨询锁 (`fcntl`/`msvcrt`) 的互斥锁定，支持基于 PID 存活检查与 TTL 超时的死锁自动清理。
+- **严格按文档专项开发（Spec-Driven Targeted Development）**：docs 为唯一事实源，Task Pack 中的接口签名、路由、数据结构与 UI 布局为硬性契约，主控验收门禁（S16）严格核验文档-代码一致性。
+- **功能独立化与 DRY 模块复用架构**：强制将公共数据请求抽离为独立的客户端/服务模块，后端提供通用查询与动态字段筛选（`fields` 投影参数），彻底根绝同一请求多处重复编写的冗余代码。
+- **开发前产品 UI/UX 深度沟通门禁 & 多模态生图联动**：开发前必须与用户对齐产品原型、各界面 UI 布局、组件-接口调用映射表（组件 -> 统一API模块 -> 传参 -> 筛选字段 -> 状态机）及交互状态机；具备生图能力（`generate_image`）时主动生成高保真 UI 原型图嵌入 `docs/ux.md`。
+- **用户建议与变动同步联动机制**：任何来自用户修改建议或技术调整导致的架构、接口、UI/交互变动，必须同步更新项目目录文档（`docs/` 对应位置），代码变动严禁超前或背离文档。
+- **离线 JSON Schema 机器校验**：将 Schema 独立存放于 `references/schemas/*.json`（标准 JSON Schema 规范），并保留 Markdown 提取的降级兼容。
+- **跨平台 Advisory Lock & 锁抢占清理**：在代码写入阶段，通过 `lock_manager.py` 对 `docs/delivery/.log.lock` 进行基于 OS-level 咨询锁 (`fcntl`/`msvcrt`) 的互斥锁定。
 - **密码学 Merkle 链防篡改与 Artifact SHA-256 哈希审计**：所有授权与意图记录写入 `permission-audit.log`，支持多模态与二进制文件 Artifact SHA-256 哈希比对。
 - **伪测试与假占位符启发式检测**：`check_task_pack.py` 内置静态分析算子，自动拦截 `assert True`、`self.assertTrue(True)`、注释断言与空 `pass` 测试块。
 - **Exit Code 确定性物理退出码 (0–6)**：提供确定性、Fail-Close 机制的 CLI 退出码与 JSON 输出体。
