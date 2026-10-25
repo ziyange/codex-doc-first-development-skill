@@ -57,7 +57,7 @@ class TestPainPointCards(unittest.TestCase):
         for card in self.cards:
             self.assertEqual(card["card_id"], card["category"])
 
-    def test_inspection_cmd_scripts_exist(self):
+    def test_inspection_cmd_is_runnable_or_skill_reference(self):
         # Collect every script available across skill directories (the main
         # skill plus companion skills, before and after the split).
         available = set()
@@ -65,12 +65,23 @@ class TestPainPointCards(unittest.TestCase):
             if scripts_dir.is_dir():
                 available.update(p.name for p in scripts_dir.glob("*.py"))
 
+        # Companion skill directories that can be referenced by name.
+        skill_dirs = {p.name for p in SKILL_ROOT.parent.glob("codex-doc-first-*") if p.is_dir()}
+
         for card in self.cards:
             cmd = card["inspection_cmd"]
-            if not cmd.startswith("python "):
-                self.fail(f"card {card['card_id']} inspection_cmd must start with 'python ': {cmd!r}")
-            referenced = re.findall(r"scripts/(\w+\.py)", cmd)
-            for script in referenced:
+            if cmd.startswith("Call the Skill tool with"):
+                # Skill reference form: the named skill must exist.
+                referenced = re.findall(r'with "([\w-]+)"', cmd)
+                self.assertTrue(referenced, f"card {card['card_id']} skill reference has no name")
+                for name in referenced:
+                    self.assertIn(name, skill_dirs, f"card {card['card_id']} references missing skill: {name}")
+                continue
+            self.assertTrue(
+                cmd.startswith("python "),
+                f"card {card['card_id']} inspection_cmd must be a python command or a Skill tool reference: {cmd!r}",
+            )
+            for script in re.findall(r"scripts/(\w+\.py)", cmd):
                 self.assertIn(
                     script,
                     available,

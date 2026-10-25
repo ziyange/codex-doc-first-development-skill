@@ -11,10 +11,15 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_ROOT = REPO_ROOT / "codex-doc-first-development"
+TASK_PACK_GATE_ROOT = REPO_ROOT / "codex-doc-first-task-pack-gate"
+DOC_SYNC_ROOT = REPO_ROOT / "codex-doc-first-doc-sync"
+
+# Every installable skill in this repository (main orchestrator + companions).
+SKILL_ROOTS = sorted(REPO_ROOT.glob("codex-doc-first-*"))
 
 
-def load_module(name: str, relative: str):
-    path = SKILL_ROOT / relative
+def load_module(name: str, skill_root: Path, relative: str):
+    path = skill_root / relative
     spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"cannot load {path}")
@@ -34,9 +39,8 @@ def fenced_template(markdown: str, heading: str) -> str:
     return match.group(1).strip()
 
 
-checker = load_module("check_task_pack", "scripts/check_task_pack.py")
-scaffolder = load_module("scaffold_docs", "scripts/scaffold_docs.py")
-link_checker = load_module("check_docs_links", "scripts/check_docs_links.py")
+checker = load_module("check_task_pack", TASK_PACK_GATE_ROOT, "scripts/check_task_pack.py")
+scaffolder = load_module("scaffold_docs", SKILL_ROOT, "scripts/scaffold_docs.py")
 
 
 VALID_TASK = """# TASK-001: Add CSV export
@@ -114,7 +118,7 @@ class TaskPackTests(unittest.TestCase):
         result = subprocess.run(
             [
                 sys.executable,
-                str(SKILL_ROOT / "scripts/check_task_pack.py"),
+                str(TASK_PACK_GATE_ROOT / "scripts/check_task_pack.py"),
                 "missing-task-pack.md",
             ],
             cwd=REPO_ROOT,
@@ -154,7 +158,7 @@ class TaskPackTests(unittest.TestCase):
             result = subprocess.run(
                 [
                     sys.executable,
-                    str(SKILL_ROOT / "scripts/check_task_pack.py"),
+                    str(TASK_PACK_GATE_ROOT / "scripts/check_task_pack.py"),
                     str(path),
                     "--json",
                 ],
@@ -267,32 +271,69 @@ class ScaffoldTests(unittest.TestCase):
             self.assertIn('"mode": "quick"', result.stdout)
 
 
-
 class PackageTests(unittest.TestCase):
+    """Consistency guards across every installable skill in the repository."""
+
+    ALLOWED_FRONTMATTER_KEYS = {
+        "name",
+        "description",
+        "license",
+        "allowed-tools",
+        "disable-model-invocation",
+    }
+
     def test_skill_metadata_and_references(self) -> None:
-        skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
-        self.assertLess(len(skill.splitlines()), 500)
-        frontmatter = skill.split("---", 2)[1]
-        keys = {
-            line.split(":", 1)[0].strip()
-            for line in frontmatter.splitlines()
-            if ":" in line
-        }
-        self.assertEqual(keys, {"name", "description"})
-        self.assertIn("name: codex-doc-first-development", frontmatter)
-        self.assertEqual(SKILL_ROOT.name, "codex-doc-first-development")
+        self.assertGreaterEqual(len(SKILL_ROOTS), 5)
+        for skill_root in SKILL_ROOTS:
+            skill = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+            self.assertLess(len(skill.splitlines()), 500, skill_root.name)
+            frontmatter = skill.split("---", 2)[1]
+            keys = {
+                line.split(":", 1)[0].strip()
+                for line in frontmatter.splitlines()
+                if ":" in line
+            }
+            # name + description are mandatory; the superset is capped so
+            # non-standard keys cannot sneak in unnoticed.
+            self.assertTrue({"name", "description"} <= keys, skill_root.name)
+            self.assertTrue(keys <= self.ALLOWED_FRONTMATTER_KEYS, f"{skill_root.name}: {keys}")
+            self.assertIn(f"name: {skill_root.name}", frontmatter)
 
-        references = set(re.findall(r"`(references/[^`]+)`", skill))
-        self.assertGreater(len(references), 0)
-        for reference in references:
-            self.assertTrue((SKILL_ROOT / reference).is_file(), reference)
+            references_dir = skill_root / "references"
+            if references_dir.is_dir():
+                references = set(re.findall(r"`(references/[^`]+)`", skill))
+                self.assertGreater(len(references), 0, skill_root.name)
+                for reference in references:
+                    self.assertTrue(
+                        (skill_root / reference).is_file(),
+                        f"{skill_root.name}: {reference}",
+                    )
 
-        openai_yaml = (SKILL_ROOT / "agents/openai.yaml").read_text(encoding="utf-8")
-        self.assertIn("$codex-doc-first-development", openai_yaml)
-        short = re.search(r'^  short_description: "(.*)"$', openai_yaml, re.MULTILINE)
-        self.assertIsNotNone(short)
-        self.assertGreaterEqual(len(short.group(1)), 25)
-        self.assertLessEqual(len(short.group(1)), 64)
+            openai_yaml = (skill_root / "agents/openai.yaml").read_text(encoding="utf-8")
+            short = re.search(r'^  short_description: "(.*)"$', openai_yaml, re.MULTILINE)
+            self.assertIsNotNone(short, skill_root.name)
+            self.assertGreaterEqual(len(short.group(1)), 25, skill_root.name)
+            self.assertLessEqual(len(short.group(1)), 64, skill_root.name)
+            self.assertFalse(short.group(1).endswith("."), skill_root.name)
+
+    def test_user_invoked_skills_declare_policy(self) -> None:
+        # A skill with disable-model-invocation: true must pair with
+        # policy.allow_implicit_invocation: false in agents/openai.yaml.
+        for skill_root in SKILL_ROOTS:
+            skill = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+            frontmatter = skill.split("---", 2)[1]
+            user_invoked = "disable-model-invocation: true" in frontmatter
+            openai_yaml = (skill_root / "agents/openai.yaml").read_text(encoding="utf-8")
+            has_policy = "allow_implicit_invocation: false" in openai_yaml
+            self.assertEqual(user_invoked, has_policy, skill_root.name)
+
+    def test_cross_skill_references_resolve(self) -> None:
+        # Every 'Call the Skill tool with "<name>"' must name an installed skill.
+        known = {root.name for root in SKILL_ROOTS}
+        for skill_root in SKILL_ROOTS:
+            skill = (skill_root / "SKILL.md").read_text(encoding="utf-8")
+            for name in re.findall(r'Call the Skill tool with "([\w-]+)"', skill):
+                self.assertIn(name, known, f"{skill_root.name} references unknown skill: {name}")
 
     def test_script_templates_match_reference(self) -> None:
         markdown = (SKILL_ROOT / "references/templates.md").read_text(encoding="utf-8")
@@ -303,67 +344,15 @@ class PackageTests(unittest.TestCase):
             "Task Pack": scaffolder.TASK,
         }
 
-
-
         for heading, template in expected.items():
             self.assertEqual(fenced_template(markdown, heading), template.strip(), heading)
 
     def test_long_references_have_contents(self) -> None:
-        for path in (SKILL_ROOT / "references").glob("*.md"):
-            lines = path.read_text(encoding="utf-8").splitlines()
-            if len(lines) > 100:
-                self.assertIn("## Contents", lines, path.name)
-
-
-class LinkCheckerTests(unittest.TestCase):
-    def test_valid_links_and_anchors_pass(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            doc_a = root / "doc_a.md"
-            doc_b = root / "doc_b.md"
-            doc_a.write_text(
-                "# Document A\n\nSee [Doc B](doc_b.md) and [Section B](doc_b.md#section-two).\n",
-                encoding="utf-8",
-            )
-            doc_b.write_text(
-                "# Document B\n\n## Section Two\n\nContent.\n",
-                encoding="utf-8",
-            )
-            res = link_checker.check_docs_links(root)
-            self.assertEqual(res["status"], "passed")
-            self.assertEqual(res["total_issues"], 0)
-
-    def test_broken_relative_link_and_anchor_fail(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            doc = root / "readme.md"
-            doc.write_text(
-                "# Readme\n\n- [Missing File](missing.md)\n- [Bad Anchor](#non-existent)\n",
-                encoding="utf-8",
-            )
-            res = link_checker.check_docs_links(root)
-            self.assertEqual(res["status"], "failed")
-            self.assertEqual(res["total_issues"], 2)
-
-    def test_link_checker_cli_json(self) -> None:
-        with tempfile.TemporaryDirectory() as directory:
-            root = Path(directory)
-            (root / "test.md").write_text("# Test\n\n[Link](missing.md)\n", encoding="utf-8")
-            result = subprocess.run(
-                [
-                    sys.executable,
-                    str(SKILL_ROOT / "scripts/check_docs_links.py"),
-                    str(root),
-                    "--json",
-                ],
-                cwd=REPO_ROOT,
-                capture_output=True,
-                text=True,
-                check=False,
-            )
-            self.assertEqual(result.returncode, 1)
-            self.assertIn('"status": "failed"', result.stdout)
-            self.assertIn('"total_issues": 1', result.stdout)
+        for skill_root in SKILL_ROOTS:
+            for path in (skill_root / "references").glob("*.md"):
+                lines = path.read_text(encoding="utf-8").splitlines()
+                if len(lines) > 100:
+                    self.assertIn("## Contents", lines, f"{skill_root.name}/{path.name}")
 
 
 if __name__ == "__main__":

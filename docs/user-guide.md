@@ -87,6 +87,19 @@ codex-doc-first-development/
 
 `scripts/lock_manager.py` 是跨平台咨询锁管理器（持锁后才校验/覆写锁元数据，释放不删除锁文件）。
 
+### 3.1 伴随技能（Companion Skills，可选安装）
+
+v2.3.0 起，仓库除主控 Skill 外还包含 4 个可独立安装的伴随技能，主控通过 Skill 工具委托对应纪律步骤：
+
+| 技能 | 职责 | 独有脚本 |
+|---|---|---|
+| `codex-doc-first-doc-sync` | S18/S20 双向文档同步与写回纪律、S7 文档评审 | `scripts/check_docs_links.py` |
+| `codex-doc-first-task-pack-gate` | S9-S10 Task Pack 就绪门禁 | `scripts/check_task_pack.py` |
+| `codex-doc-first-ui-ux-prototyping` | S6 开发前 UI/UX 对齐门禁 | 无（纯纪律） |
+| `codex-doc-first-start` | 人类入口：确认想法与模式后交接主控 | 无 |
+
+伴随技能未安装时，主控自动回退到 `references/review-gates.md` 内联清单，功能不受影响。
+
 ## 4. 推荐安装方式：把 GitHub 地址发给 Codex
 
 正常安装不需要用户手动复制文件。你只需要把下面这段话发给 Codex：
@@ -222,7 +235,7 @@ python scripts/scaffold_docs.py --root "C:\path\to\project" --mode standard --ph
 ## 9. Task Pack 授权范围与防虚假测试门禁
 
 1. **Allowed Files 授权细粒度管控**：
-   Task Pack 中的 `Allowed Files` 严禁使用全盘通配符（如 `*`、`**`、`.`）。`scripts/check_task_pack.py` 将会自动拦截过宽授权，强制要求 Agent 列出具体子目录或文件名规则（如 `src/auth/*.ts`）。
+   Task Pack 中的 `Allowed Files` 严禁使用全盘通配符（如 `*`、`**`、`.`）。`codex-doc-first-task-pack-gate` 技能中的 `check_task_pack.py` 将会自动拦截过宽授权，强制要求 Agent 列出具体子目录或文件名规则（如 `src/auth/*.ts`）。
 2. **防虚假测试与断言质量审计（双通道）**：
    - **阻断通道（issues）**：Task Pack 结构、占位符、`MAX_ITERATIONS` 越界等问题直接失败（退出码 1）。
    - **提示通道（warnings）**：`check_task_pack.py` 将 Test Requirements 章节中的 `assert True`、`self.assertTrue(True)`、注释断言、空 `pass` 测试块及 v1.x 遗留格式（缺失 `MAX_ITERATIONS`）收敛为 `warnings`（`--json` 输出的 `warnings` 数组），**不改变退出码**，由主控 Agent 在 S14 测试质量评审中处置。
@@ -230,17 +243,20 @@ python scripts/scaffold_docs.py --root "C:\path\to\project" --mode standard --ph
 
 ## 10. 静态死链检查器与 CI/CD 结构化 Output 契约
 
-1. **文档相对链接与锚点静态检查器 (`scripts/check_docs_links.py`)**：
+1. **文档相对链接与锚点静态检查器 (`codex-doc-first-doc-sync` 技能中的 `check_docs_links.py`)**：
    用于自动化解析 Markdown 文档中的相对文件路径 (`[text](relative/path.md)`) 与标题锚点 (`#anchor-name` / `file.md#anchor-name`)，无需启动 HTTP 服务即可进行静态死链阻断。锚点 slug 生成遵循 GitHub GFM 规则（小写、删除标点、保留 `_`、空格逐一转 `-` 且不折叠连续空格），与 GitHub 实际渲染一致：
    ```powershell
    python scripts/check_docs_links.py "C:\path\to\project\docs"
    ```
 
 2. **结构化 JSON Output 与 CI/CD 流水线无缝集成 (`--json`)**：
-   所有检查与脚手架工具脚本 (`check_task_pack.py` / `check_docs_links.py` / `scaffold_docs.py`) 均内置 `--json` 选项，可直接输出符合 JSON Schema 契约的机器可读 Payload，便于无缝集成至 GitHub Actions 或 GitLab CI 流水线：
+   所有检查与脚手架工具脚本 (`check_task_pack.py` / `check_docs_links.py` / `scaffold_docs.py`) 均内置 `--json` 选项，可直接输出符合 JSON Schema 契约的机器可读 Payload，便于无缝集成至 GitHub Actions 或 GitLab CI 流水线。各脚本在其所属技能目录下执行：
    ```powershell
+   # Task Pack 门禁（codex-doc-first-task-pack-gate 技能目录）
    python scripts/check_task_pack.py "docs/delivery/tasks/TASK-001.md" --json
+   # 链接校验（codex-doc-first-doc-sync 技能目录）
    python scripts/check_docs_links.py "docs" --json
+   # 文档脚手架（codex-doc-first-development 技能目录）
    python scripts/scaffold_docs.py --root "." --mode standard --auto-detect --json
    ```
 

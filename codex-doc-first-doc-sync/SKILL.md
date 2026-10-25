@@ -1,0 +1,55 @@
+---
+name: codex-doc-first-doc-sync
+description: Use when code, architecture, API contracts, UI layouts, or requirements change and docs/ must be updated in the same step; also for phase documentation writeback, Markdown link and anchor validation, and doc-code drift audits before acceptance or merge.
+---
+
+# Doc-First Doc Sync
+
+Documentation is the single source of truth. This skill is the reusable discipline behind S7 (Docs Review), S18 (Change Classification & Synchronous Doc Sync), and S20 (Knowledge & Doc Writeback) of the doc-first lifecycle. Consult it whenever a change touches facts that documents own.
+
+## The sync rule
+
+When user feedback, a technical discovery, or an implementation change alters architecture, API contracts, UI layouts, or requirements, update the corresponding document **in the same step as, or before, the code change**:
+
+- `docs/architecture.md` - module boundaries, service/client layers, data flow
+- `docs/api.md` - endpoints, signatures, field projections
+- `docs/ux.md` - screen layouts, component-to-API bindings, interaction states
+- `docs/requirements.md` - scope, non-goals, success criteria
+- `docs/delivery/tasks/TASK-*.md` - contracts and acceptance criteria for the active pack
+
+Code must never run ahead of documentation. If implementation reveals a new fact, write it back to the owning document, not to a comment or a commit message.
+
+## Change classification
+
+| Class | Trigger | Required doc action |
+|---|---|---|
+| Micro | Typo, comment, internal rename with no contract change | None |
+| Standard | Behavior-preserving refactor inside documented contracts | Update affected doc sections in the same step |
+| Strict | Architecture, API contract, UI layout, or requirement change | Update docs **before** code; acceptance gate (S16) blocks divergence |
+
+## Writeback checklist (S20)
+
+At phase end, sync final facts back:
+
+1. Reusable patterns and failure lessons as pain-point card candidates for the orchestrator's card repository (owned by the main skill).
+2. Verified commands and stack facts into `AGENTS.md`.
+3. Phase outcome into the phase plan and `docs/README.md` index.
+4. Archive pointers into `docs/archive/`.
+
+## Link and anchor validation
+
+Run the checker over the docs tree before finalizing:
+
+```bash
+python scripts/check_docs_links.py docs --json
+```
+
+Exit 0 means all relative links and heading anchors resolve. Anchors follow GitHub (GFM) rules: lowercase, punctuation dropped, **underscores kept**, each space becomes one hyphen (consecutive spaces stay consecutive hyphens). The checker enforces exactly these rules - if it passes locally, GitHub renders the same anchors.
+
+Exit 2 means the path itself was unreadable; exit 1 lists every broken link with file, line, and target.
+
+## Manual fallback
+
+If this skill's script is unavailable (not installed), validate manually: every `[text](path.md#anchor)` link must point at an existing file, and the anchor must match the target heading after lowercasing, dropping punctuation (keeping `_`), and replacing each space with `-`.
+
+For the full distilled checklist (ownership map, S18 triggers, S20 writeback list, Docs Review gate), see `references/doc-sync-checklist.md`.

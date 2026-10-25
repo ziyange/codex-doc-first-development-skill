@@ -117,7 +117,7 @@ Deleting or renaming database columns or public API fields that break existing c
     "mandatory_keywords": ["windows", "linux", "mac", "path", "os", "cross_platform", "case_sensitivity"],
     "pattern_contexts": ["backslash", "slash", "symlink", "file_system", "encoding"]
   },
-  "inspection_cmd": "python scripts/check_docs_links.py docs",
+  "inspection_cmd": "Call the Skill tool with \"codex-doc-first-doc-sync\" (runs scripts/check_docs_links.py over docs)",
   "version": "1.0.0",
   "last_validated": "2026-07-28"
 }

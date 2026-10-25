@@ -36,6 +36,22 @@
 
 ---
 
+## 🧩 技能套件组成 (Skill Suite)
+
+v2.3.0 起，单体 Skill 按「调用双轴」拆分为 1 个主控 + 4 个可独立安装的伴随 Skill（规约见 [.agents/invocation.md](.agents/invocation.md)）：
+
+| Skill | 调用轴 | 职责 |
+|---|---|---|
+| `codex-doc-first-development` | Model-invoked | 主控编排器：S0-S22 全生命周期、Exit 0-6 硬门禁、Merkle 链校验 |
+| `codex-doc-first-start` | **User-invoked** | 人类入口：确认想法、范围与模式后交接主控（不可被模型自动触发） |
+| `codex-doc-first-doc-sync` | Model-invoked | 双向文档同步纪律（S18/S20）+ `check_docs_links.py` 链接/锚点校验 |
+| `codex-doc-first-task-pack-gate` | Model-invoked | Task Pack 就绪门禁（S9-S10）+ `check_task_pack.py` 校验 |
+| `codex-doc-first-ui-ux-prototyping` | Model-invoked | 开发前 UI/UX 对齐门禁（S6）：原型、布局、组件-接口绑定矩阵、生图联动 |
+
+主控 Skill 通过 `Call the Skill tool with "<name>"` 委托上述纪律步骤；伴随 Skill 未安装时，主控回退到 `references/review-gates.md` 内联清单并在 Task Pack 中记录 fallback。
+
+---
+
 ## 🔄 全生命周期工作流程图 (Mermaid)
 
 下图展示了从 `S0 启动握手` 到 `S22 阶段归档` 的完整控制流、决策门禁与分支路线：
@@ -169,37 +185,55 @@ codex-doc-first-development-skill/
 ├── tests/                                # 单元测试与端到端集成测试套件
 │   ├── fixtures/                         # 标准集成测试数据 (valid, tampered, unauthorized)
 │   ├── test_check_task_pack.py           # Task Pack 校验与 warnings 通道用例
+│   ├── test_doc_sync.py                  # GFM 锚点语义与链接检查端到端用例
 │   ├── test_lock_manager.py              # LockManager Advisory Lock 单元测试
-│   ├── test_skill.py                     # Skill 完整性与链路测试
-│   ├── test_verify_runtime_trace.py      # 基准用例 TC-V01 ~ TC-V19
+│   ├── test_pain_points.py               # 6 张难点卡片有效性校验
+│   ├── test_schemas_parity.py            # schemas.md 与独立 JSON 双源一致性
+│   ├── test_skill.py                     # 多 Skill 完整性与链路测试
+│   ├── test_verify_runtime_trace.py      # 基准用例 TC-V01 ~ TC-V24
 │   └── test_verify_runtime_trace_end2end.py # CLI 端到端 Exit Codes (0, 2, 5) 校验
-└── codex-doc-first-development/
-    ├── SKILL.md                          # Skill 核心主控指南 (v2.2.0)
-    ├── agents/
-    │   └── openai.yaml
-    ├── references/
-    │   ├── schemas/                      # 离线独立 JSON Schema 文件（机器可读权威源）
-    │   │   ├── AuditLogSchema.json
-    │   │   ├── ExecutionTraceSchema.json
-    │   │   ├── ExpansionSchema.json
-    │   │   ├── PainPointCardSchema.json
-    │   │   └── TaskPackSchema.json
-    │   ├── schemas.md                    # JSON Schema 人类可读说明文档（Markdown 降级源）
-    │   ├── capabilities-matrix.md        # S0-S22 阶段资产映射表
-    │   ├── pain-points.md                # 6 大领域工程难点卡片库
-    │   ├── methodology.md                # S0-S22 完整方法论指南
-    │   ├── templates.md                  # 标准文档模板
-    │   ├── review-gates.md               # 评审门禁与退出码表
-    │   ├── prompts.md                    # 可复用提示词模板
-    │   ├── examples.md                   # 场景示例
-    │   └── agent-git-ci.md               # 分支与 Agent 协作规约
-    └── scripts/
-        ├── verify_runtime_trace.py       # 物理硬门禁校验 CLI (Exit 0-6)
-        ├── check_permission_log.py       # Merkle 链静态校验模块（被 verify_runtime_trace 引用）
-        ├── lock_manager.py               # 跨平台 Advisory Lock 锁管理器
-        ├── check_task_pack.py            # Task Pack 规范校验器（issues 阻断 + warnings 提示）
-        ├── check_docs_links.py           # Markdown 链接与锚点校验器（GFM 严格 slug）
-        └── scaffold_docs.py              # 文档脚手架生成器
+├── codex-doc-first-development/          # 主控 Skill（编排 S0-S22 全生命周期）
+│   ├── SKILL.md                          # Skill 核心主控指南 (v2.2.0)
+│   ├── agents/
+│   │   └── openai.yaml
+│   ├── references/
+│   │   ├── schemas/                      # 离线独立 JSON Schema 文件（机器可读权威源）
+│   │   │   ├── AuditLogSchema.json
+│   │   │   ├── ExecutionTraceSchema.json
+│   │   │   ├── ExpansionSchema.json
+│   │   │   ├── PainPointCardSchema.json
+│   │   │   └── TaskPackSchema.json
+│   │   ├── schemas.md                    # JSON Schema 人类可读说明文档（Markdown 降级源）
+│   │   ├── capabilities-matrix.md        # S0-S22 阶段资产映射表
+│   │   ├── pain-points.md                # 6 大领域工程难点卡片库
+│   │   ├── methodology.md                # S0-S22 完整方法论指南
+│   │   ├── templates.md                  # 标准文档模板
+│   │   ├── review-gates.md               # 评审门禁与退出码表
+│   │   ├── prompts.md                    # 可复用提示词模板
+│   │   ├── examples.md                   # 场景示例
+│   │   └── agent-git-ci.md               # 分支与 Agent 协作规约
+│   └── scripts/
+│       ├── verify_runtime_trace.py       # 物理硬门禁校验 CLI (Exit 0-6)
+│       ├── check_permission_log.py       # Merkle 链静态校验模块（被 verify_runtime_trace 引用）
+│       ├── lock_manager.py               # 跨平台 Advisory Lock 锁管理器
+│       └── scaffold_docs.py              # 文档脚手架生成器
+├── codex-doc-first-doc-sync/             # 伴随 Skill：文档同步纪律 + 链接校验
+│   ├── SKILL.md
+│   ├── agents/openai.yaml
+│   ├── references/doc-sync-checklist.md
+│   └── scripts/check_docs_links.py       # Markdown 链接与锚点校验器（GFM 严格 slug）
+├── codex-doc-first-task-pack-gate/       # 伴随 Skill：Task Pack 就绪门禁
+│   ├── SKILL.md
+│   ├── agents/openai.yaml
+│   ├── references/task-pack-gate.md
+│   └── scripts/check_task_pack.py        # Task Pack 规范校验器（issues 阻断 + warnings 提示）
+├── codex-doc-first-ui-ux-prototyping/    # 伴随 Skill：开发前 UI/UX 对齐门禁（纯纪律）
+│   ├── SKILL.md
+│   ├── agents/openai.yaml
+│   └── references/ux-alignment-gate.md
+└── codex-doc-first-start/                # 伴随 Skill：人类入口（user-invoked）
+    ├── SKILL.md                          # frontmatter 含 disable-model-invocation: true
+    └── agents/openai.yaml                # 含 policy.allow_implicit_invocation: false
 ```
 
 ---
@@ -245,6 +279,8 @@ Copy-Item `
   -Recurse `
   -Force
 ```
+
+> **伴随 Skill（可选增量）**：`codex-doc-first-doc-sync`、`codex-doc-first-task-pack-gate`、`codex-doc-first-ui-ux-prototyping`、`codex-doc-first-start` 可按需同样拷贝安装。主控 Skill 单独安装即可完整工作（自动回退到内联清单）；安装伴随 Skill 后，主控会把对应纪律步骤委托给它们。
 
 ### 4. 触发指令 Prompt
 

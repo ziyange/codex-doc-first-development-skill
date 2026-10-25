@@ -1,0 +1,4 @@
+interface:
+  display_name: "Task Pack Gate"
+  short_description: "Validate Task Packs before execution"
+  default_prompt: "Use $codex-doc-first-task-pack-gate to validate the Task Pack structure, Allowed Files granularity, MAX_ITERATIONS bounds, and test-quality warnings before implementation."
