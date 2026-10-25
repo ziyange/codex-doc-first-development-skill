@@ -27,6 +27,7 @@ Skill 名称：`codex-doc-first-development`
 ```text
 codex-doc-first-development/
   SKILL.md
+  CHANGELOG.md
   agents/
     openai.yaml
   references/
@@ -36,10 +37,22 @@ codex-doc-first-development/
     review-gates.md
     agent-git-ci.md
     examples.md
+    capabilities-matrix.md
+    pain-points.md
+    schemas.md
+    schemas/
+      ExecutionTraceSchema.json
+      AuditLogSchema.json
+      ExpansionSchema.json
+      PainPointCardSchema.json
+      TaskPackSchema.json
   scripts/
     scaffold_docs.py
     check_task_pack.py
     check_docs_links.py
+    check_permission_log.py
+    verify_runtime_trace.py
+    lock_manager.py
 ```
 
 `SKILL.md` 是 Codex 触发后首先读取的核心工作流。
@@ -56,9 +69,23 @@ codex-doc-first-development/
 
 `references/examples.md` 是新项目、已有功能、Bug、重构、多 Agent 阶段示例。
 
+`references/capabilities-matrix.md` 是 S0-S22 各阶段与工具/知识/技能资产的映射表。
+
+`references/pain-points.md` 是 6 大领域工程难点卡片库（S1 主控侧按 S(C) 置信度公式匹配）。
+
+`references/schemas.md` 与 `references/schemas/*.json` 是 JSON Schema 说明文档与机器可读权威源（脚本优先加载独立 JSON，Markdown 为降级路径）。
+
 `scripts/scaffold_docs.py` 可以生成项目 docs 脚手架。
 
-`scripts/check_task_pack.py` 可以检查 Task Pack 基础完整性。
+`scripts/check_task_pack.py` 可以检查 Task Pack 完整性（结构性问题走阻断 `issues`，伪测试等启发式命中走非阻断 `warnings`）。
+
+`scripts/check_docs_links.py` 是 Markdown 相对链接与标题锚点静态校验器（slug 生成遵循 GitHub GFM 规则：保留下划线、标点删除后不折叠连续空格）。
+
+`scripts/check_permission_log.py` 是 Merkle 链静态校验内部模块（被 `verify_runtime_trace.py` 引用，也可独立调试）。
+
+`scripts/verify_runtime_trace.py` 是运行时硬门禁 CLI（Exit 0-6 + `--json` 输出）。
+
+`scripts/lock_manager.py` 是跨平台咨询锁管理器（持锁后才校验/覆写锁元数据，释放不删除锁文件）。
 
 ## 4. 推荐安装方式：把 GitHub 地址发给 Codex
 
@@ -192,17 +219,19 @@ python scripts/scaffold_docs.py --root "C:\path\to\project" --mode strict --phas
 python scripts/scaffold_docs.py --root "C:\path\to\project" --mode standard --phase 001 --overwrite
 ```
 
-## 9. Task Pack 授权范围与防虚假测试硬门禁
+## 9. Task Pack 授权范围与防虚假测试门禁
 
 1. **Allowed Files 授权细粒度管控**：
    Task Pack 中的 `Allowed Files` 严禁使用全盘通配符（如 `*`、`**`、`.`）。`scripts/check_task_pack.py` 将会自动拦截过宽授权，强制要求 Agent 列出具体子目录或文件名规则（如 `src/auth/*.ts`）。
-2. **防虚假测试与断言质量审计**：
-   Test Quality Gate 严格拦截假测试反面模式（如 `assert True`、无断言空测试、纯 HTTP 200 无 payload 断言、过度 Mock 核心逻辑等），强制要求变动逻辑必须覆盖边缘情况与异常路径。
+2. **防虚假测试与断言质量审计（双通道）**：
+   - **阻断通道（issues）**：Task Pack 结构、占位符、`MAX_ITERATIONS` 越界等问题直接失败（退出码 1）。
+   - **提示通道（warnings）**：`check_task_pack.py` 将 Test Requirements 章节中的 `assert True`、`self.assertTrue(True)`、注释断言、空 `pass` 测试块及 v1.x 遗留格式（缺失 `MAX_ITERATIONS`）收敛为 `warnings`（`--json` 输出的 `warnings` 数组），**不改变退出码**，由主控 Agent 在 S14 测试质量评审中处置。
+   - S14 Test Quality Gate 本身仍严格拦截假测试反面模式（无断言空测试、纯 HTTP 200 无 payload 断言、过度 Mock 核心逻辑等），强制要求变动逻辑覆盖边缘情况与异常路径。
 
 ## 10. 静态死链检查器与 CI/CD 结构化 Output 契约
 
 1. **文档相对链接与锚点静态检查器 (`scripts/check_docs_links.py`)**：
-   用于自动化解析 Markdown 文档中的相对文件路径 (`[text](relative/path.md)`) 与标题锚点 (`#anchor-name` / `file.md#anchor-name`)，无需启动 HTTP 服务即可进行静态死链阻断：
+   用于自动化解析 Markdown 文档中的相对文件路径 (`[text](relative/path.md)`) 与标题锚点 (`#anchor-name` / `file.md#anchor-name`)，无需启动 HTTP 服务即可进行静态死链阻断。锚点 slug 生成遵循 GitHub GFM 规则（小写、删除标点、保留 `_`、空格逐一转 `-` 且不折叠连续空格），与 GitHub 实际渲染一致：
    ```powershell
    python scripts/check_docs_links.py "C:\path\to\project\docs"
    ```

@@ -28,10 +28,10 @@
 - **功能独立化与 DRY 模块复用架构**：强制将公共数据请求抽离为独立的客户端/服务模块，后端提供通用查询与动态字段筛选（`fields` 投影参数），彻底根绝同一请求多处重复编写的冗余代码。
 - **开发前产品 UI/UX 深度沟通门禁 & 多模态生图联动**：开发前必须与用户对齐产品原型、各界面 UI 布局、组件-接口调用映射表（组件 -> 统一API模块 -> 传参 -> 筛选字段 -> 状态机）及交互状态机；具备生图能力（`generate_image`）时主动生成高保真 UI 原型图嵌入 `docs/ux.md`。
 - **用户建议与变动同步联动机制**：任何来自用户修改建议或技术调整导致的架构、接口、UI/交互变动，必须同步更新项目目录文档（`docs/` 对应位置），代码变动严禁超前或背离文档。
-- **离线 JSON Schema 机器校验**：将 Schema 独立存放于 `references/schemas/*.json`（标准 JSON Schema 规范），并保留 Markdown 提取的降级兼容。
-- **跨平台 Advisory Lock & 锁抢占清理**：在代码写入阶段，通过 `lock_manager.py` 对 `docs/delivery/.log.lock` 进行基于 OS-level 咨询锁 (`fcntl`/`msvcrt`) 的互斥锁定。
-- **密码学 Merkle 链防篡改与 Artifact SHA-256 哈希审计**：所有授权与意图记录写入 `permission-audit.log`，支持多模态与二进制文件 Artifact SHA-256 哈希比对。
-- **伪测试与假占位符启发式检测**：`check_task_pack.py` 内置静态分析算子，自动拦截 `assert True`、`self.assertTrue(True)`、注释断言与空 `pass` 测试块。
+- **离线 JSON Schema 机器校验**：将 Schema 独立存放于 `references/schemas/*.json`（标准 JSON Schema 规范，机器可读的权威源），并保留 Markdown 提取的降级兼容。
+- **跨平台 Advisory Lock & 锁抢占清理**：在代码写入阶段，通过 `lock_manager.py` 对 `docs/delivery/.log.lock` 进行基于 OS-level 咨询锁 (`fcntl`/`msvcrt`) 的互斥锁定；持锁后方可校验并覆写过期/损坏的锁元数据，释放时只清空内容不删除锁文件，杜绝删锁竞态。
+- **密码学 Merkle 链防篡改与可选 Artifact 元数据审计**：所有授权与意图记录写入 `permission-audit.log`；AuditLog/Trace Schema 支持可选的 `artifact_metadata`（`size_bytes` / `sha256` / `mime_type`）字段，供工件级审计扩展使用。
+- **伪测试与假占位符启发式检测（warnings 通道）**：`check_task_pack.py` 将 `assert True`、`self.assertTrue(True)`、注释断言与空 `pass` 测试块等命中收敛为非阻断 `warnings`（JSON 输出 `warnings` 数组，不改变退出码语义），占位符与结构性问题仍走阻断式 `issues`。
 - **Exit Code 确定性物理退出码 (0–6)**：提供确定性、Fail-Close 机制的 CLI 退出码与 JSON 输出体。
 
 ---
@@ -157,44 +157,48 @@ flowchart TD
 ```text
 codex-doc-first-development-skill/
 ├── README.md                             # 项目使用说明与流程图
-├── CHANGELOG.md                          # 版本变更新鲜事
+├── CHANGELOG.md                          # 版本变更新鲜事（Keep a Changelog / SemVer）
 ├── LICENSE                               # 开源许可协议 (MIT)
-├── pyproject.toml                        # 项目打包与依赖声明
-├── requirements.txt                      # 依赖列表 (jsonschema, pytest)
+├── pyproject.toml                        # 项目元数据与工具配置声明
+├── requirements.txt                      # 依赖列表 (jsonschema)
 ├── .github/
 │   └── workflows/
 │       └── ci.yml                        # GitHub Actions CI 跨平台自动化构建流程
+├── docs/
+│   └── user-guide.md                     # 中文用户手册
 ├── tests/                                # 单元测试与端到端集成测试套件
 │   ├── fixtures/                         # 标准集成测试数据 (valid, tampered, unauthorized)
-│   ├── test_check_task_pack.py           # 基准用例 TC-C01 ~ TC-C02 及伪测试检测
+│   ├── test_check_task_pack.py           # Task Pack 校验与 warnings 通道用例
 │   ├── test_lock_manager.py              # LockManager Advisory Lock 单元测试
 │   ├── test_skill.py                     # Skill 完整性与链路测试
 │   ├── test_verify_runtime_trace.py      # 基准用例 TC-V01 ~ TC-V19
 │   └── test_verify_runtime_trace_end2end.py # CLI 端到端 Exit Codes (0, 2, 5) 校验
 └── codex-doc-first-development/
-    ├── SKILL.md                          # Skill 核心主控指南 (v2.1.0)
+    ├── SKILL.md                          # Skill 核心主控指南 (v2.2.0)
     ├── agents/
     │   └── openai.yaml
     ├── references/
-    │   ├── schemas/                      # 离线独立 JSON Schema 文件
+    │   ├── schemas/                      # 离线独立 JSON Schema 文件（机器可读权威源）
     │   │   ├── AuditLogSchema.json
     │   │   ├── ExecutionTraceSchema.json
     │   │   ├── ExpansionSchema.json
     │   │   ├── PainPointCardSchema.json
     │   │   └── TaskPackSchema.json
-    │   ├── schemas.md                    # JSON Schema 人类可读说明文档
+    │   ├── schemas.md                    # JSON Schema 人类可读说明文档（Markdown 降级源）
     │   ├── capabilities-matrix.md        # S0-S22 阶段资产映射表
     │   ├── pain-points.md                # 6 大领域工程难点卡片库
     │   ├── methodology.md                # S0-S22 完整方法论指南
     │   ├── templates.md                  # 标准文档模板
     │   ├── review-gates.md               # 评审门禁与退出码表
+    │   ├── prompts.md                    # 可复用提示词模板
+    │   ├── examples.md                   # 场景示例
     │   └── agent-git-ci.md               # 分支与 Agent 协作规约
     └── scripts/
         ├── verify_runtime_trace.py       # 物理硬门禁校验 CLI (Exit 0-6)
-        ├── check_permission_log.py       # Merkle 链与 Artifact Hash 静态校验模块
+        ├── check_permission_log.py       # Merkle 链静态校验模块（被 verify_runtime_trace 引用）
         ├── lock_manager.py               # 跨平台 Advisory Lock 锁管理器
-        ├── check_task_pack.py            # Task Pack 规范与伪测试校验器
-        ├── check_docs_links.py           # Markdown 链接与锚点校验器
+        ├── check_task_pack.py            # Task Pack 规范校验器（issues 阻断 + warnings 提示）
+        ├── check_docs_links.py           # Markdown 链接与锚点校验器（GFM 严格 slug）
         └── scaffold_docs.py              # 文档脚手架生成器
 ```
 
