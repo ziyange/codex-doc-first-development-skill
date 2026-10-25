@@ -20,7 +20,7 @@
 
 ---
 
-## 🛡️ 核心治理机制 (v2.2.0 重磅升级)
+## 🛡️ 核心治理机制 (v2.3.0 总览)
 
 本项目不仅是一套指导 Agent 行为的“文档规范”，更是一套拥有**物理 Python 脚本硬门禁**与**前置设计交互标准**的完整体系：
 
@@ -31,7 +31,7 @@
 - **离线 JSON Schema 机器校验**：将 Schema 独立存放于 `references/schemas/*.json`（标准 JSON Schema 规范，机器可读的权威源），并保留 Markdown 提取的降级兼容。
 - **跨平台 Advisory Lock & 锁抢占清理**：在代码写入阶段，通过 `lock_manager.py` 对 `docs/delivery/.log.lock` 进行基于 OS-level 咨询锁 (`fcntl`/`msvcrt`) 的互斥锁定；持锁后方可校验并覆写过期/损坏的锁元数据，释放时只清空内容不删除锁文件，杜绝删锁竞态。
 - **密码学 Merkle 链防篡改与可选 Artifact 元数据审计**：所有授权与意图记录写入 `permission-audit.log`；AuditLog/Trace Schema 支持可选的 `artifact_metadata`（`size_bytes` / `sha256` / `mime_type`）字段，供工件级审计扩展使用。
-- **伪测试与假占位符启发式检测（warnings 通道）**：`check_task_pack.py` 将 `assert True`、`self.assertTrue(True)`、注释断言与空 `pass` 测试块等命中收敛为非阻断 `warnings`（JSON 输出 `warnings` 数组，不改变退出码语义），占位符与结构性问题仍走阻断式 `issues`。
+- **伪测试与假占位符启发式检测（warnings 通道）**：`check_task_pack.py`（位于 `codex-doc-first-task-pack-gate` 伴随技能）将 `assert True`、`self.assertTrue(True)`、注释断言与空 `pass` 测试块等命中收敛为非阻断 `warnings`（JSON 输出 `warnings` 数组，不改变退出码语义），占位符与结构性问题仍走阻断式 `issues`。
 - **Exit Code 确定性物理退出码 (0–6)**：提供确定性、Fail-Close 机制的 CLI 退出码与 JSON 输出体。
 
 ---
@@ -58,6 +58,9 @@ v2.3.0 起，单体 Skill 按「调用双轴」拆分为 1 个主控 + 4 个可�
 
 ```mermaid
 flowchart TD
+    User_Entry["人类入口: /codex-doc-first-start (user-invoked, 模型不可自动触发)"]
+    User_Frame["确认想法、范围、模式 (Goal / Plan / Build) 与风险档 (Quick / Standard / Strict)"]
+    Orchestrator["主控编排器 codex-doc-first-development (model-invoked)"]
     S0["S0: 启动与权限握手 (Startup & Handshake)"]
     S0_Handshake["建立安全基线并选择模式 (Goal / Plan / Build)"]
     S1_Intake["S1: 需求捕获与 CoT 难点反思"]
@@ -67,10 +70,11 @@ flowchart TD
     S1_NoMatch["无命中: 执行标准 CoT 反思"]
     S2_Scan["S2: 项目上下文扫描 (scaffold_docs.py)"]
     S3_Draft["S3 - S5: 正式方案与架构设计"]
-    S6_Docs["S6 - S8: 建立文档事实源 (AGENTS.md, README.md)"]
-    S7_CheckLinks{"check_docs_links.py 链接校验"}
+    S6_Docs["S6 - S8: 建立文档事实源 (AGENTS.md, README.md, docs/ux.md)"]
+    S6_UXGate{"委托 codex-doc-first-ui-ux-prototyping: 原型 / 界面布局 / 组件-接口绑定矩阵 / 交互状态机 / 生图"}
+    S7_CheckLinks{"委托 codex-doc-first-doc-sync: check_docs_links.py 链接与锚点校验 (GFM 严格 slug)"}
     S9_Phase["S9 - S10: 阶段计划与 Task Pack 拆解"]
-    S10_CheckTask{"check_task_pack.py Task Pack 门禁"}
+    S10_CheckTask{"委托 codex-doc-first-task-pack-gate: check_task_pack.py (issues 阻断 / warnings 提示)"}
     S11_Strat["S11 - S12: 执行策略与互斥锁配置 (lock_manager.py)"]
     S13_Exec["S13: 代码修改与事务写入 (两阶段提交)"]
     S13_AuditLog["写入 AuditLog (PENDING) 并计算 Merkle 链"]
@@ -89,15 +93,22 @@ flowchart TD
     Exit4_Check{"检查 (4, runtime_event_reason)"}
     Exit4_Retry["安全作废: 提示已安全作废, 允许重新尝试"]
     Exit4_ParseReason{"解析 reason_details 字典"}
-    Exit4_Pending["提示重试动作或翻转为 ABORTED"]
-    Exit4_MissingTrace["仅补写 Result 凭证, 严格禁止重试代码写入!"]
+    Exit4_Pending["UNCOMMITTED_PENDING: 提示重试动作或翻转为 ABORTED"]
+    Exit4_MissingTrace["COMMITTED_RESULT_MISSING: 仅补写 Result 凭证, 严格禁止重试代码写入!"]
+    Exit4_Orphan["RESULT_WITHOUT_INTENT: 丢弃孤儿 Result, 核对 audit intent 后重跑门禁"]
     Exit5_Halt["安全警报 (短路): Merkle 链断链或 Hash 篡改 -> 强行终止!"]
     Exit6_Halt["数据审计 (短路): PENDING/ABORTED 带有 Result -> 强行终止!"]
-    S17_Git["S17 - S19: Git 冲突处理与阶段集成验收"]
-    S20_DFX["S20: 文档写回与 DFX 知识库沉淀 (写回 pain-points.md)"]
+    S17_Git["S17: Git 冲突处理"]
+    S18_Sync["S18: 变更分类与同步文档写回 (委托 doc-sync)"]
+    S19_Phase["S19: 阶段集成验收"]
+    S20_DFX["S20: 文档写回与 DFX 知识库沉淀 (委托 doc-sync, 写回 pain-points.md)"]
     S21_PR["S21: 合并 / PR / 发布准备 (需人工显式确认)"]
     S22_Archive["S22: 阶段归档 (docs/archive/)"]
+    CompanionMissing["伴随技能未安装: 回退 references/review-gates.md 内联清单并在 Task Pack 记录 fallback"]
 
+    User_Entry --> User_Frame
+    User_Frame -- "交接: Call the Skill tool with codex-doc-first-development" --> Orchestrator
+    Orchestrator --> S0
     S0 --> S0_Handshake
     S0_Handshake --> S1_Intake
     S1_Intake --> S1_CardMatch
@@ -109,11 +120,13 @@ flowchart TD
     S1_NoMatch --> S2_Scan
     S2_Scan --> S3_Draft
     S3_Draft --> S6_Docs
-    S6_Docs --> S7_CheckLinks
+    S6_Docs --> S6_UXGate
+    S6_UXGate -- "布局、绑定矩阵或状态机未对齐" --> S6_Docs
+    S6_UXGate -- "对齐完成" --> S7_CheckLinks
     S7_CheckLinks -- "存在坏链/坏锚点" --> S6_Docs
     S7_CheckLinks -- "校验通过" --> S9_Phase
     S9_Phase --> S10_CheckTask
-    S10_CheckTask -- "包含通配符或伪测试" --> S9_Phase
+    S10_CheckTask -- "含通配符授权或伪测试" --> S9_Phase
     S10_CheckTask -- "校验通过" --> S11_Strat
     S11_Strat --> S13_Exec
     S13_Exec --> S13_AuditLog
@@ -137,22 +150,29 @@ flowchart TD
     Exit4_Check -- "null (静态链节点缺漏)" --> Exit4_ParseReason
     Exit4_ParseReason -- "UNCOMMITTED_PENDING" --> Exit4_Pending
     Exit4_ParseReason -- "COMMITTED_RESULT_MISSING" --> Exit4_MissingTrace
+    Exit4_ParseReason -- "RESULT_WITHOUT_INTENT" --> Exit4_Orphan
     Exit4_Retry --> S13_Exec
     Exit4_Pending --> S13_Exec
     Exit4_MissingTrace --> S13_Commit
+    Exit4_Orphan --> S15_TraceVerify
     ExitBranch -- "Exit 5: TAMPER_OR_HASH_MISMATCH" --> Exit5_Halt
     ExitBranch -- "Exit 6: ILLEGAL_TRANSACTION_STATE" --> Exit6_Halt
     S16_Acceptance --> S17_Git
-    S17_Git --> S20_DFX
+    S17_Git --> S18_Sync
+    S18_Sync --> S19_Phase
+    S19_Phase --> S20_DFX
     S20_DFX --> S21_PR
     S21_PR --> S22_Archive
+    S6_UXGate -.-> CompanionMissing
+    S7_CheckLinks -.-> CompanionMissing
+    S10_CheckTask -.-> CompanionMissing
 ```
 
 ---
 
 ## 🚦 确定性 0–6 退出码硬门禁协议表
 
-校验 CLI `scripts/verify_runtime_trace.py` 输出确定性退出码，主控 Agent 严格按照以下**完备分发表**进行动作处置：
+校验 CLI `codex-doc-first-development/scripts/verify_runtime_trace.py` 输出确定性退出码，主控 Agent 严格按照以下**完备分发表**进行动作处置：
 
 | 退出码 | 标识符 | 运行时事件原因 | 场景说明 | 主控 SKILL.md 处置动作 |
 |:---:|---|:---:|---|---|
@@ -162,7 +182,9 @@ flowchart TD
 | `2` | `OFF_BOUNDARY_VIOLATION` | `null` | 拟改动文件超出白名单授权范围 | **发起扩界**：解析越界文件清单，向用户申请单次扩界 |
 | `3` | `SCHEMA_OR_PARSE_FAILURE` | `null` | Schema 配置文件缺失、日志坏损或解析失败 | **Fail-Close**：强行卡死，提示人工修复环境 |
 | `4` | `UNCOMMITTED_TRANSACTION` | `"SAFELY_ABORTED_OPERATION"` | 写入异常已在互斥锁内安全回滚为作废状态 | **安全重试**：提示本次写入已安全作废，允许重新尝试 |
-| `4` | `UNCOMMITTED_TRANSACTION` | `null` | 静态链节点存在未提交或缺凭证记录 | **字典解析**：未完成事务允许重试；缺凭证事务**仅补写凭证，严禁重试代码写入** |
+| `4` | `UNCOMMITTED_TRANSACTION` | `null` | 未提交事务（`reason_details` = `UNCOMMITTED_PENDING`）：AuditLog 已记录意图但未翻转 COMMITTED | **重试或作废**：提示重试该动作，或翻转为 ABORTED |
+| `4` | `UNCOMMITTED_TRANSACTION` | `null` | 已提交但缺凭证（`reason_details` = `COMMITTED_RESULT_MISSING`）：事务 COMMITTED 却无 Result trace | **仅补凭证**：严格禁止重试代码写入，只补写 Result trace |
+| `4` | `UNCOMMITTED_TRANSACTION` | `null` | 孤儿轨迹（`reason_details` = `RESULT_WITHOUT_INTENT`）：存在 Result trace 但 AuditLog 无对应 intent | **丢弃并回填**：删除孤儿 Result，核对 audit intent 后重跑 `verify_runtime_trace.py` |
 | `5` | `TAMPER_OR_HASH_MISMATCH` | `null` | Merkle 链断链、Hash 校验不符或轨迹伪造 | **安全警报 (短路)**：提示审计日志遭破坏，强行终止 |
 | `6` | `ILLEGAL_TRANSACTION_STATE` | `null` | 未提交或已作废节点带有执行凭证的数据矛盾 | **数据审计 (短路)**：提示数据非法，强行终止人工介入 |
 
@@ -172,17 +194,28 @@ flowchart TD
 
 ```text
 codex-doc-first-development-skill/
-├── README.md                             # 项目使用说明与流程图
-├── CHANGELOG.md                          # 版本变更新鲜事（Keep a Changelog / SemVer）
+├── README.md                             # 项目使用说明与流程图（中文）
+├── CHANGELOG.md                          # 版本变更记录（Keep a Changelog / SemVer，仓库根目录）
 ├── LICENSE                               # 开源许可协议 (MIT)
-├── pyproject.toml                        # 项目元数据与工具配置声明
+├── AGENTS.md                             # 仓库地图、命令、双语政策、Skill 创作与版本规约
+├── CLAUDE.md                             # 指向 AGENTS.md 的符号链接
+├── SCOPE.md                              # 贡献门槛（真实失败 + 契合理念）
+├── GLOSSARY.md                           # 全仓库共享术语表与已裁决歧义
+├── pyproject.toml                        # 项目元数据、版本号与 ruff 配置
 ├── requirements.txt                      # 依赖列表 (jsonschema)
+├── .agents/
+│   └── invocation.md                     # 技能调用双轴（user-invoked / model-invoked）与跨技能引用语法
+├── .changeset/
+│   └── config.json                       # changesets 版本管理配置
+├── .out-of-scope/
+│   └── README.md                         # 已拒绝概念的归档约定
 ├── .github/
 │   └── workflows/
-│       └── ci.yml                        # GitHub Actions CI 跨平台自动化构建流程
+│       ├── ci.yml                        # CI：3 OS × Python 3.9/3.12 测试 + ruff + docs 自检
+│       └── release.yml                   # changesets 版本 PR + tag 触发的 GitHub Release
 ├── docs/
 │   └── user-guide.md                     # 中文用户手册
-├── tests/                                # 单元测试与端到端集成测试套件
+├── tests/                                # 单元与端到端集成测试套件（76 项）
 │   ├── fixtures/                         # 标准集成测试数据 (valid, tampered, unauthorized)
 │   ├── test_check_task_pack.py           # Task Pack 校验与 warnings 通道用例
 │   ├── test_doc_sync.py                  # GFM 锚点语义与链接检查端到端用例
@@ -270,6 +303,17 @@ Use $skill-installer to install this Codex skill:
 https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-development
 ```
 
+可选：如需启用"纪律委托"而非内联回退，逐个安装伴随技能（一次发送一条 URL）：
+
+```text
+https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-doc-sync
+https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-task-pack-gate
+https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-ui-ux-prototyping
+https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-start
+```
+
+> `codex-doc-first-start` 是 **user-invoked** 人类入口（`disable-model-invocation: true`），安装后只能由你手动输入 `/codex-doc-first-start` 触发，模型不会自动调用它。
+
 ### 3. 本地手动拷贝安装
 
 ```powershell
@@ -280,7 +324,7 @@ Copy-Item `
   -Force
 ```
 
-> **伴随 Skill（可选增量）**：`codex-doc-first-doc-sync`、`codex-doc-first-task-pack-gate`、`codex-doc-first-ui-ux-prototyping`、`codex-doc-first-start` 可按需同样拷贝安装。主控 Skill 单独安装即可完整工作（自动回退到内联清单）；安装伴随 Skill 后，主控会把对应纪律步骤委托给它们。
+> **伴随 Skill（可选增量）**：`codex-doc-first-doc-sync`、`codex-doc-first-task-pack-gate`、`codex-doc-first-ui-ux-prototyping`、`codex-doc-first-start` 可按需同样拷贝安装。5 个目录彼此独立，逐目录拷贝即可（`codex-doc-first-start` 没有 references/ 目录）。主控 Skill 单独安装即可完整工作（自动回退到内联清单）；安装伴随 Skill 后，主控会把对应纪律步骤委托给它们。
 
 ### 4. 触发指令 Prompt
 

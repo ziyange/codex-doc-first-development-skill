@@ -20,39 +20,69 @@ Skill 名称：`codex-doc-first-development`
 
 ## 2. 当前仓库内容
 
-可安装的 Skill 位于仓库根目录下的 `codex-doc-first-development/`。本手册位于 `docs/user-guide.md`。仓库不承诺预生成 `outputs/` 目录或 ZIP 包；如需打包，应以可安装 Skill 目录为输入自行生成。
+仓库当前包含 **5 个可独立安装的 Skill**：主控 `codex-doc-first-development/`，以及 4 个伴随技能 `codex-doc-first-doc-sync/`、`codex-doc-first-task-pack-gate/`、`codex-doc-first-ui-ux-prototyping/`、`codex-doc-first-start/`。只安装主控即可完整运行（伴随技能缺失时自动回退到 `references/review-gates.md` 内联清单）；安装伴随技能后，主控会把对应纪律步骤委托给它们（委托关系见 3.1 节）。
+
+本手册位于 `docs/user-guide.md`；`CHANGELOG.md` 位于仓库根目录。仓库不承诺预生成 `outputs/` 目录或 ZIP 包；如需打包，应以单个可安装 Skill 目录为输入自行生成。
 
 ## 3. Skill 包结构
 
 ```text
-codex-doc-first-development/
-  SKILL.md
-  CHANGELOG.md
-  agents/
-    openai.yaml
-  references/
-    methodology.md
-    templates.md
-    prompts.md
-    review-gates.md
-    agent-git-ci.md
-    examples.md
-    capabilities-matrix.md
-    pain-points.md
-    schemas.md
-    schemas/
-      ExecutionTraceSchema.json
-      AuditLogSchema.json
-      ExpansionSchema.json
-      PainPointCardSchema.json
-      TaskPackSchema.json
-  scripts/
-    scaffold_docs.py
-    check_task_pack.py
-    check_docs_links.py
-    check_permission_log.py
-    verify_runtime_trace.py
-    lock_manager.py
+codex-doc-first-development-skill/
+  README.md                          # 中文项目说明与流程图
+  CHANGELOG.md                       # 版本变更记录（仓库根目录）
+  AGENTS.md / CLAUDE.md              # 仓库级 Agent 指令（CLAUDE.md 为符号链接）
+  SCOPE.md                           # 贡献门槛
+  GLOSSARY.md                        # 共享术语表
+  pyproject.toml
+  requirements.txt
+  .agents/invocation.md              # 调用双轴规约
+  .changeset/config.json             # changesets 配置
+  .out-of-scope/README.md            # 已拒绝概念归档约定
+  .github/workflows/ci.yml           # CI
+  .github/workflows/release.yml      # 发布
+  docs/user-guide.md                 # 本手册
+  tests/                             # 76 项 unittest 与端到端用例
+  codex-doc-first-development/       # 主控 Skill（S0-S22 编排）
+    SKILL.md
+    agents/openai.yaml
+    references/
+      methodology.md
+      templates.md
+      prompts.md
+      review-gates.md
+      agent-git-ci.md
+      examples.md
+      capabilities-matrix.md
+      pain-points.md
+      schemas.md
+      schemas/
+        ExecutionTraceSchema.json
+        AuditLogSchema.json
+        ExpansionSchema.json
+        PainPointCardSchema.json
+        TaskPackSchema.json
+    scripts/
+      scaffold_docs.py
+      check_permission_log.py
+      verify_runtime_trace.py
+      lock_manager.py
+  codex-doc-first-doc-sync/          # 伴随 Skill：S7/S18/S20 文档同步纪律
+    SKILL.md
+    agents/openai.yaml
+    references/doc-sync-checklist.md
+    scripts/check_docs_links.py
+  codex-doc-first-task-pack-gate/    # 伴随 Skill：S9-S10 Task Pack 门禁
+    SKILL.md
+    agents/openai.yaml
+    references/task-pack-gate.md
+    scripts/check_task_pack.py
+  codex-doc-first-ui-ux-prototyping/ # 伴随 Skill：S6 UI/UX 对齐门禁（纯纪律）
+    SKILL.md
+    agents/openai.yaml
+    references/ux-alignment-gate.md
+  codex-doc-first-start/             # 伴随 Skill：人类入口（user-invoked）
+    SKILL.md
+    agents/openai.yaml
 ```
 
 `SKILL.md` 是 Codex 触发后首先读取的核心工作流。
@@ -77,9 +107,11 @@ codex-doc-first-development/
 
 `scripts/scaffold_docs.py` 可以生成项目 docs 脚手架。
 
-`scripts/check_task_pack.py` 可以检查 Task Pack 完整性（结构性问题走阻断 `issues`，伪测试等启发式命中走非阻断 `warnings`）。
+主控 `scripts/` 下的 4 个脚本（`scaffold_docs.py`、`check_permission_log.py`、`verify_runtime_trace.py`、`lock_manager.py`）均属主控技能。
 
-`scripts/check_docs_links.py` 是 Markdown 相对链接与标题锚点静态校验器（slug 生成遵循 GitHub GFM 规则：保留下划线、标点删除后不折叠连续空格）。
+`codex-doc-first-task-pack-gate/scripts/check_task_pack.py`（Task Pack 门禁伴随技能）可以检查 Task Pack 完整性（结构性问题走阻断 `issues`，伪测试等启发式命中走非阻断 `warnings`）。
+
+`codex-doc-first-doc-sync/scripts/check_docs_links.py`（文档同步伴随技能）是 Markdown 相对链接与标题锚点静态校验器（slug 生成遵循 GitHub GFM 规则：保留下划线、标点删除后不折叠连续空格）。
 
 `scripts/check_permission_log.py` 是 Merkle 链静态校验内部模块（被 `verify_runtime_trace.py` 引用，也可独立调试）。
 
@@ -87,9 +119,11 @@ codex-doc-first-development/
 
 `scripts/lock_manager.py` 是跨平台咨询锁管理器（持锁后才校验/覆写锁元数据，释放不删除锁文件）。
 
+仓库根目录的 `AGENTS.md`、`SCOPE.md`、`GLOSSARY.md`、`.agents/invocation.md`、`.changeset/`、`.out-of-scope/` 属于仓库级约定，不随 Skill 安装，详见第 2 节与 `README.md` 的「仓库规约」段。
+
 ### 3.1 伴随技能（Companion Skills，可选安装）
 
-v2.3.0 起，仓库除主控 Skill 外还包含 4 个可独立安装的伴随技能，主控通过 Skill 工具委托对应纪律步骤：
+职责与委托关系如下表：
 
 | 技能 | 职责 | 独有脚本 |
 |---|---|---|
@@ -110,6 +144,8 @@ https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc
 ```
 
 Codex Agent 应使用 `skill-installer` 的 GitHub 安装脚本，把 skill 安装到 `$CODEX_HOME/skills`；如果未设置 `CODEX_HOME`，则安装到 `~/.codex/skills`。
+
+可选：逐个安装 4 个伴随技能（`codex-doc-first-doc-sync`、`codex-doc-first-task-pack-gate`、`codex-doc-first-ui-ux-prototyping`、`codex-doc-first-start`），主控会自动把对应纪律步骤委托给它们；未安装时回退到内联清单。
 
 重启或刷新后即可使用：
 
@@ -246,6 +282,7 @@ python scripts/scaffold_docs.py --root "C:\path\to\project" --mode standard --ph
 1. **文档相对链接与锚点静态检查器 (`codex-doc-first-doc-sync` 技能中的 `check_docs_links.py`)**：
    用于自动化解析 Markdown 文档中的相对文件路径 (`[text](relative/path.md)`) 与标题锚点 (`#anchor-name` / `file.md#anchor-name`)，无需启动 HTTP 服务即可进行静态死链阻断。锚点 slug 生成遵循 GitHub GFM 规则（小写、删除标点、保留 `_`、空格逐一转 `-` 且不折叠连续空格），与 GitHub 实际渲染一致：
    ```powershell
+   # 链接校验（在 codex-doc-first-doc-sync 技能目录下执行）
    python scripts/check_docs_links.py "C:\path\to\project\docs"
    ```
 
