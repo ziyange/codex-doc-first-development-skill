@@ -6,3 +6,6 @@ Codex 文档优先软件开发方法论.md
 __pycache__/
 *.pyc
 *.pyo
+
+# Local agent memory (WorkBuddy); never shipped with the skills.
+.workbuddy/
