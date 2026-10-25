@@ -204,6 +204,19 @@ codex-doc-first-development-skill/
 
 ---
 
+## 📜 仓库规约 (Repository Conventions)
+
+本仓库遵循一套显式的工程规约（英文文档，与 mattpocock/skills 等成熟 Skill 仓库的实践对齐）：
+
+- **[AGENTS.md](AGENTS.md)**（`CLAUDE.md` 为其符号链接）：仓库地图、命令、双语政策（Skill 内部英文 / README 与手册中文）、Skill 创作规约、版本管理方式。
+- **[SCOPE.md](SCOPE.md)**：贡献门槛——必须同时满足「真实观察到的失败」与「契合理念（docs 唯一事实源 / Fail-Close / 可验证证据）」。
+- **[GLOSSARY.md](GLOSSARY.md)**：全仓库共享术语表，含 Avoid 提示与已裁决的歧义记录（如三重 "mode" 重载）。
+- **[.agents/invocation.md](.agents/invocation.md)**：技能调用双轴模型——User-invoked（仅人类 `/命令` 触发，编排层）与 Model-invoked（模型可自动触达，承载可复用纪律）；跨技能引用统一为 "Call the Skill tool with '<name>'"。
+- **[.out-of-scope/](.out-of-scope/README.md)**：已拒绝概念的归档及理由。
+- **[.changeset/](.changeset/config.json) + [CHANGELOG.md](CHANGELOG.md)**：基于 changesets 的版本管理（Keep a Changelog / SemVer），CHANGELOG 位于仓库根目录。
+
+---
+
 ## ⚡ 快速安装与使用指南
 
 ### 1. 环境准备与依赖安装

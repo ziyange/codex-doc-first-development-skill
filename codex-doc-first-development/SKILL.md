@@ -144,4 +144,3 @@ For full operational specifications, load these single-source reference document
 - `references/prompts.md`: Reusable prompt templates.
 - `references/agent-git-ci.md`: Multi-agent Git and CI coordination.
 - `references/examples.md`: Reference implementations and examples.
-- `CHANGELOG.md`: Version 2.2.0 release history.
