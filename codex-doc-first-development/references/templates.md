@@ -6,7 +6,7 @@ Use these templates when the active task needs concrete docs or engineering arti
 
 - [Directory Structures](#directory-structures)
 - [Core Project Documents](#agentsmd)
-- [Permission & Action Plan](#permission-action-plan)
+- [Permission & Action Plan](#permission--action-plan)
 - [Pain-Point Card Template](#pain-point-card-template)
 - [Phase and Task Packs](#docsdeliveryphase-001md)
 - [Coordination and Verification](#locksyml)

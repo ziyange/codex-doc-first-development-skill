@@ -9,8 +9,8 @@ Use this reference when the user wants a complete document-first engineering wor
 - [Pre-Dev Product Prototyping & Docs Source of Truth](#s6-docs-source-of-truth-creation-and-pre-dev-ux-alignment)
 - [Phase and Task Design](#s9-phase-plan-and-task-breakdown)
 - [Spec-Driven Implementation and Validation](#s13-spec-driven-agent-implementation)
-- [Acceptance and Change Control](#s16-main-agent-acceptance-code-doc-traceability)
-- [Writeback, Merge, and Archive](#s20-documentation-writeback-knowledge-capture)
+- [Acceptance and Change Control](#s16-main-agent-acceptance--code-doc-traceability)
+- [Writeback, Merge, and Archive](#s20-documentation-writeback--knowledge-capture)
 
 ## Authority and Capability Boundaries
 

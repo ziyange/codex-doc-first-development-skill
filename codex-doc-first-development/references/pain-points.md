@@ -4,13 +4,13 @@ This document contains 6 core domain pain-point cards. During `CoT Intake Reflec
 
 ## Contents
 
-- [Matching & Confidence Rules](#matching-confidence-rules)
-- [Card 1: CONCURRENCY_RACE](#card-1-concurrency-race)
-- [Card 2: STATE_MEMORY_LEAK](#card-2-state-memory-leak)
-- [Card 3: SCHEMA_MIGRATION](#card-3-schema-migration)
-- [Card 4: CROSS_PLATFORM](#card-4-cross-platform)
-- [Card 5: PERFORMANCE_DEGRADATION](#card-5-performance-degradation)
-- [Card 6: SECURITY_PERMISSION](#card-6-security-permission)
+- [Matching & Confidence Rules](#matching--confidence-rules)
+- [Card 1: CONCURRENCY_RACE](#card-1-concurrency_race)
+- [Card 2: STATE_MEMORY_LEAK](#card-2-state_memory_leak)
+- [Card 3: SCHEMA_MIGRATION](#card-3-schema_migration)
+- [Card 4: CROSS_PLATFORM](#card-4-cross_platform)
+- [Card 5: PERFORMANCE_DEGRADATION](#card-5-performance_degradation)
+- [Card 6: SECURITY_PERMISSION](#card-6-security_permission)
 
 ## Matching & Confidence Rules
 
@@ -36,7 +36,7 @@ This document contains 6 core domain pain-point cards. During `CoT Intake Reflec
     "mandatory_keywords": ["concurrent", "async", "lock", "mutex", "thread", "parallel", "race"],
     "pattern_contexts": ["shared_state", "shared_resource", "atomic", "queue", "worker"]
   },
-  "inspection_cmd": "python scripts/check_permission_log.py --check-mutex",
+  "inspection_cmd": "python scripts/check_permission_log.py docs/delivery/permission-audit.log",
   "version": "1.0.0",
   "last_validated": "2026-07-28"
 }
@@ -90,7 +90,7 @@ Unbounded cache growth, unremoved event listeners, or persistent global state re
     "mandatory_keywords": ["migration", "schema", "database", "field_delete", "rename", "breaking"],
     "pattern_contexts": ["column_remove", "type_change", "backwards_compatibility", "sql", "orm"]
   },
-  "inspection_cmd": "python scripts/check_task_pack.py --check-schema-compat",
+  "inspection_cmd": "python -m unittest discover -s tests",
   "version": "1.0.0",
   "last_validated": "2026-07-28"
 }
@@ -171,7 +171,7 @@ Executing database queries or external HTTP requests inside loops without batchi
     "mandatory_keywords": ["security", "permission", "auth", "rbac", "token", "escalation", "secret"],
     "pattern_contexts": ["jwt", "bearer", "authorization", "unauthorized", "bypass", "credential"]
   },
-  "inspection_cmd": "python scripts/verify_runtime_trace.py --mode strict",
+  "inspection_cmd": "python scripts/verify_runtime_trace.py --mode goal --json",
   "version": "1.0.0",
   "last_validated": "2026-07-28"
 }

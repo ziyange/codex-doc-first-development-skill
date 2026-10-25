@@ -125,7 +125,7 @@ Main agent SKILL.md handles non-Exit-0 CLI outputs by **strictly looking up the 
 ## Scripted Helpers Summary
 
 - `scripts/verify_runtime_trace.py`: Verifies runtime trace, Merkle chain, two-phase commit, and exit codes 0-6.
-- `scripts/check_task_pack.py`: Validates Task Pack Markdown structure, `MAX_ITERATIONS`, allowed files, and schema compliance.
+- `scripts/check_task_pack.py`: Validates Task Pack Markdown structure, `MAX_ITERATIONS`, allowed files, and schema compliance; emits non-blocking `warnings` (legacy format fallback, tautological test patterns) that never change the exit code.
 - `scripts/check_permission_log.py`: Internal module for static Merkle chain verification.
 - `scripts/check_docs_links.py`: Statically validates Markdown links and anchors.
 - `scripts/scaffold_docs.py`: Scaffolds mode-specific documentation directory skeletons.
@@ -135,7 +135,7 @@ Main agent SKILL.md handles non-Exit-0 CLI outputs by **strictly looking up the 
 ## References
 
 For full operational specifications, load these single-source reference documents:
-- `references/schemas.md`: 4 authoritative JSON Schemas.
+- `references/schemas.md`: 5 authoritative JSON Schemas; the standalone JSON files in the schemas directory are the machine-readable authority and are loaded first by the scripts.
 - `references/capabilities-matrix.md`: S0-S22 lifecycle asset mapping.
 - `references/pain-points.md`: 6 domain pain-point cards.
 - `references/methodology.md`: Full S0-S22 lifecycle methodology.
@@ -144,4 +144,4 @@ For full operational specifications, load these single-source reference document
 - `references/prompts.md`: Reusable prompt templates.
 - `references/agent-git-ci.md`: Multi-agent Git and CI coordination.
 - `references/examples.md`: Reference implementations and examples.
-- `CHANGELOG.md`: Version 2.0.0 release history.
+- `CHANGELOG.md`: Version 2.2.0 release history.

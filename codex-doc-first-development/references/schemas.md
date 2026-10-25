@@ -1,6 +1,6 @@
-# JSON Schemas Authority Source (v2.1.0)
+# JSON Schemas Authority Source (v2.2.0)
 
-This document contains human-readable references for `codex-doc-first-development` v2.1.0 governance files. Standard standalone machine-readable JSON Schemas are stored in `references/schemas/*.json`. Python validation scripts load from `references/schemas/*.json` first and fall back to this Markdown file.
+This document contains human-readable references for `codex-doc-first-development` v2.2.0 governance files. Standard standalone machine-readable JSON Schemas are stored in `references/schemas/*.json` and are the authority: Python validation scripts load from `references/schemas/*.json` first and fall back to this Markdown file.
 
 ## Contents
 
@@ -8,6 +8,7 @@ This document contains human-readable references for `codex-doc-first-developmen
 - [AuditLogSchema](#auditlogschema)
 - [ExpansionSchema](#expansionschema)
 - [PainPointCardSchema](#painpointcardschema)
+- [TaskPackSchema](#taskpackschema)
 
 ## ExecutionTraceSchema
 
@@ -58,6 +59,15 @@ This document contains human-readable references for `codex-doc-first-developmen
       "items": {
         "type": "string"
       }
+    },
+    "artifact_metadata": {
+      "type": "object",
+      "properties": {
+        "size_bytes": { "type": "integer", "minimum": 0 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "mime_type": { "type": "string" }
+      },
+      "additionalProperties": true
     }
   },
   "additionalProperties": false
@@ -105,6 +115,15 @@ This document contains human-readable references for `codex-doc-first-developmen
     "status": {
       "type": "string",
       "enum": ["PENDING", "COMMITTED", "ABORTED"]
+    },
+    "artifact_metadata": {
+      "type": "object",
+      "properties": {
+        "size_bytes": { "type": "integer", "minimum": 0 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "mime_type": { "type": "string" }
+      },
+      "additionalProperties": true
     }
   },
   "additionalProperties": false
@@ -210,5 +229,46 @@ This document contains human-readable references for `codex-doc-first-developmen
     }
   },
   "additionalProperties": false
+}
+```
+
+## TaskPackSchema
+
+```json
+// schema-id: TaskPackSchema
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TaskPackSchema",
+  "type": "object",
+  "required": [
+    "task_id",
+    "title",
+    "status",
+    "allowed_files",
+    "max_iterations"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "pattern": "^TASK-[0-9]{3,}$"
+    },
+    "title": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "APPROVED", "IN_PROGRESS", "COMPLETED", "REJECTED"]
+    },
+    "allowed_files": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "max_iterations": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    }
+  },
+  "additionalProperties": true
 }
 ```

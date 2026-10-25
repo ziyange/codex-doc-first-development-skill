@@ -30,7 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Unit Test Benchmark Suite**: Added `tests/test_verify_runtime_trace.py` (TC-V01 ~ TC-V19) and `tests/test_check_task_pack.py` (TC-C01 ~ TC-C02).
 
 ### Changed
-- **`scripts/check_task_pack.py`**: Upgraded to dynamically load schemas from `references/schemas.md`, enforce `MAX_ITERATIONS` ($1 \le N \le 10$), calculate weighted pain-point confidence with Top-1 exclusivity gate, reject broad wildcards, and maintain legacy v1.x fallback.
+- **`scripts/check_task_pack.py`**: Upgraded to enforce `MAX_ITERATIONS` ($1 \le N \le 10$), reject broad wildcards, and maintain legacy v1.x fallback.
+  - *Correction (v2.3.0): this entry originally also claimed dynamic schema loading from `references/schemas.md` and weighted pain-point confidence calculation with a Top-1 exclusivity gate. Neither was ever wired into the CLI (the `--schemas` argument was inert and the confidence scoring lives in the S1 main-agent reflection against `references/pain-points.md`, not in this script). The claims are removed here; the v2.3.0 release notes document the dead-code removal.*
 - **`SKILL.md`**: Updated to v2.0.0 specifications, integrating orthogonal autonomy modes, CoT Intake Reflection pain-point matching, dynamic permission handshake, and Exit 0-6 response protocols.
 - **`references/methodology.md`**: Integrated S0 permission handshake, S1 pain-point matching, S15 3-tier validation (intent, multi-target, autonomous loop), and S20 optional DFX knowledge writeback.
 - **`references/review-gates.md`**: Updated with `MAX_ITERATIONS` circuit breaker, Exit Code 0-6 table, short-circuit rules, and exhaustive 8-row dispatch lookup table.

@@ -7,8 +7,8 @@ Use these gates to decide whether work can move from planning to docs, docs to i
 - [Mode Selection](#mode-selection)
 - [Formal Solution and Pre-Dev UX Gate](#formal-solution-review)
 - [Task Pack Gate](#task-pack-gate)
-- [Test Quality and DRY Reusability](#test-quality-dry-reusability-gate)
-- [Acceptance, Merge, and Archive](#acceptance-status-code-doc-traceability)
+- [Test Quality and DRY Reusability](#test-quality--dry-reusability-gate)
+- [Acceptance, Merge, and Archive](#acceptance-status--code-doc-traceability)
 
 ## Mode Selection
 
