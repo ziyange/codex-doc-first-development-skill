@@ -15,30 +15,29 @@ HEADING_PATTERN = re.compile(r"^(?P<marks>#{1,6})\s+(?P<title>.+?)\s*$", re.MULT
 
 
 def heading_to_slugs(title: str) -> set[str]:
-    """Generate potential anchor slugs for a heading title."""
+    """
+    Generate candidate anchor slugs for a heading title, matching GitHub's
+    github-slugger behavior:
+
+    1. Strip HTML tags, lowercase
+    2. Drop punctuation (word characters, whitespace and hyphens survive;
+       underscores are KEPT - GitHub does not fold them into hyphens)
+    3. Map each whitespace character to a single hyphen (consecutive spaces
+       yield consecutive hyphens, exactly like GitHub)
+
+    Only the strict GFM slug and the raw lowercase title are accepted as
+    candidates; looser variants would mask genuinely broken anchors.
+    """
     clean_title = re.sub(r"<[^>]+>", "", title).strip()
-    slugs = set()
+    if not clean_title:
+        return set()
 
-    # 1. Exact raw title
-    slugs.add(clean_title.lower())
+    lowered = clean_title.lower()
+    slug = re.sub(r"[^\w\s\-\u4e00-\u9fff]", "", lowered)
+    slug = re.sub(r"\s", "-", slug)
 
-    # 2. GFM style slug
-    gfm = re.sub(r"[^\w\s\-\u4e00-\u9fff]", "", clean_title.lower())
-    gfm_slug = re.sub(r"[\s_]+", "-", gfm).strip("-")
-    if gfm_slug:
-        slugs.add(gfm_slug)
-
-    # 3. Simple space-to-hyphen slug
-    simple_slug = re.sub(r"\s+", "-", clean_title.lower())
-    slugs.add(simple_slug)
-
-    # 4. Strip dot numbering prefix like "6.1 " -> "61-" or "6.1-"
-    normalized_dots = clean_title.lower().replace(".", "")
-    gfm_nodots = re.sub(r"[^\w\s\-\u4e00-\u9fff]", "", normalized_dots)
-    nodots_slug = re.sub(r"[\s_]+", "-", gfm_nodots).strip("-")
-    if nodots_slug:
-        slugs.add(nodots_slug)
-
+    slugs = {slug} if slug else set()
+    slugs.add(lowered)
     return slugs
 
 

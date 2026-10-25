@@ -2,7 +2,7 @@
 """
 verify_runtime_trace.py - Runtime Trace & Audit Log Hard Gate CLI
 
-Verifies execution-trace.json and permission-audit.log against v2.0.0 governance specifications.
+Verifies execution-trace.json and permission-audit.log against v2.2.0 governance specifications.
 Returns Exit Codes 0 to 6 with structured --json outputs.
 """
 
@@ -11,7 +11,8 @@ import sys
 import json
 import argparse
 import fnmatch
-from typing import List, Dict, Tuple, Optional, Set
+import re
+from typing import List, Dict, Tuple, Optional
 
 # Import internal check_permission_log helper module
 try:
@@ -174,7 +175,9 @@ def parse_task_pack(file_path: str) -> Tuple[List[str], int]:
                     in_allowed = False
                 elif line_str.startswith("-") or line_str.startswith("*"):
                     item = line_str.lstrip("-* ").strip("` ")
-                    if item and item.lower() != "none":
+                    # Skip empty items and sentence-style non-patterns
+                    # (e.g. "None outside Allowed Files." must not become a glob)
+                    if item and not re.match(r"(?i)^(?:none|n/a)\b", item):
                         allowed_files.append(item)
     except Exception:
         pass
@@ -363,11 +366,23 @@ def run_verification(
                     payload["offending_files"].append(path)
                     scanned_exit_codes.append(2)
             else:
-                if approved_patterns and not matches_glob(path, list(approved_patterns)):
+                # Fail-close: an empty whitelist (no Allowed Files section and no
+                # post-MODE_SWITCH PERMISSION_GRANT) never authorizes a write.
+                if not matches_glob(path, list(approved_patterns)):
                     payload["exit_code"] = 2
                     payload["reason"] = "OFF_BOUNDARY_VIOLATION"
                     payload["offending_files"].append(path)
                     scanned_exit_codes.append(2)
+
+    # Fail-close: Result traces without a corresponding AuditLog intent entry.
+    # A Result can never exist without a preceding authorized intent, regardless
+    # of whether the audit log is empty, truncated, or merely missing the entry.
+    for t_entry in trace_entries:
+        orphan_tx = t_entry.get("tx_id")
+        if orphan_tx and orphan_tx not in audit_map:
+            scanned_exit_codes.append(4)
+            payload["uncommitted_tx_ids"].append(orphan_tx)
+            payload["reason_details"][orphan_tx] = "RESULT_WITHOUT_INTENT"
 
     # Universal Aggregation Formula: ExitCode_final = max(runtime_event, max_scanned(chain_static))
     runtime_event_code = 4 if runtime_event_reason == "SAFELY_ABORTED_OPERATION" else 0
@@ -386,11 +401,11 @@ def run_verification(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="verify_runtime_trace v2.0.0 CLI")
+    parser = argparse.ArgumentParser(description="verify_runtime_trace v2.2.0 CLI")
     parser.add_argument("--trace", default="docs/delivery/execution-trace.json", help="Path to execution-trace.json")
     parser.add_argument("--permission-log", default="docs/delivery/permission-audit.log", help="Path to permission-audit.log")
     parser.add_argument("--task-pack", default="docs/delivery/tasks/TASK-001.md", help="Path to Task Pack Markdown")
-    parser.add_argument("--mode", default="goal", help="Mode: goal, plan, build")
+    parser.add_argument("--mode", default="goal", choices=["goal", "plan", "build"], help="Autonomy mode: goal, plan, build")
     parser.add_argument("--next-iteration", type=int, default=1, help="Next iteration index k")
     parser.add_argument("--schemas", default="references/schemas.md", help="Path to schemas.md")
     parser.add_argument("--expansions", default="docs/delivery/expansions.json", help="Path to expansions.json")

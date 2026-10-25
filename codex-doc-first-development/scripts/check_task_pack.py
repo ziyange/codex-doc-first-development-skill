@@ -9,7 +9,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import List, Dict, Tuple, Optional
+from typing import List
 
 
 REQUIRED_HEADINGS = [
@@ -93,35 +93,30 @@ def looks_like_placeholder(content: str) -> bool:
     return any(pattern.search(normalized) for pattern in PLACEHOLDER_PATTERNS)
 
 
-def calculate_card_confidence(card_rules: Dict, context_text: str) -> float:
+def collect_warnings(text: str) -> list[str]:
     """
-    Calculates weighted confidence score:
-    S = (2.0 * mandatory_hits + 1.0 * pattern_hits) / (2.0 * mandatory_total + 1.0 * pattern_total)
-    Uses binary (0 or 1) feature hits per rule item.
+    Collects non-blocking advisories for a Task Pack.
+
+    Warnings never change the exit code (issues still gate); they surface
+    heuristics the main agent should act on:
+    - legacy v1.x Task Packs missing the MAX_ITERATIONS heading
+    - tautological or dummy test patterns inside the Test Requirements section
     """
-    mandatory_keywords = card_rules.get("mandatory_keywords", [])
-    pattern_contexts = card_rules.get("pattern_contexts", [])
+    warnings: list[str] = []
 
-    m_total = len(mandatory_keywords)
-    p_total = len(pattern_contexts)
+    if not re.search(r"MAX_ITERATIONS:\s*\d+", text):
+        warnings.append("MAX_ITERATIONS heading missing (v1.x legacy format fallback active)")
 
-    denominator = 2.0 * m_total + 1.0 * p_total
-    if denominator == 0:
-        return 0.0
+    test_requirements = section_content(text, "Test Requirements")
+    if test_requirements:
+        warnings.extend(detect_dummy_test_patterns(test_requirements))
 
-    lower_text = context_text.lower()
-
-    m_hits = sum(1 for kw in mandatory_keywords if kw.lower() in lower_text)
-    p_hits = sum(1 for ctx in pattern_contexts if ctx.lower() in lower_text)
-
-    score = (2.0 * m_hits + 1.0 * p_hits) / denominator
-    return min(1.0, max(0.0, score))
+    return warnings
 
 
-def check_task_pack(path: Path, schemas_md_path: Optional[Path] = None) -> list[str]:
+def check_task_pack(path: Path) -> list[str]:
     text = path.read_text(encoding="utf-8")
     issues: list[str] = []
-    warnings: list[str] = []
 
     title = re.search(r"^#\s+(TASK-\d{3,}):\s*(\S.*?)\s*$", text, re.MULTILINE)
     if not title:
@@ -175,9 +170,6 @@ def check_task_pack(path: Path, schemas_md_path: Optional[Path] = None) -> list[
         val = int(max_iter_match.group(1))
         if val < 1 or val > 10:
             issues.append(f"MAX_ITERATIONS value {val} must be an integer between 1 and 10")
-    else:
-        # Legacy v1.x task pack warning
-        warnings.append("MAX_ITERATIONS heading missing (v1.x legacy format fallback active)")
 
     return issues
 
@@ -188,7 +180,6 @@ def main() -> int:
     )
     parser.add_argument("task_pack", help="Path to TASK-*.md")
     parser.add_argument("--json", action="store_true", help="Output results in structured JSON format")
-    parser.add_argument("--schemas", default=None, help="Path to references/schemas.md for dynamic validation")
     args = parser.parse_args()
 
     path = Path(args.task_pack)
@@ -196,7 +187,7 @@ def main() -> int:
         if args.json:
             print(
                 json.dumps(
-                    {"status": "error", "file": str(path), "issues": [f"file not found: {path}"]},
+                    {"status": "error", "file": str(path), "issues": [f"file not found: {path}"], "warnings": []},
                     indent=2,
                     ensure_ascii=False,
                 )
@@ -206,12 +197,13 @@ def main() -> int:
         return 2
 
     try:
-        issues = check_task_pack(path, schemas_md_path=Path(args.schemas) if args.schemas else None)
+        issues = check_task_pack(path)
+        warnings = collect_warnings(path.read_text(encoding="utf-8"))
     except (OSError, UnicodeError) as exc:
         if args.json:
             print(
                 json.dumps(
-                    {"status": "error", "file": str(path), "issues": [f"cannot read {path}: {exc}"]},
+                    {"status": "error", "file": str(path), "issues": [f"cannot read {path}: {exc}"], "warnings": []},
                     indent=2,
                     ensure_ascii=False,
                 )
@@ -229,6 +221,7 @@ def main() -> int:
                     "file": str(path),
                     "total_issues": len(issues),
                     "issues": issues,
+                    "warnings": warnings,
                 },
                 indent=2,
                 ensure_ascii=False,
@@ -241,6 +234,8 @@ def main() -> int:
                 print(f"- {issue}")
         else:
             print("Task Pack check passed.")
+        for warning in warnings:
+            print(f"[warning] {warning}")
 
     return 1 if issues else 0
 
