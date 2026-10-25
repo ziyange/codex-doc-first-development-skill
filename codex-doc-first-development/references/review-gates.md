@@ -91,8 +91,8 @@ Docs can support implementation when:
 - Each Task Pack has allowed and forbidden files and explicit Must-Read contract anchors.
 - Test strategy and expected commands are explicit.
 - Agent collaboration rules are present when subagents are used.
-- All relative Markdown links and heading anchors are verified valid via `scripts/check_docs_links.py`.
-- Automated check scripts (`check_task_pack.py`, `check_docs_links.py`, `scaffold_docs.py`) pass or produce JSON Schema compliant `--json` payloads for CI/CD pipelines.
+- All relative Markdown links and heading anchors are verified valid via `check_docs_links.py` in the `codex-doc-first-doc-sync` companion skill (apply the GFM anchor rules manually if that skill is unavailable).
+- Automated check scripts pass or produce JSON Schema compliant `--json` payloads for CI/CD pipelines: `check_task_pack.py` and `check_docs_links.py` from their own companion skills (`codex-doc-first-task-pack-gate`, `codex-doc-first-doc-sync`), `scaffold_docs.py` and `verify_runtime_trace.py` from this skill.
 - Merge and high-risk operation rules require user confirmation.
 
 ## Task Pack Gate

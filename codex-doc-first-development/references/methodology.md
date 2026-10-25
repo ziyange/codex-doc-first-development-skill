@@ -258,7 +258,7 @@ Review:
 - Task Pack executability.
 - Test strategy executability.
 - Subagent boundaries.
-- Relative link and anchor validity (via `scripts/check_docs_links.py`).
+- Relative link and anchor validity (via `check_docs_links.py` in the `codex-doc-first-doc-sync` companion skill).
 - Automated script compliance and JSON output schemas.
 - Branch and concurrency safety.
 - Change handling.
@@ -400,7 +400,7 @@ Levels:
 - L1: local targeted command.
 - L2: local lint/test/typecheck/build.
 - L3: clean worktree, clean install, container, or sandbox.
-- L4: GitHub PR checks or equivalent CI (consuming `--json` outputs from `check_task_pack.py` and `check_docs_links.py`).
+- L4: GitHub PR checks or equivalent CI (consuming `--json` outputs from `check_task_pack.py` and `check_docs_links.py`, which live in the `codex-doc-first-task-pack-gate` and `codex-doc-first-doc-sync` companion skills respectively).
 
 Strict mode requires inspectable evidence. Label evidence as planned, locally executed, isolated, or externally executed. Never present a planned CI or PR check as completed; explain every skipped check.
 

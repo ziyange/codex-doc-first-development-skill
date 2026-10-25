@@ -18,11 +18,11 @@ This document provides an explicit mapping between the **S0-S22 engineering life
 | **S3** | Formal Solution Draft (DRY Architecture) | **Knowledge** | `references/templates.md` (Formal Solution) | `references/methodology.md` (S3 DRY & Unified Client) |
 | **S4** | Independent Solution Review | **Knowledge** | `references/review-gates.md` | `references/templates.md` (Review Rubric) |
 | **S5** | Solution Finalization | **Knowledge** | `references/methodology.md` (S5) | `docs/product.md` |
-| **S6** | Pre-Dev UX Alignment & Image Prototyping | **Tool** / **Knowledge** | `scripts/scaffold_docs.py` | `docs/ux.md` (Multimodal UI Mockups & Bindings) |
-| **S7** | Docs Review | **Tool** | `scripts/check_docs_links.py` | `references/review-gates.md` (Docs Gate) |
+| **S6** | Pre-Dev UX Alignment & Image Prototyping | **Tool** / **Skill** | `codex-doc-first-ui-ux-prototyping` companion skill / `scripts/scaffold_docs.py` | `docs/ux.md` (Multimodal UI Mockups & Bindings) |
+| **S7** | Docs Review | **Tool** / **Skill** | `codex-doc-first-doc-sync` companion skill (`scripts/check_docs_links.py`) | `references/review-gates.md` (Docs Gate) |
 | **S8** | Docs Finalization & Baseline Lock | **Knowledge** | `references/methodology.md` (S8) | `docs/README.md` |
 | **S9** | Phase Plan & Task Breakdown (Foundation First) | **Knowledge** | `references/templates.md` (Phase Plan) | `references/methodology.md` (S9 Foundation First) |
-| **S10** | Context / Task Pack Generation | **Tool** | `scripts/check_task_pack.py` | `references/templates.md` (Task Pack) |
+| **S10** | Context / Task Pack Generation | **Tool** / **Skill** | `codex-doc-first-task-pack-gate` companion skill (`scripts/check_task_pack.py`) | `references/templates.md` (Task Pack) |
 | **S11** | Execution Strategy Selection | **Skill** | `SKILL.md` (Goal/Plan/Build Modes) | `references/methodology.md` (S11) |
 | **S12** | Branch & Concurrency Control | **Knowledge** | `references/agent-git-ci.md` | `docs/delivery/locks.yml` |
 | **S13** | Spec-Driven Agent Implementation (DRY) | **Tool** / **Skill** | `scripts/verify_runtime_trace.py` | `references/schemas.md` (ExecutionTraceSchema) |
@@ -30,8 +30,8 @@ This document provides an explicit mapping between the **S0-S22 engineering life
 | **S15** | Validation (L1 - L4) | **Knowledge** | `references/review-gates.md` (3-Tier Gate) | `scripts/verify_runtime_trace.py` (Exit Codes) |
 | **S16** | Acceptance & Code-Doc Traceability | **Tool** | `scripts/verify_runtime_trace.py` | `references/review-gates.md` (Acceptance & Traceability) |
 | **S17** | Git Conflict Handling | **Knowledge** | `references/agent-git-ci.md` | `references/methodology.md` (S17) |
-| **S18** | Change Classification & Sync Doc Update | **Knowledge** | `references/methodology.md` (S18) | `docs/delivery/permission-audit.log` |
+| **S18** | Change Classification & Sync Doc Update | **Knowledge** / **Skill** | `references/methodology.md` (S18) / `codex-doc-first-doc-sync` companion skill | `docs/delivery/permission-audit.log` |
 | **S19** | Phase Integration Acceptance | **Knowledge** | `references/review-gates.md` | `docs/delivery/phase-xxx.md` |
-| **S20** | Documentation Writeback & Sync | **Knowledge** | `references/methodology.md` (S20 DFX Gate) | `references/pain-points.md` (Ingestion Gate) |
+| **S20** | Documentation Writeback & Sync | **Knowledge** / **Skill** | `references/methodology.md` (S20 DFX Gate) / `codex-doc-first-doc-sync` companion skill | `references/pain-points.md` (Ingestion Gate) |
 | **S21** | Merge / PR Preparation | **Knowledge** | `references/agent-git-ci.md` | `references/review-gates.md` (Merge Gate) |
 | **S22** | Phase Archive | **Knowledge** | `references/methodology.md` (S22) | `docs/archive/` |
