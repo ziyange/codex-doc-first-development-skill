@@ -4,7 +4,6 @@ Unit tests for lock_manager.py
 """
 import os
 import sys
-import time
 import shutil
 import tempfile
 import unittest

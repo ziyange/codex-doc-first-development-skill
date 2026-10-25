@@ -1,9 +1,9 @@
 ---
 name: codex-doc-first-development
-description: Guides Codex through document-first software development v2.2.0 with strict spec-driven targeted development, functional independence & DRY modularization, pre-dev interactive UI/UX prototyping with image generation capability, synchronous two-way doc sync on user feedback, Merkle runtime verification (Exit 0-6), and full lifecycle (S0-S22) governance. Use when starting software projects, formalizing AI development methodology, scaffolding docs, bounding multi-agent tasks, or executing verifiable software development.
+description: Guides Codex through document-first software development v2.3.0 with strict spec-driven targeted development, functional independence & DRY modularization, pre-dev interactive UI/UX prototyping with image generation capability, synchronous two-way doc sync on user feedback, Merkle runtime verification (Exit 0-6), composable companion skills (doc-sync, task-pack-gate, ui-ux-prototyping), and full lifecycle (S0-S22) governance. Use when starting software projects, formalizing AI development methodology, scaffolding docs, bounding multi-agent tasks, or executing verifiable software development.
 ---
 
-# Codex Doc-First Development (v2.2.0 Released)
+# Codex Doc-First Development (v2.3.0 Released)
 
 Use this skill to execute a Codex-specific, document-first software development process from idea intake through implementation, validation, merge preparation, and archival.
 

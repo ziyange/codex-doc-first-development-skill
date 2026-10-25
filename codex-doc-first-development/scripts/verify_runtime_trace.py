@@ -18,7 +18,6 @@ from typing import List, Dict, Tuple, Optional
 try:
     from check_permission_log import (
         normalize_path,
-        compute_intent_hash,
         verify_merkle_chain,
         parse_audit_log,
     )
@@ -27,7 +26,6 @@ except ImportError:
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from check_permission_log import (
         normalize_path,
-        compute_intent_hash,
         verify_merkle_chain,
         parse_audit_log,
     )
@@ -311,12 +309,16 @@ def run_verification(
     # Build Post-MODE_SWITCH approved whitelist for Plan/Goal mode
     approved_patterns = set(allowed_files)
     for idx, entry in enumerate(audit_entries):
-        if idx > last_mode_switch_idx and entry.get("action_type") == "PERMISSION_GRANT" and entry.get("status") == "COMMITTED":
+        if (
+            idx > last_mode_switch_idx
+            and entry.get("action_type") == "PERMISSION_GRANT"
+            and entry.get("status") == "COMMITTED"
+        ):
             approved_patterns.add(entry.get("normalized_path", ""))
 
     scanned_exit_codes = []
 
-    for idx, a_entry in enumerate(audit_entries):
+    for a_entry in audit_entries:
         tx_id = a_entry.get("tx_id")
         action_type = a_entry.get("action_type")
         status = a_entry.get("status")
@@ -403,9 +405,18 @@ def run_verification(
 def main():
     parser = argparse.ArgumentParser(description="verify_runtime_trace v2.2.0 CLI")
     parser.add_argument("--trace", default="docs/delivery/execution-trace.json", help="Path to execution-trace.json")
-    parser.add_argument("--permission-log", default="docs/delivery/permission-audit.log", help="Path to permission-audit.log")
+    parser.add_argument(
+        "--permission-log",
+        default="docs/delivery/permission-audit.log",
+        help="Path to permission-audit.log",
+    )
     parser.add_argument("--task-pack", default="docs/delivery/tasks/TASK-001.md", help="Path to Task Pack Markdown")
-    parser.add_argument("--mode", default="goal", choices=["goal", "plan", "build"], help="Autonomy mode: goal, plan, build")
+    parser.add_argument(
+        "--mode",
+        default="goal",
+        choices=["goal", "plan", "build"],
+        help="Autonomy mode: goal, plan, build",
+    )
     parser.add_argument("--next-iteration", type=int, default=1, help="Next iteration index k")
     parser.add_argument("--schemas", default="references/schemas.md", help="Path to schemas.md")
     parser.add_argument("--expansions", default="docs/delivery/expansions.json", help="Path to expansions.json")

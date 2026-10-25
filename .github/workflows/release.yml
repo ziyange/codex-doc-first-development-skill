@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    branches: [ main, master ]
+    tags: [ 'v*' ]
+
+jobs:
+  version:
+    # Opens or updates a "Version Packages" PR from pending changesets.
+    # There is deliberately no npm publish: this repository distributes
+    # Agent Skills as directories, not as a package.
+    if: "!startsWith(github.ref, 'refs/tags/')"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Changesets version PR
+      uses: changesets/action@v1
+      with:
+        version: npx changeset version
+        commit: "chore: version packages"
+        title: "Version Packages"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  github-release:
+    # Publishes a GitHub Release when a v* tag is pushed.
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Create GitHub Release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create "${{ github.ref_name }}" \
+          --title "${{ github.ref_name }}" \
+          --notes "See CHANGELOG.md for the full history of this release."

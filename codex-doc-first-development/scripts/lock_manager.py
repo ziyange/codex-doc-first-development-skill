@@ -37,7 +37,12 @@ class LockManager:
     Cross-platform file lock manager for docs/delivery/.log.lock.
     """
 
-    def __init__(self, lock_file_path: str = "docs/delivery/.log.lock", timeout_seconds: float = 10.0, lease_ttl_seconds: float = 60.0):
+    def __init__(
+        self,
+        lock_file_path: str = "docs/delivery/.log.lock",
+        timeout_seconds: float = 10.0,
+        lease_ttl_seconds: float = 60.0,
+    ):
         self.lock_file_path = lock_file_path
         self.timeout_seconds = timeout_seconds
         self.lease_ttl_seconds = lease_ttl_seconds
@@ -158,7 +163,9 @@ class LockManager:
                     self.file_obj = None
 
                 if time.time() - start_time >= self.timeout_seconds:
-                    raise FileLockError(f"Could not acquire lock on {self.lock_file_path} within {self.timeout_seconds}s")
+                    raise FileLockError(
+                        f"Could not acquire lock on {self.lock_file_path} within {self.timeout_seconds}s"
+                    ) from None
 
                 time.sleep(0.1)
 

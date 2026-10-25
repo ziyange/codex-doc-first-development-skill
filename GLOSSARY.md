@@ -61,4 +61,4 @@ The mandatory write-back of architecture, API, UI, or requirements changes into 
 - **"Gate" is overloaded.** Review gates (S4/S7/S14/S16 documentation-driven checks in `references/review-gates.md`) vs runtime gates (executable CLI checks with exit codes). Resolved: "review gate" and "runtime gate" are used explicitly.
 - **"check" vs "verify" verbs.** Scripts named `check_*` validate static artifacts (Task Pack, docs links); `verify_runtime_trace.py` validates runtime evidence. Resolved: keep the existing script names; do not introduce new `check`/`verify` synonyms.
 - **"Task Pack" vs "Context Pack".** A Context Pack is the read-only briefing material a Task Pack points to via "Must Read"; only the Task Pack authorizes work.
-- **Schema versions vs skill versions.** `references/schemas/*.json` carries its own `title` field; the skill version (e.g. v2.2.0) lives in `SKILL.md` and `pyproject.toml`. They move independently.
+- **Schema versions vs skill versions.** `references/schemas/*.json` carries its own `title` field; the skill version (e.g. v2.3.0) lives in `SKILL.md` and `pyproject.toml`. They move independently.

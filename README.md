@@ -1,4 +1,4 @@
-# Codex Doc-First Development Skill (v2.2.0 正式版)
+# Codex Doc-First Development Skill (v2.3.0 正式版)
 
 > **专为 AI Agent 打造的工业级“文档优先 + 密码学物理门禁 + UI原型生图 + 功能独立化”软件工程技能包**  
 > **An Industrial-Grade Document-First Software Engineering Skill for AI Agents**
@@ -193,7 +193,7 @@ codex-doc-first-development-skill/
 │   ├── test_verify_runtime_trace.py      # 基准用例 TC-V01 ~ TC-V24
 │   └── test_verify_runtime_trace_end2end.py # CLI 端到端 Exit Codes (0, 2, 5) 校验
 ├── codex-doc-first-development/          # 主控 Skill（编排 S0-S22 全生命周期）
-│   ├── SKILL.md                          # Skill 核心主控指南 (v2.2.0)
+│   ├── SKILL.md                          # Skill 核心主控指南 (v2.3.0)
 │   ├── agents/
 │   │   └── openai.yaml
 │   ├── references/
@@ -293,7 +293,7 @@ Copy-Item `
 
 ## 🧪 单元测试与端到端验证
 
-在技能包根目录下运行以下命令，验证全量 48 项单元与集成测试：
+在技能包根目录下运行以下命令，验证全量 76 项单元与集成测试：
 
 ```bash
 python -m unittest discover -s tests -v

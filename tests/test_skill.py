@@ -338,7 +338,9 @@ class PackageTests(unittest.TestCase):
     def test_script_templates_match_reference(self) -> None:
         markdown = (SKILL_ROOT / "references/templates.md").read_text(encoding="utf-8")
         expected = {
-            "AGENTS.md": scaffolder.AGENTS_TEMPLATE.format(install="", dev="", test="", lint="", typecheck="", build=""),
+            "AGENTS.md": scaffolder.AGENTS_TEMPLATE.format(
+                install="", dev="", test="", lint="", typecheck="", build=""
+            ),
             "docs/requirements.md": scaffolder.REQUIREMENTS,
             "docs/delivery/phase-001.md": scaffolder.PHASE.format(phase="001"),
             "Task Pack": scaffolder.TASK,

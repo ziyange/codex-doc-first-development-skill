@@ -1,22 +1,29 @@
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+# Metadata and tool configuration for the codex-doc-first-development-skill repository.
+#
+# Note: this repository distributes Agent Skills as installable directories
+# (copy the skill folder, or use a skill installer). It is deliberately NOT a
+# pip package, so there is no [build-system] and no packaging configuration;
+# the [project] table below carries the release version referenced by the
+# skills' SKILL.md files and the CHANGELOG.
 
 [project]
 name = "codex-doc-first-development-skill"
-version = "2.2.0"
+version = "2.3.0"
 description = "Document-first AI agent collaboration and hard governance framework"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "jsonschema>=4.0.0"
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0.0"
-]
+[tool.ruff]
+target-version = "py39"
+line-length = 120
 
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
+[tool.ruff.lint]
+select = ["E", "F", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests intentionally insert a skill's scripts/ directory into sys.path
+# before importing the module under test.
+"tests/*" = ["E402"]

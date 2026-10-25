@@ -12,8 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.9', '3.10', '3.11', '3.12']
-
+        python-version: ['3.9', '3.12']
     steps:
     - uses: actions/checkout@v4
 
@@ -31,6 +30,46 @@ jobs:
       run: |
         python -m unittest discover -s tests -v
 
-    - name: Run End-to-End Integration Verification
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install ruff
+      run: pip install ruff
+
+    - name: Lint (ruff)
+      run: ruff check .
+
+  docs-selfcheck:
+    # Dogfooding: the repository's own governance gates must stay green.
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Markdown link and anchor check (GFM)
+      run: |
+        python codex-doc-first-doc-sync/scripts/check_docs_links.py . --json
+
+    - name: Task Pack gate on fixtures
+      run: |
+        python codex-doc-first-task-pack-gate/scripts/check_task_pack.py tests/fixtures/valid_task_pack.md --json
+
+    - name: End-to-end runtime hard gate on fixtures
       run: |
         python codex-doc-first-development/scripts/verify_runtime_trace.py --trace tests/fixtures/valid_trace.json --permission-log tests/fixtures/valid_audit.log --task-pack tests/fixtures/valid_task_pack.md --schemas codex-doc-first-development/references/schemas.md --mode goal --next-iteration 1 --json

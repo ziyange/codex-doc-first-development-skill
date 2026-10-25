@@ -73,7 +73,11 @@ def verify_merkle_chain(log_entries: List[Dict]) -> Tuple[bool, Optional[str], O
         else:
             expected_prev = log_entries[i - 1].get("intent_hash", "")
             if prev_hash != expected_prev:
-                return False, f"Record {i} prev_hash '{prev_hash}' does not match record {i-1} intent_hash '{expected_prev}'", i
+                return (
+                    False,
+                    f"Record {i} prev_hash '{prev_hash}' does not match record {i-1} intent_hash '{expected_prev}'",
+                    i,
+                )
 
         # Check invariant 2: Hash payload matches
         computed = compute_intent_hash(prev_hash, action_type, path, tx_id)

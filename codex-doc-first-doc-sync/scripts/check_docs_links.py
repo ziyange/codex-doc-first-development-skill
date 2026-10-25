@@ -56,7 +56,7 @@ def find_line_number(content: str, index: int) -> int:
 
 
 def sanitize_code_for_links(content: str) -> str:
-    """Replace content inside code blocks and inline code with spaces to preserve line numbers while ignoring syntax examples."""
+    """Mask code blocks and inline code with spaces, preserving line numbers."""
     def repl(match: re.Match) -> str:
         return "".join("\n" if c == "\n" else " " for c in match.group(0))
 
@@ -180,7 +180,8 @@ def check_docs_links(root: Path) -> dict[str, object]:
     else:
         search_root = root
         for path in sorted(root.rglob("*.md")):
-            if any(part.startswith(".") or part in {"node_modules", "venv", "target", "build", "dist"} for part in path.parts):
+            excluded = {"node_modules", "venv", "target", "build", "dist"}
+            if any(part.startswith(".") or part in excluded for part in path.parts):
                 continue
             md_files.append(path)
 
@@ -224,7 +225,10 @@ def main() -> int:
         if result["total_issues"] == 0:
             print(f"Docs link check passed ({result['total_files']} markdown files checked).")
         else:
-            print(f"Docs link check failed ({result['total_issues']} broken links found in {result['total_files']} files):")
+            print(
+                f"Docs link check failed ({result['total_issues']} broken links found "
+                f"in {result['total_files']} files):"
+            )
             for issue in result["issues"]:
                 print(f"- {issue['file']}:{issue['line']} -> {issue['target']} ({issue['reason']})")
 

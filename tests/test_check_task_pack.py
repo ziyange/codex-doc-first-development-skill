@@ -5,10 +5,8 @@ Unit tests for check_task_pack.py (Task Pack gate, MAX_ITERATIONS, warnings)
 
 import unittest
 import tempfile
-import json
 from pathlib import Path
 import sys
-import os
 
 # Add scripts directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "codex-doc-first-task-pack-gate" / "scripts"))
@@ -223,7 +221,12 @@ MAX_ITERATIONS: 5
 
         # Invalid MAX_ITERATIONS value
         invalid_task = self.temp_path / "TASK-002.md"
-        invalid_task.write_text(valid_task.read_text(encoding="utf-8").replace("TASK-001", "TASK-002").replace("MAX_ITERATIONS: 5", "MAX_ITERATIONS: 99"), encoding="utf-8")
+        invalid_text = (
+            valid_task.read_text(encoding="utf-8")
+            .replace("TASK-001", "TASK-002")
+            .replace("MAX_ITERATIONS: 5", "MAX_ITERATIONS: 99")
+        )
+        invalid_task.write_text(invalid_text, encoding="utf-8")
         
         issues_invalid = check_task_pack(invalid_task)
         self.assertTrue(any("MAX_ITERATIONS value 99" in issue for issue in issues_invalid))

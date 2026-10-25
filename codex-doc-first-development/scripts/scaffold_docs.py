@@ -269,22 +269,26 @@ SECURITY = """# Security
 ## Threats, Secrets, and Audit Requirements
 """
 
-UX = """# UX & UI Design
-
-## Applicability
-
-## Product Prototype & Navigation Flow
-
-## Screen UI Layouts & Visual Mockups
-<!-- Embed generated UI preview images here if multimodal/generate_image is available: ![Screen Preview](path/to/image.png) -->
-
-## UI Component to API Interface Binding Table
-| Screen / Component | User Action | Unified API Module / Route | Request Parameters | Projected Fields | UI State (Loading/Empty/Error) |
-|---|---|---|---|---|---|
-| ExampleScreen / SubmitBtn | Click Submit | ApiClient.submitData() | `{ id: 123 }` | `status, result` | Button spinner, inline error toast |
-
-## User Interaction & State Transitions
-"""
+UX = (
+    "# UX & UI Design\n"
+    "\n"
+    "## Applicability\n"
+    "\n"
+    "## Product Prototype & Navigation Flow\n"
+    "\n"
+    "## Screen UI Layouts & Visual Mockups\n"
+    "<!-- Embed generated UI preview images here if multimodal/generate_image is available: "
+    "![Screen Preview](path/to/image.png) -->\n"
+    "\n"
+    "## UI Component to API Interface Binding Table\n"
+    "| Screen / Component | User Action | Unified API Module / Route | Request Parameters | Projected Fields "
+    "| UI State (Loading/Empty/Error) |\n"
+    "|---|---|---|---|---|---|\n"
+    "| ExampleScreen / SubmitBtn | Click Submit | ApiClient.submitData() | `{ id: 123 }` | `status, result` "
+    "| Button spinner, inline error toast |\n"
+    "\n"
+    "## User Interaction & State Transitions\n"
+)
 
 OPERATIONS = """# Operations
 
@@ -319,18 +323,25 @@ def detect_stack(root: Path) -> dict[str, str]:
     search_dirs = [root]
     if root.exists() and root.is_dir():
         for child in sorted(root.iterdir()):
+            excluded = {
+                "node_modules", "venv", "env", "target", "build", "dist", "vendor",
+                "docs", "tests", "archive",
+            }
             if (
                 child.is_dir()
                 and not child.name.startswith(".")
-                and child.name not in {"node_modules", "venv", "env", "target", "build", "dist", "vendor", "docs", "tests", "archive"}
+                and child.name not in excluded
             ):
                 search_dirs.append(child)
                 try:
+                    excluded_dirs = {
+                        "node_modules", "venv", "env", "target", "build", "dist", "vendor",
+                    }
                     for grandchild in sorted(child.iterdir()):
                         if (
                             grandchild.is_dir()
                             and not grandchild.name.startswith(".")
-                            and grandchild.name not in {"node_modules", "venv", "env", "target", "build", "dist", "vendor"}
+                            and grandchild.name not in excluded_dirs
                         ):
                             search_dirs.append(grandchild)
                 except OSError:

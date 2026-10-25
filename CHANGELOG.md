@@ -5,6 +5,35 @@ All notable changes to this repository - the `codex-doc-first-development` skill
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0] - 2026-10-25
+
+### Added
+
+- **Companion skills (composable suite)**: the monolithic skill is split along the invocation axis into 1 orchestrator + 4 companion skills:
+  - `codex-doc-first-doc-sync` (model-invoked): S18/S20 doc-sync discipline plus `check_docs_links.py`, moved from the main skill, with `references/doc-sync-checklist.md`.
+  - `codex-doc-first-task-pack-gate` (model-invoked): S9-S10 Task Pack readiness gate plus `check_task_pack.py`, moved from the main skill, with `references/task-pack-gate.md`.
+  - `codex-doc-first-ui-ux-prototyping` (model-invoked): the S6 pre-dev UI/UX alignment gate with `references/ux-alignment-gate.md`.
+  - `codex-doc-first-start` (**user-invoked**): human entry point declaring `disable-model-invocation: true` and `policy.allow_implicit_invocation: false`.
+- **Repository conventions** (modeled on mattpocock/skills): `AGENTS.md` (+ `CLAUDE.md` symlink), `SCOPE.md` (contribution bar), `GLOSSARY.md` (shared vocabulary with resolved ambiguities), `.agents/invocation.md` (user-invoked vs model-invoked axis, "Call the Skill tool with ..." dependency syntax), `.out-of-scope/` (rejected concepts), changesets-based versioning, and the CHANGELOG moved to the repository root.
+- **CI dogfooding and linting**: `docs-selfcheck` job runs the repo's own gates (link check, Task Pack gate, end-to-end runtime gate on fixtures); `lint` job runs ruff; test matrix slimmed to 3 OS x {3.9, 3.12}; `release.yml` adds changesets version PRs and tag-triggered GitHub Releases.
+- **Tests**: GFM anchor semantics, schemas.md/JSON parity, pain-point card validity, fail-close edge cases (TC-V20~TC-V24), lock-manager race coverage, and multi-skill consistency guards (76 tests total).
+
+### Fixed
+
+- Removed dead code (`compute_file_sha256`, `calculate_card_confidence`) and the inert `--schemas` argument of `check_task_pack.py`; correction notes added to the 2.0.0 CHANGELOG entry.
+- `check_task_pack.py` now surfaces legacy-format and tautological-test findings as non-blocking `warnings` (exit codes unchanged).
+- `verify_runtime_trace.py`: `--mode` restricted to goal/plan/build (fail-fast); empty Allowed Files in goal/plan mode now fails closed (Exit 2) instead of skipping boundary checks; Result traces without an AuditLog intent now yield Exit 4 (`RESULT_WITHOUT_INTENT`); `parse_task_pack` no longer treats sentence-style lines as glob patterns.
+- `normalize_path` is platform-independent (case always preserved), so Merkle intent hashes verify identically on Windows, Linux, and macOS.
+- `lock_manager.py`: the OS lock is taken before any metadata inspection/rewrite; the lock file is never deleted on release (unlink-while-locked race); Windows lock regions for acquire/release now match; broad exception handling narrowed.
+- `check_docs_links.py` slug generation now mirrors github-slugger exactly; repaired 12 genuinely broken anchors across references/.
+- `references/schemas.md` synchronized with the standalone JSON authority (TaskPackSchema added, `artifact_metadata` added to both degraded blocks); `references/pain-points.md` inspection commands repaired; README/user-guide claims aligned with actual behavior.
+
+### Breaking
+
+- `scripts/check_docs_links.py` and `scripts/check_task_pack.py` no longer live in the main skill directory; they moved to `codex-doc-first-doc-sync/` and `codex-doc-first-task-pack-gate/` respectively. Direct CLI callers should install the owning companion skill and invoke the script from its directory. Existing whole-directory installations are unaffected, and a fresh main-skill-only install remains fully functional through the documented inline fallback in `references/review-gates.md`.
+
+---
+
 ## [2.2.0] - 2026-08-24
 
 ### Added
