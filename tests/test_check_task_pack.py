@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Unit tests for check_task_pack.py (v2.0.0 Benchmark Tests TC-C01 ~ TC-C02)
+Unit tests for check_task_pack.py (Task Pack gate, MAX_ITERATIONS, warnings)
 """
 
 import unittest
@@ -13,7 +13,7 @@ import os
 # Add scripts directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "codex-doc-first-development" / "scripts"))
 
-from check_task_pack import check_task_pack, calculate_card_confidence, detect_dummy_test_patterns
+from check_task_pack import check_task_pack, collect_warnings, detect_dummy_test_patterns
 
 
 class TestCheckTaskPack(unittest.TestCase):
@@ -40,21 +40,125 @@ class TestCheckTaskPack(unittest.TestCase):
         self.assertTrue(any("assertTrue(True)" in f for f in findings))
         self.assertTrue(any("Commented out" in f for f in findings))
 
-    def test_tc_c01_binary_confidence_score(self):
-        """
-        TC-C01: Keyword repeated 10 times in text -> Confidence score S <= 1.0
-        """
-        card_rules = {
-            "mandatory_keywords": ["concurrent", "async"],
-            "pattern_contexts": ["lock", "shared_state"]
-        }
-        # Repeat keyword "concurrent" 10 times
-        text = "concurrent " * 10 + " async lock shared_state"
-        score = calculate_card_confidence(card_rules, text)
-        
-        self.assertLessEqual(score, 1.0)
-        self.assertGreaterEqual(score, 0.0)
-        self.assertEqual(score, 1.0)  # All 4 unique feature items hit
+    def test_collect_warnings_detects_dummy_tests_in_test_requirements(self):
+        task = self.temp_path / "TASK-003.md"
+        task.write_text("""# TASK-003: Sample Task
+
+## Status
+Planned
+
+## Requirement IDs
+- REQ-001
+
+## Objective
+Sample objective
+
+## Context Pack
+N/A
+
+## Must Read
+- docs/README.md
+
+## Allowed Files
+- src/auth/*.ts
+
+## Forbidden Files
+- src/secret.ts
+
+## Interfaces / Contracts
+N/A
+
+## Data Constraints
+N/A
+
+## UI Constraints
+N/A
+
+## Implementation Requirements
+- Implement sample logic
+
+## Test Requirements
+- Add unit tests
+```python
+def test_foo():
+    assert True
+```
+
+## Acceptance Criteria
+- Tests pass
+
+## Done Definition
+Code merged
+
+## Risks
+None identified
+
+## Output Required
+Task report
+
+MAX_ITERATIONS: 5
+""", encoding="utf-8")
+
+        warnings = collect_warnings(task.read_text(encoding="utf-8"))
+        self.assertTrue(any("assert True" in w for w in warnings))
+        # Dummy patterns are warnings, never issues: the pack itself is valid.
+        self.assertEqual(check_task_pack(task), [])
+
+    def test_collect_warnings_flags_legacy_missing_max_iterations(self):
+        task = self.temp_path / "TASK-004.md"
+        task.write_text("""# TASK-004: Legacy Task
+
+## Status
+Planned
+
+## Requirement IDs
+- REQ-001
+
+## Objective
+Sample objective
+
+## Context Pack
+N/A
+
+## Must Read
+- docs/README.md
+
+## Allowed Files
+- src/auth/*.ts
+
+## Forbidden Files
+- src/secret.ts
+
+## Interfaces / Contracts
+N/A
+
+## Data Constraints
+N/A
+
+## UI Constraints
+N/A
+
+## Implementation Requirements
+- Implement sample logic
+
+## Test Requirements
+- Add unit tests
+
+## Acceptance Criteria
+- Tests pass
+
+## Done Definition
+Code merged
+
+## Risks
+None identified
+
+## Output Required
+Task report
+""", encoding="utf-8")
+
+        warnings = collect_warnings(task.read_text(encoding="utf-8"))
+        self.assertTrue(any("MAX_ITERATIONS heading missing" in w for w in warnings))
 
     def test_tc_c02_max_iterations_validation(self):
         """

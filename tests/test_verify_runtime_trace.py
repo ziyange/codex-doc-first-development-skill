@@ -16,7 +16,7 @@ SCRIPTS_DIR = str(Path(__file__).parent.parent / "codex-doc-first-development" /
 sys.path.insert(0, SCRIPTS_DIR)
 
 from verify_runtime_trace import run_verification
-from check_permission_log import compute_intent_hash, verify_merkle_chain
+from check_permission_log import compute_intent_hash, verify_merkle_chain, normalize_path
 
 
 class TestVerifyRuntimeTrace(unittest.TestCase):
@@ -356,6 +356,95 @@ MAX_ITERATIONS: 5
         self.assertEqual(code, 4)
         self.assertEqual(payload["runtime_event_reason"], "SAFELY_ABORTED_OPERATION")
         self.assertEqual(payload["reason_details"].get(tx_id), "UNCOMMITTED_PENDING")
+
+    def test_tc_v20_empty_allowed_files_fails_closed(self):
+        """TC-V20: Task Pack without Allowed Files + FILE_WRITE -> Exit 2 (fail-close, never fail-open)"""
+        tx_id = "3b92f7c0-8d4e-4a11-b921-998877665544"
+        entry = self._create_log_entry(tx_id, "FILE_WRITE", "src/anything.py", "GENESIS")
+        trace = self._create_trace_entry(tx_id, 1, "FILE_WRITE", "src/anything.py", entry["intent_hash"])
+
+        # Task Pack with NO Allowed Files section at all
+        empty_whitelist_pack = self.temp_path / "TASK-EMPTY.md"
+        empty_whitelist_pack.write_text("""# TASK-EMPTY: No Whitelist
+
+## Allowed Files
+
+MAX_ITERATIONS: 5
+""", encoding="utf-8")
+
+        with open(self.log_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps([entry]))
+        with open(self.trace_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps([trace]))
+
+        code, payload = run_verification(
+            self.trace_path, self.log_path, str(empty_whitelist_pack), "goal", 1, self.schemas_path, self.expansions_path
+        )
+        self.assertEqual(code, 2)
+        self.assertEqual(payload["reason"], "OFF_BOUNDARY_VIOLATION")
+        self.assertIn("src/anything.py", payload["offending_files"])
+
+    def test_tc_v21_orphan_trace_result_without_intent(self):
+        """TC-V21: Result trace without AuditLog intent -> Exit 4 (RESULT_WITHOUT_INTENT)"""
+        tx_id = "3b92f7c0-8d4e-4a11-b921-998877665544"
+        # A legitimate committed write...
+        entry = self._create_log_entry(tx_id, "FILE_WRITE", "src/auth/jwt.ts", "GENESIS")
+        # ...plus a forged Result whose intent was never recorded.
+        orphan = self._create_trace_entry("99999999-9999-9999-9999-999999999999", 1, "FILE_WRITE", "src/evil.py", "0" * 64)
+
+        with open(self.log_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps([entry]))
+        with open(self.trace_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps([orphan]))
+
+        code, payload = run_verification(
+            self.trace_path, self.log_path, self.task_pack_path, "goal", 1, self.schemas_path, self.expansions_path
+        )
+        self.assertEqual(code, 4)
+        self.assertEqual(payload["reason"], "UNCOMMITTED_TRANSACTION")
+        self.assertEqual(payload["reason_details"].get("99999999-9999-9999-9999-999999999999"), "RESULT_WITHOUT_INTENT")
+        self.assertIn("99999999-9999-9999-9999-999999999999", payload["uncommitted_tx_ids"])
+
+    def test_tc_v22_empty_log_with_trace_fails_closed(self):
+        """TC-V22: Empty audit log + non-empty trace -> Exit 4 (empty state never auto-passes a Result)"""
+        orphan = self._create_trace_entry("88888888-8888-8888-8888-888888888888", 1, "FILE_WRITE", "src/x.py", "0" * 64)
+
+        with open(self.log_path, "w", encoding="utf-8") as f:
+            f.write("")
+        with open(self.trace_path, "w", encoding="utf-8") as f:
+            f.write(json.dumps([orphan]))
+
+        code, payload = run_verification(
+            self.trace_path, self.log_path, self.task_pack_path, "goal", 1, self.schemas_path, self.expansions_path
+        )
+        self.assertEqual(code, 4)
+        self.assertEqual(payload["reason_details"].get("88888888-8888-8888-8888-888888888888"), "RESULT_WITHOUT_INTENT")
+
+    def test_tc_v23_empty_log_and_trace_passes(self):
+        """TC-V23: Empty audit log + empty trace -> Exit 0 (no false positives on a clean slate)"""
+        with open(self.log_path, "w", encoding="utf-8") as f:
+            f.write("")
+        with open(self.trace_path, "w", encoding="utf-8") as f:
+            f.write("[]")
+
+        code, payload = run_verification(
+            self.trace_path, self.log_path, self.task_pack_path, "goal", 1, self.schemas_path, self.expansions_path
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(payload["reason"], "SUCCESS")
+
+    def test_tc_v24_normalize_path_preserves_case(self):
+        """TC-V24: normalize_path must be platform-independent (hashes verify identically everywhere)"""
+        self.assertEqual(normalize_path("src/App.py"), "src/App.py")
+        self.assertEqual(normalize_path(".\\src\\App.py"), "src/App.py")
+        self.assertEqual(normalize_path("./src/App.py"), "src/App.py")
+        self.assertEqual(normalize_path("N/A"), "N/A")
+        # The intent hash of a recorded path must not depend on the verifying OS.
+        expected = compute_intent_hash("GENESIS", "FILE_WRITE", "src/App.py", "TX-001")
+        self.assertEqual(
+            compute_intent_hash("GENESIS", "FILE_WRITE", normalize_path("src/App.py"), "TX-001"),
+            expected,
+        )
 
 
 if __name__ == "__main__":
