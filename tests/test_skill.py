@@ -173,6 +173,19 @@ class TaskPackTests(unittest.TestCase):
 
 
 class ScaffoldTests(unittest.TestCase):
+    def test_entrypoint_scaffold_example_runs_without_writing(self) -> None:
+        skill = (SKILL_ROOT / "SKILL.md").read_text(encoding="utf-8")
+        step = next(line for line in skill.splitlines() if "**S2 Repository" in line)
+        command = re.search(r"`([^`]+)`", step).group(1)
+        with tempfile.TemporaryDirectory() as directory:
+            arguments = command.split()
+            arguments[0] = sys.executable
+            arguments = [part.replace("<skill-root>", str(SKILL_ROOT))
+                         .replace("<project-root>", directory) for part in arguments]
+            result = subprocess.run(arguments, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(list(Path(directory).iterdir()), [])
+
     def test_strict_optional_docs_are_opt_in(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -286,7 +299,7 @@ class PackageTests(unittest.TestCase):
         self.assertGreaterEqual(len(SKILL_ROOTS), 5)
         for skill_root in SKILL_ROOTS:
             skill = (skill_root / "SKILL.md").read_text(encoding="utf-8")
-            self.assertLess(len(skill.splitlines()), 500, skill_root.name)
+            self.assertLessEqual(len(skill.splitlines()), 150, skill_root.name)
             frontmatter = skill.split("---", 2)[1]
             keys = {
                 line.split(":", 1)[0].strip()

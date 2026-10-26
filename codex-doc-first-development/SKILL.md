@@ -88,7 +88,7 @@ Main agent handles non-Exit-0 CLI outputs by strictly looking up the `(exit_code
 
 1. **S0 Permission & Handshake**: Establish authorization scope and initial workflow mode.
 2. **S1 Intake & CoT Reflection**: Execute CoT intake analysis, compute pain-point card confidence score $S(C)$.
-3. **S2 Repository Context Scan**: Run `scripts/scaffold_docs.py --auto-detect`.
+3. **S2 Repository Context Scan**: Run `python <skill-root>/scripts/scaffold_docs.py --root <project-root> --auto-detect --dry-run`; inspect the proposed files before rerunning without `--dry-run`.
 4. **S3 Formal Solution Draft**: Create architecture, data model, and interface specs with independent module & DRY design.
 5. **S4 Solution Review**: Verify against `references/review-gates.md`.
 6. **S5 Solution Finalization**: Update `docs/product.md` and `docs/architecture.md`.
@@ -101,7 +101,7 @@ Main agent handles non-Exit-0 CLI outputs by strictly looking up the `(exit_code
 13. **S12 Branch & Concurrency Setup**: Create feature branch and locks.
 14. **S13 Spec-Driven Implementation**: Write code strictly complying with documented contracts & DRY rules, update `permission-audit.log` and `execution-trace.json`.
 15. **S14 Test Quality & DRY Review**: Verify test coverage, meaningful assertions, and absence of duplicate request logic.
-16. **S15 Runtime Gate Validation**: Execute `python scripts/verify_runtime_trace.py --mode <mode> --json`.
+16. **S15 Runtime Gate Validation**: From the project root, execute `python <skill-root>/scripts/verify_runtime_trace.py --mode <mode> --json`; bundled schemas resolve from the skill directory. Set `--task-pack` to the active Task Pack.
 17. **S16 Acceptance Decision & Doc-Code Traceability**: Inspect Exit Code and verify code-to-doc contract consistency.
 18. **S17 Git Conflict Handling**: Resolve branch merge conflicts cleanly.
 19. **S18 Change Classification & Synchronous Doc Sync**: Categorize changes; synchronously update `docs/` on architecture/API/UI changes.

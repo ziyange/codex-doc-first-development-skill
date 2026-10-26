@@ -8,6 +8,7 @@ import sys
 import json
 import subprocess
 import unittest
+import tempfile
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPTS_DIR = os.path.join(REPO_ROOT, "codex-doc-first-development", "scripts")
@@ -16,6 +17,21 @@ FIXTURES_DIR = os.path.join(REPO_ROOT, "tests", "fixtures")
 
 
 class TestVerifyRuntimeTraceEnd2End(unittest.TestCase):
+    def test_installed_cli_uses_bundled_schemas_from_project_directory(self):
+        with tempfile.TemporaryDirectory() as directory:
+            command = [sys.executable, VERIFY_SCRIPT,
+                       "--trace", os.path.join(FIXTURES_DIR, "valid_trace.json"),
+                       "--permission-log", os.path.join(FIXTURES_DIR, "valid_audit.log"),
+                       "--task-pack", os.path.join(FIXTURES_DIR, "valid_task_pack.md"),
+                       "--json"]
+            result = subprocess.run(command, cwd=directory, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(json.loads(result.stdout)["reason"], "SUCCESS")
+
+            command.extend(["--schemas", os.path.join(directory, "missing.md")])
+            result = subprocess.run(command, cwd=directory, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+
     def setUp(self):
         self.valid_task_pack = os.path.join(FIXTURES_DIR, "valid_task_pack.md")
         self.valid_audit = os.path.join(FIXTURES_DIR, "valid_audit.log")

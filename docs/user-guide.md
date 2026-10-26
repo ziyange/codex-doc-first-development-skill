@@ -199,7 +199,7 @@ Copy-Item `
 2. **第 2 步：交互澄清与可行性确认**：
    Agent 向用户列出必须澄清的问题与可行性评估结论，协助用户补充必要事实。
 3. **第 3 步：信息充分后 Agent 自动初始化**：
-   当收集到足够信息且确认可行后，Agent **自动执行初始化动作**（调用 `scaffold_docs.py --auto-detect`），自动扫描根目录及子目录中的复合技术栈与 Monorepo 配置文件（支持 Makefile, Dockerfile, pnpm-workspace.yaml, go.work, Cargo.toml, CMakeLists.txt 等），自动生成预填构建命令的 `AGENTS.md` 和 `docs/` 事实源结构，无需用户手动输入 `/init`。
+   当收集到足够信息且确认可行后，Agent **自动执行初始化动作**（先调用 `python <skill-root>/scripts/scaffold_docs.py --root <project-root> --auto-detect --dry-run` 预览，检查后移除 `--dry-run` 执行），自动扫描根目录及子目录中的复合技术栈与 Monorepo 配置文件（支持 Makefile, Dockerfile, pnpm-workspace.yaml, go.work, Cargo.toml, CMakeLists.txt 等），自动生成预填构建命令的 `AGENTS.md` 和 `docs/` 事实源结构，无需用户手动输入 `/init`。
 
 已有项目功能：
 
@@ -311,3 +311,5 @@ python scripts/scaffold_docs.py --root "C:\path\to\project" --mode standard --ph
 3. **严格按文档专项开发与同步联动**：
    - 编码阶段必须 100% 严格执行 Must Read 文档和 Task Pack 中约定的接口契约与 UI 规范，禁止脱节开发。
    - 当用户提出修改建议或技术调整涉及架构、接口、UI/交互变动时，必须同步在改代码前或同一步骤中更新 `docs/` 对应文件，确保代码与文档永远保持一致。
+
+运行时验证应在目标项目根目录执行：`python <skill-root>/scripts/verify_runtime_trace.py --task-pack <active-task-pack> --mode goal --json`。默认 Schema 随 skill 安装目录解析；显式 `--schemas` 仍可覆盖默认值，缺失时保持失败关闭。

@@ -49,6 +49,11 @@ BUILD_MODE_BLACKLIST = [
     "docs/delivery/expansions.json",
 ]
 
+# Schemas ship with the skill; project artifacts remain relative to the caller.
+DEFAULT_SCHEMAS_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "references", "schemas.md"
+)
+
 
 def load_schema_from_markdown(schemas_md_path: str, schema_id: str) -> Optional[Dict]:
     """
@@ -213,7 +218,7 @@ def run_verification(
     task_pack_path: str,
     mode: str,
     next_iteration: int,
-    schemas_md_path: str = "references/schemas.md",
+    schemas_md_path: str = DEFAULT_SCHEMAS_PATH,
     expansions_path: str = "docs/delivery/expansions.json",
     runtime_event_reason: Optional[str] = None
 ) -> Tuple[int, Dict]:
@@ -403,7 +408,7 @@ def run_verification(
 
 
 def main():
-    parser = argparse.ArgumentParser(description="verify_runtime_trace v2.2.0 CLI")
+    parser = argparse.ArgumentParser(description="Verify runtime trace and audit log governance.")
     parser.add_argument("--trace", default="docs/delivery/execution-trace.json", help="Path to execution-trace.json")
     parser.add_argument(
         "--permission-log",
@@ -418,7 +423,7 @@ def main():
         help="Autonomy mode: goal, plan, build",
     )
     parser.add_argument("--next-iteration", type=int, default=1, help="Next iteration index k")
-    parser.add_argument("--schemas", default="references/schemas.md", help="Path to schemas.md")
+    parser.add_argument("--schemas", default=DEFAULT_SCHEMAS_PATH, help="Path to schemas.md (default: bundled skill schemas)")
     parser.add_argument("--expansions", default="docs/delivery/expansions.json", help="Path to expansions.json")
     parser.add_argument("--runtime-event-reason", default=None, help="Runtime event reason string")
     parser.add_argument("--json", action="store_true", help="Output JSON payload")
