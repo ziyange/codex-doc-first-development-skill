@@ -5,6 +5,54 @@ All notable changes to this repository - the `codex-doc-first-development` skill
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-10-27
+
+### Changed
+
+- Adapt lifecycle artifacts and design gates to task risk. Quick work reuses existing
+  records or one brief; Standard and Strict maintain applicable contracts and gates.
+  Reuse established authorization and approved designs, skip visual artifacts for
+  non-UI work, and distinguish Task Pack structure from execution authority. Preserve
+  selected runtime protocols, skill invocation policy, script ownership, and CLI
+  exit codes/JSON interfaces. Add applicability regressions and installed command
+  checks, and correct residual path examples and a Ruff line-length failure.
+  
+  Fix an observed fail-open runtime gate: missing required inputs and malformed
+  JSON records now return existing Exit 3 rather than silently passing. Goal requires
+  an explicit valid MAX_ITERATIONS. Missing optional expansions remain supported;
+  malformed existing expansions fail closed. Initialized empty audit/trace states
+  remain supported. No exit code or payload shape changes.
+  
+  Pin the three-OS test matrix to Python-3.9-compatible runner images after the
+  Ubuntu latest image upgrade broke interpreter installation before tests ran.
+
+- Resolve default runtime schemas relative to the installed skill rather than the
+  downstream working directory. Preserve explicit schema overrides and fail-close
+  behavior for missing schemas. Correct the S2 scaffold command, clarify S15 paths,
+  remove stale CLI version text, and test downstream execution and the 150-line
+  entrypoint limit. No script moves or protocol changes.
+
+- Replace the npm-only Changesets action with a Python changeset planner for this
+  directory-distributed skill repository. Validate inputs before writes, select the
+  highest pending semantic bump, synchronize release metadata and changelog, and
+  consume changesets only in the generated version PR. Validate the generated branch
+  and explicitly dispatch three-platform CI for bot-created PRs. Keep tag publication
+  separate and preserve human review before merging. Add fixture-driven release tests.
+
+- Consolidate distribution into the single codex-doc-first-development directory.
+  Move doc-sync, Task Pack, UI/UX, and startup guidance into internal references and
+  bundle check_docs_links.py and check_task_pack.py in the main scripts directory.
+  Remove the four companion installable entrypoints and their UI metadata. Users
+  install and invoke only the main skill; no recursive Skill-tool handoffs or manual
+  fallbacks for absent companion checkers remain.
+  
+  BREAKING: checker paths move from their former companion directories to
+  codex-doc-first-development/scripts/. Update downstream CLI/CI paths and move old
+  companion installations out of skill discovery directories after backing them up.
+  Checker exit codes, JSON payloads, and the main skill name are unchanged. Rewrite
+  README and the Chinese guide for single-directory installation, migrate CI and
+  release validation, and add an isolated copied-bundle test of all three gates.
+
 ## [2.3.0] - 2026-10-25
 
 ### Added

@@ -1,4 +1,4 @@
-# Codex Doc-First Development Skill (v2.3.0)
+# Codex Doc-First Development Skill (v3.0.0)
 
 一个 skill 完成文档优先开发：需求梳理、任务拆解、实现、文档同步、UI/UX 对齐和可执行验证。
 
