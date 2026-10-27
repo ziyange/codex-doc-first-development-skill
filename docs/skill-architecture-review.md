@@ -108,6 +108,11 @@ Rulings and evidence:
   behavioral evidence; no latency, token-cost, or user-satisfaction gain is claimed.
 - Local Ruff and the full unittest suite pass. Repository links, valid Task Pack,
   and fixture runtime checks pass. Remote three-platform CI is checked after push.
+- The first remote matrix failed before tests: setup-python could not install
+  Python 3.9 on the new Ubuntu 26.04 `latest` image. The official Python manifest
+  provides 3.9 on Ubuntu 24.04 and macOS x64. The test matrix now pins Ubuntu
+  24.04, Windows 2022, and macOS 15 Intel, retaining Python 3.9/3.12 and disabling
+  fail-fast so each platform reports its own evidence.
 - The baseline Release workflow failed because changesets/action expected a
   package.json in a deliberately non-npm repository. Repairing release automation
   is deferred; the pending patch and minor changesets are retained. No release

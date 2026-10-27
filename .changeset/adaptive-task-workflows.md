@@ -15,3 +15,6 @@ JSON records now return existing Exit 3 rather than silently passing. Goal requi
 an explicit valid MAX_ITERATIONS. Missing optional expansions remain supported;
 malformed existing expansions fail closed. Initialized empty audit/trace states
 remain supported. No exit code or payload shape changes.
+
+Pin the three-OS test matrix to Python-3.9-compatible runner images after the
+Ubuntu latest image upgrade broke interpreter installation before tests ran.
