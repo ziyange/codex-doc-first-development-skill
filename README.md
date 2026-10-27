@@ -283,6 +283,7 @@ codex-doc-first-development-skill/
 - **[.agents/invocation.md](.agents/invocation.md)**：技能调用双轴模型——User-invoked（仅人类 `/命令` 触发，编排层）与 Model-invoked（模型可自动触达，承载可复用纪律）；跨技能引用统一为 "Call the Skill tool with '<name>'"。
 - **[.out-of-scope/](.out-of-scope/README.md)**：已拒绝概念的归档及理由。
 - **[.changeset/](.changeset/config.json) + [CHANGELOG.md](CHANGELOG.md)**：基于 changesets 的版本管理（Keep a Changelog / SemVer），CHANGELOG 位于仓库根目录。
+- **[发布维护](docs/releasing.md)**：保留 changeset 格式，由 Python 生成版本变更并创建 Version Skills PR，无需 `package.json`；版本分支单独运行 CI，合并和 tag 发布保持显式操作。
 
 ---
 
@@ -339,7 +340,7 @@ Copy-Item `
 
 ## 🧪 单元测试与端到端验证
 
-在技能包根目录下运行以下命令，验证全量 76 项单元与集成测试：
+在技能包根目录下运行以下命令，验证全量单元与集成测试：
 
 ```bash
 python -m unittest discover -s tests -v

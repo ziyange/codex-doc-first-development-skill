@@ -1,13 +1,18 @@
 name: Release
 
 on:
+  workflow_dispatch:
   push:
     branches: [ main, master ]
     tags: [ 'v*' ]
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   version:
-    # Opens or updates a "Version Packages" PR from pending changesets.
+    # Opens or updates a "Version Skills" PR from pending changesets.
     # There is deliberately no npm publish: this repository distributes
     # Agent Skills as directories, not as a package.
     if: "!startsWith(github.ref, 'refs/tags/')"
@@ -15,17 +20,46 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      actions: write
     steps:
     - uses: actions/checkout@v4
-
-    - name: Changesets version PR
-      uses: changesets/action@v1
       with:
-        version: npx changeset version
-        commit: "chore: version packages"
-        title: "Version Packages"
+        fetch-depth: 0
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Prepare and validate non-npm version changes
+      run: |
+        python -m pip install -r requirements.txt
+        python .github/scripts/release_version.py --apply --json
+        python -m unittest discover -s tests -v
+        python codex-doc-first-doc-sync/scripts/check_docs_links.py . --json
+
+    - name: Open or update version PR
+      id: version-pr
+      uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        branch: changeset-release/${{ github.ref_name }}
+        base: ${{ github.ref_name }}
+        commit-message: "chore: version skills"
+        title: "Version Skills"
+        body: |
+          Apply pending changesets to the directory-distributed skills.
+          Synchronizes pyproject.toml, the main skill title, README, and CHANGELOG.
+          Consumes only validated changesets; no npm package or publish step.
+          Generated changes passed unittest and documentation link checks.
+          Review and merge explicitly; this workflow does not approve or merge PRs.
+
+    # GITHUB_TOKEN-created PRs do not trigger normal pull_request CI events.
+    - name: Run CI on the generated version branch
+      if: steps.version-pr.outputs.pull-request-operation == 'created' || steps.version-pr.outputs.pull-request-operation == 'updated'
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VERSION_BRANCH: changeset-release/${{ github.ref_name }}
+      run: gh workflow run ci.yml --ref "$VERSION_BRANCH"
 
   github-release:
     # Publishes a GitHub Release when a v* tag is pushed.

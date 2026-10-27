@@ -72,6 +72,10 @@ Requires Python >= 3.9 and `jsonschema` (see `requirements.txt`).
 
 Version bumps go through changesets: add a `.changeset/<name>.md` file with the bump type (`major`/`minor`/`patch`) and a summary, and let the release workflow open the version PR. The skill version lives in `pyproject.toml` and the `SKILL.md` title; keep them in sync. Breaking changes (e.g. moving a script between skills) are called out explicitly in the changeset.
 
+Preview the non-npm release plan with `python .github/scripts/release_version.py --json`.
+The repository-level release helper belongs to the development shell, not an installable skill.
+See [docs/releasing.md](docs/releasing.md) for version PR validation and tag publication.
+
 ## Contributing
 
 Read [SCOPE.md](./SCOPE.md) first: every change needs an observed failure and a fit with the philosophy (docs as single source of truth, fail-close, evidence over assertion). Rejected ideas are archived in `.out-of-scope/`.

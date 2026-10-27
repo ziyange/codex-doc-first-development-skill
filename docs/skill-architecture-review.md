@@ -117,3 +117,12 @@ Rulings and evidence:
   package.json in a deliberately non-npm repository. Repairing release automation
   is deferred; the pending patch and minor changesets are retained. No release
   version bump or successful automatic release is claimed.
+
+## Release Repair Follow-Up
+
+The previously deferred npm-only release failure is addressed by the repository's
+Python changeset planner and Version Skills PR workflow; see [Release Maintenance](releasing.md).
+Historical red runs remain attached to their original commits. Current CI and the
+generated version branch must be assessed separately by commit SHA. The user
+explicitly authorized enabling the combined Actions create/approve-PR repository
+setting; workflows create version PRs only, and default permissions stay read-only.
