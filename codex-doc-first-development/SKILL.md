@@ -3,7 +3,7 @@ name: codex-doc-first-development
 description: Use when running document-first software development, planning bounded implementation tasks, synchronizing changed contracts with docs, or requiring verifiable engineering governance. Adapt documentation and design gates to task risk while preserving explicit authorization and runtime audit requirements.
 ---
 
-# Codex Doc-First Development (v2.3.0 Released)
+# Codex Doc-First Development (v3.0.0 Released)
 
 ## Operating Model
 

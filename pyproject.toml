@@ -8,7 +8,7 @@
 
 [project]
 name = "codex-doc-first-development-skill"
-version = "2.3.0"
+version = "3.0.0"
 description = "Document-first AI agent collaboration and hard governance framework"
 readme = "README.md"
 requires-python = ">=3.9"
