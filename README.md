@@ -4,7 +4,7 @@
 
 **只安装 `codex-doc-first-development/` 一个目录。** 所有参考文档、检查脚本和 Schema 都在其中，不再需要分别安装入口、文档同步、Task Pack 或 UI/UX skill。
 
-> 标题版本表示已发布的版本。当前主分支已收敛为单 skill；脚本路径迁移属于破坏性变更，将通过[版本 PR](https://github.com/ziyange/codex-doc-first-development-skill/pull/1)统一升级版本。安装 `main` 可使用当前代码。
+> main 当前版本为 **3.0.0**，只包含一个可安装 skill。检查脚本路径已统一到主 skill 的 `scripts/`；从旧布局升级前请按下方迁移步骤备份安装并更新 CI 路径。
 
 ## 安装一次即可使用
 
