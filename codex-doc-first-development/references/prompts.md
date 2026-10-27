@@ -1,6 +1,7 @@
 # Prompt Pack
 
 Use these prompts as starting points. Adapt them to the repository, user authorization, and workflow mode.
+Apply [Adaptive Workflow](adaptive-workflow.md) before any template: Quick reuses a task/doc or brief; Standard/Strict create only applicable artifacts. Skip visual design for non-UI changes and reuse existing authorization.
 
 ## Contents
 
@@ -31,14 +32,14 @@ Authorization:
 - Create draft PR: yes/no
 
 First:
-1. Output the first response block as `## CoT Intake Reflection` containing:
+1. Briefly state task scope, recommended risk tier, and verification approach after inspecting:
    - Missing Facts
    - Codebase Conflicts
    - Feasibility Bottlenecks
-2. Ask clarifying questions for missing inputs; do not generate final specs immediately.
-3. Once sufficient information is gathered and feasibility is verified, automatically trigger initialization (`scaffold_docs.py --auto-detect`) to create AGENTS.md and docs source of truth.
+2. Ask only questions that change the result or establish missing authority; reuse existing decisions.
+3. Reuse existing docs. If initialization is needed, preview `python <skill-root>/scripts/scaffold_docs.py --root <project-root> --auto-detect --dry-run`, inspect, then rerun without --dry-run.
 4. Design independent functional modules & unified API service layer to eliminate duplicate requests (DRY).
-5. Align with the user on product prototypes, screen UI layouts, API bindings, and interaction states (generate visual UI mockup images if image generation tool is available).
+5. For graphical UI changes, resolve changed layouts/states and applicable bindings; reuse approved designs and generate mockups only for unresolved visual decisions.
 6. Choose quick, standard, or strict mode.
 7. Draft the phase plan and task breakdown with narrow Allowed Files scoping.
 8. Explain whether subagents are useful.
@@ -59,11 +60,11 @@ Constraints:
 Please scan README, docs, AGENTS.md, package/build/test config, tests, CI, architecture entry points, and git status before proposing changes.
 
 First:
-1. Output the initial response block as `## CoT Intake Reflection` containing:
+1. Briefly state scope, tier, and checks after inspecting:
    - Missing Facts
    - Codebase Conflicts
    - Feasibility Bottlenecks
-2. Output workflow mode, risks, docs updates needed, modular service architecture (DRY check), test strategy, branch strategy, and the first Task Pack with narrow Allowed Files scoping.
+2. Reuse existing authorization/docs. Quick uses an existing record or brief; Standard/Strict use applicable contracts and a scoped Task Pack. Preserve selected runtime protocol requirements.
 ```
 
 ## Formal Solution
@@ -91,11 +92,11 @@ Required sections:
 ## Pre-Dev UI/UX and Prototype Alignment
 
 ```text
-Prior to beginning code implementation, present the product prototype and UI/UX design to the user for confirmation:
+For graphical UI changes with unresolved design decisions, present only affected surfaces before dependent implementation. Reuse approved designs; local-only UI uses events/state/outcomes instead of API bindings:
 
 1. Product Prototype: Show navigation flow and screen hierarchy.
 2. Screen UI Layouts: Detail page components, form inputs, and layout structure.
-3. Multimodal Preview: If image generation tools (e.g. generate_image) are supported, generate high-fidelity UI visual mockups for key screens and embed them in docs/ux.md.
+3. Multimodal Preview: Use mockups/wireframes for unresolved visual decisions; reuse approved images for unchanged designs.
 4. Component-to-API Binding Matrix:
    | Screen / Component | User Action | Unified API Module / Route | Request Parameters | Projected Fields | UI State (Loading/Empty/Error) |
 5. Interaction Design: Specify user feedback, transitions, and error recovery flows.
@@ -115,7 +116,7 @@ Requirements:
 - Create or update docs/README.md as the docs entry point.
 - Create or update product, requirements, architecture, ux, delivery, verification, and archive docs according to the mode.
 - Give every current requirement a REQ ID.
-- Ensure unified client/service modules and backend field projection are specified.
+- Reuse modules for shared requests; specify field projection only for demonstrated consumer/performance needs.
 - Record UI layouts, component bindings, and interaction states.
 - Make acceptance criteria verifiable.
 - Do not create empty decorative documents.

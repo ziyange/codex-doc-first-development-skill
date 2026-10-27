@@ -1,15 +1,14 @@
 ---
 name: codex-doc-first-development
-description: Guides Codex through document-first software development v2.3.0 with strict spec-driven targeted development, functional independence & DRY modularization, pre-dev interactive UI/UX prototyping with image generation capability, synchronous two-way doc sync on user feedback, Merkle runtime verification (Exit 0-6), composable companion skills (doc-sync, task-pack-gate, ui-ux-prototyping), and full lifecycle (S0-S22) governance. Use when starting software projects, formalizing AI development methodology, scaffolding docs, bounding multi-agent tasks, or executing verifiable software development.
+description: Use when running document-first software development, planning bounded implementation tasks, synchronizing changed contracts with docs, or requiring verifiable engineering governance. Adapt documentation and design gates to task risk while preserving explicit authorization and runtime audit requirements.
 ---
 
 # Codex Doc-First Development (v2.3.0 Released)
 
-Use this skill to execute a Codex-specific, document-first software development process from idea intake through implementation, validation, merge preparation, and archival.
-
 ## Operating Model
 
 Treat this skill as the main engineering workflow guide within higher-priority platform, user, and repository instructions. Use it to convert vague intent into durable project facts, then into bounded tasks, then into verified code changes.
+Read `references/adaptive-workflow.md` first: select applicable stages and artifacts by risk, reuse existing authorization/docs, and apply UI gates only to graphical UI changes. S0-S22 is the lifecycle index, not a required artifact list for every task.
 
 Keep three layers separate; never let execution facts replace product or engineering facts. If implementation reveals a new fact, write it back to the correct document:
 - Product facts: user, problem, scenarios, scope, non-goals, success criteria, UI mockups, interaction flows.
@@ -26,17 +25,17 @@ Keep three layers separate; never let execution facts replace product or enginee
    - **Build Mode**: Low-overhead stream execution against blacklist patterns (`.git/*`, `permission-audit.log`, `.log.lock`, etc.).
 
 2. **Domain Pain-Point Card Matching**:
-   - During `CoT Intake Reflection`, compute binary feature hit score $S(C)$ against 6 domain cards (`references/pain-points.md`).
+   - When domain-specific inspection is relevant, compute binary feature hit score $S(C)$ against 6 domain cards (`references/pain-points.md`); communicate findings and decisions concisely.
    - $S(C) \ge 0.8$: enforce the card's inspection checklist. $0.5 \le S(C) < 0.8$: require `user_confirmed: true`. Top-1 exclusivity: activate only the highest card $\ge 0.5$, log the rest in `ignored_candidates`.
 
 3. **Functional Independence & DRY Reusability (功能独立化 & 模块复用)**:
    - **Centralized Service/Client Layer**: Encapsulate all data fetching and external API calls into dedicated single modules (e.g. `client.ts` / `service.py`). Forbid duplicating the same request logic across multiple components or caller sites.
-   - **Backend Projection & Field Filtering**: Backend/service layers provide generic querying and dynamic field filtering (e.g., `fields` projection) so multiple UI views reuse the same generic endpoint rather than proliferating redundant ad-hoc endpoints.
+   - **Backend Projection & Field Filtering**: Use projection when actual consumer/performance needs justify it; preserve existing contracts and do not introduce endpoints for template compliance.
    - **DRY Gate**: Reject code changes that implement identical or near-identical request logic in multiple places.
 
 4. **Pre-Dev Interactive UI/UX Design Gate & Image Generation (开发前产品UI/交互深度沟通与生图联动)**:
-   - After requirements and API architecture are drafted, **prior to code implementation**, align with the user on prototypes, screen layouts, component-to-API bindings, and interaction states (delegate to the `codex-doc-first-ui-ux-prototyping` companion skill).
-   - Record all layouts, bindings, and states in `docs/ux.md` or `docs/architecture.md`; when image generation tools are available, proactively generate high-fidelity mockups for core screens and embed them via `![UI Mockup](...)` in `docs/ux.md`.
+   - For graphical UI changes, align on changed layouts and states before implementation; reuse approved designs. Call the Skill tool with "codex-doc-first-ui-ux-prototyping".
+   - Record changed layouts/bindings/states in the owning docs; use mockups when visual decisions need alignment. Non-UI tasks skip this gate; local UI records events/state without invented APIs.
 
 5. **Strict Spec-Driven Targeted Development (严格按文档专项开发)**:
    - During S13, code must strictly implement the exact contracts, signatures, field names, and UI structures documented in `docs/` and `TASK-*.md`. Ad-hoc deviation or skipping documented specs is strictly forbidden.
@@ -50,7 +49,7 @@ Keep three layers separate; never let execution facts replace product or enginee
    - Load JSON schemas directly from the standalone JSON files in the schemas directory (5 schemas), with Markdown fallback.
 
 8. **Executable Merkle Chain Runtime Verification & Lock Manager**:
-   - Run `scripts/verify_runtime_trace.py` for hard gate checks before proceeding or finalizing.
+   - For Strict work or explicit runtime audit protocols, run `scripts/verify_runtime_trace.py` before proceeding or finalizing; Quick does not waive a selected protocol.
    - Computes SHA256 chain: `intent_hash_n = SHA256(prev_hash_n + ":" + action_type_n + ":" + normalized_path_n + ":" + tx_id_n)`.
    - Enforces `docs/delivery/.log.lock` single-writer file mutex locking using `lock_manager.py` with PID & timestamp stale lock cleanup.
 
@@ -78,28 +77,28 @@ Main agent handles non-Exit-0 CLI outputs by strictly looking up the `(exit_code
 
 | Mode | Risk Level | Required Artifacts | Verification Gate |
 |---|---|---|---|
-| Quick | Low | Task Pack or brief note | Single relevant command check |
-| Standard | Medium | Minimal docs source of truth + Phase plan + Task Pack + UI/API Binding | Task Pack gate (`codex-doc-first-task-pack-gate`) + unit tests |
-| Strict | High / Critical | Full docs source of truth + UX Mockups + Merkle trace audit | `scripts/verify_runtime_trace.py --json` |
+| Quick | Low | Reuse existing record or one brief; selected runtime protocols retain full inputs | Relevant command check |
+| Standard | Medium | Affected docs + Task Pack; phase plan for multiple tasks; UI bindings when applicable | Task Pack structural gate + relevant tests |
+| Strict | High / Critical | Full applicable docs + runtime audit; UX only for UI changes | `scripts/verify_runtime_trace.py --json` + tests |
 
 ---
 
 ## Main Workflow (S0 – S22)
 
 1. **S0 Permission & Handshake**: Establish authorization scope and initial workflow mode.
-2. **S1 Intake & CoT Reflection**: Execute CoT intake analysis, compute pain-point card confidence score $S(C)$.
-3. **S2 Repository Context Scan**: Run `python <skill-root>/scripts/scaffold_docs.py --root <project-root> --auto-detect --dry-run`; inspect the proposed files before rerunning without `--dry-run`.
+2. **S1 Intake & Feasibility**: Inspect missing facts, conflicts and feasibility; report tier, scope and checks, asking only material unresolved questions.
+3. **S2 Repository Context Scan**: Inspect existing docs/code first. When initialization is needed, run `python <skill-root>/scripts/scaffold_docs.py --root <project-root> --auto-detect --dry-run`; inspect before rerunning without `--dry-run`.
 4. **S3 Formal Solution Draft**: Create architecture, data model, and interface specs with independent module & DRY design.
 5. **S4 Solution Review**: Verify against `references/review-gates.md`.
 6. **S5 Solution Finalization**: Update `docs/product.md` and `docs/architecture.md`.
-7. **S6 Docs Source-of-Truth Scaffold & Pre-Dev UI/UX Alignment**: Populate `AGENTS.md`, `docs/README.md`, and `docs/ux.md`; for the interactive product UI/UX review, Call the Skill tool with "codex-doc-first-ui-ux-prototyping" (prototypes, layouts, component-to-API bindings, interaction states, mockups via image generation when available).
+7. **S6 Docs Source-of-Truth & Applicable UX Alignment**: Reuse/update applicable docs. For graphical UI changes, Call the Skill tool with "codex-doc-first-ui-ux-prototyping"; non-UI work skips visual artifacts.
 8. **S7 Docs Review**: For the link/anchor sweep, Call the Skill tool with "codex-doc-first-doc-sync" (it runs `check_docs_links.py`). If the companion skill is not installed, run the inline checklist in `references/review-gates.md`.
 9. **S8 Docs Finalization & Baseline Lock**: Lock initial documentation including UI layouts and API bindings.
 10. **S9 Phase Plan Breakdown**: Create `docs/delivery/phase-001.md` prioritizing shared modules.
 11. **S10 Task Pack Generation**: Create `docs/delivery/tasks/TASK-001.md` with explicit contract references; for the readiness gate, Call the Skill tool with "codex-doc-first-task-pack-gate" (it runs `check_task_pack.py`). If the companion skill is not installed, run the inline checklist in `references/review-gates.md`.
 12. **S11 Strategy Selection**: Select Goal, Plan, or Build mode.
 13. **S12 Branch & Concurrency Setup**: Create feature branch and locks.
-14. **S13 Spec-Driven Implementation**: Write code strictly complying with documented contracts & DRY rules, update `permission-audit.log` and `execution-trace.json`.
+14. **S13 Spec-Driven Implementation**: Follow authorized contracts and scope; maintain audit/trace inputs when the selected protocol requires them.
 15. **S14 Test Quality & DRY Review**: Verify test coverage, meaningful assertions, and absence of duplicate request logic.
 16. **S15 Runtime Gate Validation**: From the project root, execute `python <skill-root>/scripts/verify_runtime_trace.py --mode <mode> --json`; bundled schemas resolve from the skill directory. Set `--task-pack` to the active Task Pack.
 17. **S16 Acceptance Decision & Doc-Code Traceability**: Inspect Exit Code and verify code-to-doc contract consistency.

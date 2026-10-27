@@ -130,20 +130,7 @@ def validate_schema(data: Dict, schema: Dict) -> bool:
 
 def parse_trace_file(file_path: str) -> List[Dict]:
     """Parses execution-trace.json."""
-    if not os.path.exists(file_path):
-        return []
-
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            content = f.read().strip()
-            if not content:
-                return []
-            if content.startswith("["):
-                return json.loads(content)
-            else:
-                return [json.loads(line) for line in content.splitlines() if line.strip()]
-    except Exception:
-        return []
+    return parse_audit_log(file_path)
 
 
 def parse_task_pack(file_path: str) -> Tuple[List[str], int]:
@@ -153,12 +140,11 @@ def parse_task_pack(file_path: str) -> Tuple[List[str], int]:
     allowed_files = []
     max_iterations = 5  # Default limit
 
-    if not os.path.exists(file_path):
-        return allowed_files, max_iterations
-
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
+        if not any(line.strip() for line in lines):
+            raise ValueError("Task Pack is empty")
 
         in_allowed = False
         for line in lines:
@@ -182,8 +168,8 @@ def parse_task_pack(file_path: str) -> Tuple[List[str], int]:
                     # (e.g. "None outside Allowed Files." must not become a glob)
                     if item and not re.match(r"(?i)^(?:none|n/a)\b", item):
                         allowed_files.append(item)
-    except Exception:
-        pass
+    except (OSError, UnicodeError):
+        raise
 
     return allowed_files, max_iterations
 
@@ -192,14 +178,11 @@ def parse_expansions_file(file_path: str) -> List[Dict]:
     """Parses docs/delivery/expansions.json."""
     if not os.path.exists(file_path):
         return []
-    try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            content = f.read().strip()
-            if not content:
-                return []
-            return json.loads(content) if content.startswith("[") else []
-    except Exception:
-        return []
+    with open(file_path, "r", encoding="utf-8") as f:
+        entries = json.load(f)
+    if not isinstance(entries, list) or any(not isinstance(entry, dict) for entry in entries):
+        raise ValueError("expansions must be an array of objects")
+    return entries
 
 
 def matches_glob(path_str: str, patterns: List[str]) -> bool:
@@ -249,10 +232,20 @@ def run_verification(
         return 3, payload
 
     # Parse inputs
-    trace_entries = parse_trace_file(trace_path)
-    audit_entries = parse_audit_log(log_path)
-    allowed_files, max_iterations = parse_task_pack(task_pack_path)
-    expansions = parse_expansions_file(expansions_path)
+    try:
+        trace_entries = parse_trace_file(trace_path)
+        audit_entries = parse_audit_log(log_path)
+        allowed_files, max_iterations = parse_task_pack(task_pack_path)
+        if mode.lower() == "goal":
+            with open(task_pack_path, encoding="utf-8") as task_file:
+                limits = re.findall(r"(?im)^\s*MAX_ITERATIONS:\s*(\d+)\s*$", task_file.read())
+            if len(limits) != 1 or not 1 <= int(limits[0]) <= 10:
+                raise ValueError("Goal requires one explicit MAX_ITERATIONS in 1..10")
+        expansions = parse_expansions_file(expansions_path)
+    except (OSError, ValueError, UnicodeError):
+        payload["exit_code"] = 3
+        payload["reason"] = "SCHEMA_OR_PARSE_FAILURE"
+        return 3, payload
     payload["expansion_count"] = len(expansions)
 
     # Validate Schema structures
@@ -423,7 +416,10 @@ def main():
         help="Autonomy mode: goal, plan, build",
     )
     parser.add_argument("--next-iteration", type=int, default=1, help="Next iteration index k")
-    parser.add_argument("--schemas", default=DEFAULT_SCHEMAS_PATH, help="Path to schemas.md (default: bundled skill schemas)")
+    parser.add_argument(
+        "--schemas", default=DEFAULT_SCHEMAS_PATH,
+        help="Path to schemas.md (default: bundled skill schemas)",
+    )
     parser.add_argument("--expansions", default="docs/delivery/expansions.json", help="Path to expansions.json")
     parser.add_argument("--runtime-event-reason", default=None, help="Runtime event reason string")
     parser.add_argument("--json", action="store_true", help="Output JSON payload")

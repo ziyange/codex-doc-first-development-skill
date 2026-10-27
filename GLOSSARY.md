@@ -5,7 +5,7 @@ Shared vocabulary for the doc-first development skills. Skills and scripts use t
 ## Language
 
 **Task Pack**:
-A bounded unit of agent work (`TASK-###.md`) declaring objective, allowed files, contracts, test requirements, and acceptance criteria. The only artifact that authorizes code changes.
+A bounded unit of agent work (`TASK-###.md`) declaring objective, allowed files, contracts, test requirements, and acceptance criteria. Records execution scope for Standard/Strict work and selected runtime protocols; structural validation does not grant user authorization. Other Quick work can reuse an existing task/doc or brief.
 *Avoid*: ticket, work item, spec (a spec lives in `docs/`; a Task Pack references it).
 
 **Allowed Files**:

@@ -1,6 +1,7 @@
 # Review Gates
 
 Use these gates to decide whether work can move from planning to docs, docs to implementation, implementation to acceptance, and acceptance to merge/archive.
+Apply [Adaptive Workflow](adaptive-workflow.md) first: select stages by risk, retain selected runtime protocols, and review only changed applicable surfaces. Existing user authorization is reused; structural checks do not create authorization.
 
 ## Contents
 
@@ -28,10 +29,10 @@ Use standard mode when any are true:
 
 Use strict mode when any are true:
 
-- New project or architecture change.
+- Major architecture change or material production risk; a new project alone does not force Strict.
 - Security, permissions, payment, data migration, deployment, or public API risk.
-- Multi-agent or parallel development.
-- CI/PR/release process matters.
+- Public contract changes.
+- Parallel work or CI/PR activity alone does not force Strict; evaluate its security, data, and production impact.
 - Failure has high user or business impact.
 
 ## Information Sufficiency & Feasibility Gate
@@ -55,7 +56,7 @@ Score or inspect these dimensions before building docs in strict mode:
 | Business loop | Main workflows have a complete start, action, outcome, and failure path |
 | Functional boundaries | MVP and later work are separated |
 | Architecture feasibility | Modules, contracts, and dependencies are implementable |
-| **Modular Independence & DRY** | Common data requests and external API calls are abstracted into a single reusable service/client module; backend provides dynamic field projection; no duplicate request logic across components |
+| **Modular Independence & DRY** | Reuse modules for shared requests; use projection only for demonstrated requirements; no duplicated request logic |
 | Data and state | Data objects and state changes are explicit when relevant |
 | Security and permissions | Sensitive flows and access rules are addressed |
 | Interface/integration | API, UI, CLI, or integration contracts are defined |
@@ -69,14 +70,14 @@ Do not proceed when a blocking issue affects architecture, data, security, or ac
 
 ## Pre-Dev Product UI/UX & API Alignment Gate (Mandatory Before Coding)
 
-Apply this gate in S6-S8 prior to generating Phase Plans and coding:
+Apply to changed graphical UI surfaces in S6-S8 before dependent implementation. Reuse approved designs; non-UI tasks skip visual artifacts and verify their own contracts. Local-only UI records events/state/outcomes rather than API bindings.
 
 | Check Item | Pass Criterion | Required Action if Failed |
 |---|---|---|
 | **Product Prototype & Flow** | Wireframes and screen navigation paths are confirmed by user. | Re-align with user on page hierarchy and user flow. |
 | **Screen UI Layouts** | Component breakdown, form controls, and responsive layouts are defined for all core screens. | Draft UI layouts in `docs/ux.md` and confirm with user. |
 | **UI-to-API Binding Table** | Every UI trigger / component is mapped to its centralized API module, parameters, projected response fields, and UI feedback states. | Complete the UI-API binding matrix in `docs/ux.md`. |
-| **Multimodal UI Preview** | If image generation tools (`generate_image`) are available, high-fidelity UI mockup images are generated and embedded in `docs/ux.md`. | Proactively invoke `generate_image` or fallback to structured ASCII wireframes. |
+| **Multimodal UI Preview** | Unresolved visual decisions have suitable mockups/wireframes; approved designs are reused. | Generate only the affected visual proposal using available tools. |
 | **Full Documentation** | All agreed UI layouts, bindings, and states are fully recorded in project docs (`docs/ux.md`, `docs/architecture.md`). | Write specs into `docs/` before proceeding to S9. |
 
 ## Docs Review
@@ -85,7 +86,7 @@ Docs can support implementation when:
 
 - `docs/README.md` points to active requirements, phase, tasks, verification, and archive.
 - Current requirements have `REQ-*` IDs.
-- UI/UX mockups, prototypes, and Component-to-API binding matrices are fully documented in `docs/ux.md`.
+- Affected graphical UI designs/states and applicable API bindings are documented in the owning UX doc; local UI uses events/state/outcomes.
 - Acceptance criteria are testable.
 - The phase plan names tasks and dependencies (prioritizing shared infrastructure and reusable modules).
 - Each Task Pack has allowed and forbidden files and explicit Must-Read contract anchors.
@@ -154,7 +155,7 @@ Label every result as planned, locally executed, isolated, or externally execute
 
 ## Runtime Trace Verification & Exit Code Protocol (0–6)
 
-All runtime executions are verified via `scripts/verify_runtime_trace.py`. The main agent evaluates output using the following Exit Code Table and **Exhaustive 8-Row Dispatch Lookup Table**:
+Strict work and explicitly selected runtime protocols are verified via `scripts/verify_runtime_trace.py`. Other Quick/Standard work uses proportional checks under the adaptive policy. The main agent evaluates runtime output using the following Exit Code Table and **Exhaustive 8-Row Dispatch Lookup Table**:
 
 ### Exit Code Table (0–6)
 | Exit Code | Identifier | Validation Rule | Main-Agent SKILL.md Action |

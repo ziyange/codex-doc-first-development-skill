@@ -33,6 +33,9 @@ class TestVerifyRuntimeTrace(unittest.TestCase):
         self.log_path = str(self.temp_path / "permission-audit.log")
         self.task_pack_path = str(self.temp_path / "TASK-001.md")
         self.expansions_path = str(self.temp_path / "expansions.json")
+        # A clean initialized audit state is explicit; missing inputs must fail.
+        Path(self.trace_path).write_text("[]", encoding="utf-8")
+        Path(self.log_path).write_text("[]", encoding="utf-8")
 
         # Create valid Task Pack
         with open(self.task_pack_path, "w", encoding="utf-8") as f:
@@ -50,6 +53,36 @@ MAX_ITERATIONS: 5
 
     def tearDown(self):
         self.temp_dir.cleanup()
+
+    def test_missing_or_corrupted_required_inputs_fail_closed(self):
+        for target in (self.trace_path, self.log_path, self.task_pack_path):
+            for content in (None, "not valid input", "[null]"):
+                with self.subTest(target=target, content=content):
+                    Path(self.trace_path).write_text("[]", encoding="utf-8")
+                    Path(self.log_path).write_text("[]", encoding="utf-8")
+                    Path(self.task_pack_path).write_text("# TASK-001\nMAX_ITERATIONS: 5\n", encoding="utf-8")
+                    if content is None:
+                        Path(target).unlink()
+                    else:
+                        Path(target).write_text(content, encoding="utf-8")
+                    code, payload = self._verify()
+                    self.assertEqual(code, 3)
+                    self.assertEqual(payload["reason"], "SCHEMA_OR_PARSE_FAILURE")
+
+    def test_goal_requires_valid_explicit_iteration_limit(self):
+        Path(self.trace_path).write_text("[]", encoding="utf-8")
+        Path(self.log_path).write_text("[]", encoding="utf-8")
+        for limit in ("", "abc", "0", "11", "-1", "2.5"):
+            with self.subTest(limit=limit):
+                Path(self.task_pack_path).write_text(f"# TASK-001\nMAX_ITERATIONS: {limit}\n", encoding="utf-8")
+                code, _ = self._verify()
+                self.assertEqual(code, 3)
+
+    def test_corrupted_existing_expansions_fail_closed(self):
+        Path(self.trace_path).write_text("[]", encoding="utf-8")
+        Path(self.log_path).write_text("[]", encoding="utf-8")
+        Path(self.expansions_path).write_text("not json", encoding="utf-8")
+        self.assertEqual(self._verify()[0], 3)
 
     def _verify(self, task_pack=None, schemas=None, mode="goal", iteration=1, event=None):
         """Run verification with the standard fixture paths."""

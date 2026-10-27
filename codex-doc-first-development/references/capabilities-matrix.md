@@ -14,7 +14,7 @@ This document provides an explicit mapping between the **S0-S22 engineering life
 |:---:|---|---|:---:|---|
 | **S0** | Startup & Authorization | **Skill** / **Knowledge** | `SKILL.md` (S0 Section) | `references/templates.md` (Permission Plan) |
 | **S1** | Raw Idea & CoT Intake | **Skill** / **Knowledge** | `references/pain-points.md` (agent-side S(C) scoring) | `SKILL.md` (Core Rule 2: Pain-Point Card Matching) |
-| **S2** | Repository Scan | **Tool** | `scripts/scaffold_docs.py --auto-detect` | `references/methodology.md` (S2) |
+| **S2** | Repository Scan | **Tool** | When initialization is needed: `python <skill-root>/scripts/scaffold_docs.py --root <project-root> --auto-detect --dry-run` | `references/methodology.md` (S2) |
 | **S3** | Formal Solution Draft (DRY Architecture) | **Knowledge** | `references/templates.md` (Formal Solution) | `references/methodology.md` (S3 DRY & Unified Client) |
 | **S4** | Independent Solution Review | **Knowledge** | `references/review-gates.md` | `references/templates.md` (Review Rubric) |
 | **S5** | Solution Finalization | **Knowledge** | `references/methodology.md` (S5) | `docs/product.md` |

@@ -6,7 +6,6 @@ Internal helper module imported by verify_runtime_trace.py to verify
 permission-audit.log Merkle chain integrity and status consistency.
 """
 
-import os
 import sys
 import json
 import hashlib
@@ -91,9 +90,6 @@ def parse_audit_log(file_path: str) -> List[Dict]:
     """
     Parses permission-audit.log (JSON lines or JSON array format).
     """
-    if not os.path.exists(file_path):
-        return []
-
     entries = []
     with open(file_path, "r", encoding="utf-8") as f:
         content = f.read().strip()
@@ -102,19 +98,15 @@ def parse_audit_log(file_path: str) -> List[Dict]:
         
         # Try JSON array first
         if content.startswith("["):
-            try:
-                entries = json.loads(content)
-            except json.JSONDecodeError:
-                pass
+            entries = json.loads(content)
         else:
             # Try JSON Lines
             for line in content.splitlines():
                 line = line.strip()
                 if line and not line.startswith("#"):
-                    try:
-                        entries.append(json.loads(line))
-                    except json.JSONDecodeError:
-                        pass
+                    entries.append(json.loads(line))
+    if not isinstance(entries, list) or any(not isinstance(entry, dict) for entry in entries):
+        raise ValueError("audit records must be JSON objects")
     return entries
 
 
@@ -125,7 +117,11 @@ def main():
         sys.exit(3)
         
     log_path = sys.argv[1]
-    entries = parse_audit_log(log_path)
+    try:
+        entries = parse_audit_log(log_path)
+    except (OSError, ValueError, UnicodeError) as exc:
+        print(f"[SCHEMA_OR_PARSE_FAILURE] Cannot read audit log: {exc}")
+        sys.exit(3)
     is_valid, err, idx = verify_merkle_chain(entries)
     
     if not is_valid:

@@ -5,7 +5,7 @@ description: Use when creating, reviewing, or validating a Task Pack (TASK-###.m
 
 # Task Pack Gate
 
-A Task Pack (`TASK-###.md`) is the only artifact that authorizes code changes. This skill is the reusable discipline behind S9-S10 of the doc-first lifecycle: it makes a Task Pack executable before a single line of code is written.
+A Task Pack (`TASK-###.md`) records bounded execution scope; user authorization is separate. This skill checks structural readiness for Standard/Strict work and selected runtime protocols. Quick work can reuse an existing record or brief when no selected protocol requires a Task Pack.
 
 ## Readiness checklist
 
@@ -16,17 +16,18 @@ A Task Pack passes the gate only when all of the following hold:
 - Requirement IDs contain at least one `REQ-###` reference.
 - Every required section (except Context Pack) contains concrete values - no blanks, `...`, `TODO`, `TBD`, or angle-bracket placeholders. "N/A" is allowed with a task-specific reason.
 - `Allowed Files` lists explicit subdirectories or file patterns (`src/auth/*.ts`, `src/export.py`). Broad wildcards (`*`, `**`, `.`, `src/*`) are rejected.
-- `MAX_ITERATIONS` is an integer between 1 and 10.
+- When present, `MAX_ITERATIONS` is an integer between 1 and 10; missing legacy values produce warnings. Goal execution separately requires an explicit valid limit.
 
 ## CLI validation
 
 ```bash
-python scripts/check_task_pack.py docs/delivery/tasks/TASK-001.md --json
+python <skill-root>/scripts/check_task_pack.py <project-root>/docs/delivery/tasks/TASK-001.md --json
 ```
 
-- Exit 0: `status: "passed"` - the pack is executable.
+- Exit 0: `status: "passed"` - structural checks passed; verify authorization, dependencies, and applicable runtime gates before execution.
 - Exit 1: `status: "failed"` - the `issues` array lists every structural blocker.
 - Exit 2: the file could not be read (missing or unreadable path).
+Here `<skill-root>` is this companion's installation directory; select the active Task Pack rather than assuming TASK-001. If blocked, report the failed check, affected work, and smallest repair. Preserve existing exit codes and JSON fields.
 
 The JSON payload also carries a non-blocking `warnings` array (exit code unchanged): legacy v1.x packs missing `MAX_ITERATIONS`, and tautological test patterns (`assert True`, `assertTrue(True)`, commented-out assertions, empty `pass` test bodies) detected inside the Test Requirements section. Warnings are advisory: the main agent resolves them during the S14 test-quality review rather than at this gate.
 

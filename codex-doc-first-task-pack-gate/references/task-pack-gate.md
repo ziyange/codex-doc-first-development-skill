@@ -2,6 +2,10 @@
 
 Distilled from the Task Pack Gate and Test Quality & DRY Reusability Gate in the doc-first lifecycle. Use with the main `codex-doc-first-development` orchestrator; this file is the detail behind its S9-S10 delegation steps.
 
+Use a Task Pack for Standard/Strict work and selected runtime protocols. Other
+Quick work can reuse a task/doc or brief. Structural readiness is separate from
+user authorization, dependency readiness, tests, and runtime acceptance.
+
 ## Required sections (16)
 
 Status, Requirement IDs, Objective, Context Pack, Must Read, Allowed Files, Forbidden Files, Interfaces / Contracts, Data Constraints, UI Constraints, Implementation Requirements, Test Requirements, Acceptance Criteria, Done Definition, Risks, Output Required.
@@ -15,7 +19,7 @@ Status, Requirement IDs, Objective, Context Pack, Must Read, Allowed Files, Forb
 | Requirement IDs | at least one `REQ-\d{3,}` in the Requirement IDs section |
 | Placeholders | no `<...>`, `...`, `TODO`, `TBD` in required sections; Context Pack exempt |
 | Allowed Files | no broad wildcards: `*`, `**`, `.`, `*.*`, `./*`, `**/*`, or `<dir>/*` shapes |
-| MAX_ITERATIONS | integer, 1 <= N <= 10 |
+| MAX_ITERATIONS | when numeric value present, 1 <= N <= 10; missing legacy values warn; Goal execution requires an explicit valid limit |
 
 ## What the CLI surfaces (non-blocking `warnings`)
 

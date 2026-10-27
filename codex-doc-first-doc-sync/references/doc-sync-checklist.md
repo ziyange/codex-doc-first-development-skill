@@ -24,7 +24,7 @@ Update docs in the same step as (or before) the code change when any of these ch
 - UI-to-API interaction bindings or state transitions
 - requirement scope or non-goals
 
-Strict-class changes (architecture, data, security, milestone, multiple tasks) require pausing affected work and confirming with the user before proceeding.
+Strict-class changes require appropriate risk checks and doc sync. Reuse existing authorization; pause dependent work only for unresolved scope, authority, or design decisions. A behavior-preserving internal refactor needs no doc edit when documented facts remain unchanged.
 
 ## S20 writeback list
 
@@ -42,6 +42,8 @@ At phase end, write back (targeted patches, not rewrites):
 ## Docs Review gate (S7)
 
 Docs are ready when:
+
+Apply this checklist to existing affected docs. Quick work can reuse a task/doc or brief; no empty docs tree is required. UI bullets apply only to changed graphical UI, and API bindings only to API-backed UI.
 
 - `docs/README.md` points to active requirements, phase, tasks, verification, and archive
 - current requirements carry `REQ-*` IDs

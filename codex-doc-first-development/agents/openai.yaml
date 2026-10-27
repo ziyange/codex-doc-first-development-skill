@@ -1,5 +1,5 @@
 interface:
   display_name: "Codex Doc-First Development"
-  short_description: "Reflect on ideas, auto-init, and run doc-first development"
-  default_prompt: "Use $codex-doc-first-development to reflect on raw ideas, verify feasibility, auto-init AGENTS.md when ready, and run development with Task Packs and verification."
+  short_description: "Adapt doc-first development to task risk and context"
+  default_prompt: "Use $codex-doc-first-development to inspect this task, reuse existing docs and authorization, and execute applicable stages with proportional verification."
 

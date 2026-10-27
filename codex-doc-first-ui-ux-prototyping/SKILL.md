@@ -1,21 +1,21 @@
 ---
 name: codex-doc-first-ui-ux-prototyping
-description: Use when aligning product UI/UX with the user before coding: screen layouts, component-to-API binding tables, interaction states, and high-fidelity mockups via image generation tools. This is the mandatory pre-dev alignment gate (S6) of the doc-first lifecycle.
+description: Use when a graphical UI change needs design alignment before coding: changed layouts, interactions, states, and relevant API bindings. Reuse confirmed designs; exclude backend, CLI, and script changes without graphical UI impact.
 ---
 
 # Pre-Dev UI/UX Alignment Gate
 
-After requirements and API architecture are drafted and **before any code is written**, the product's UI must be aligned with the user and fully documented. This skill is the reusable discipline behind S6 of the doc-first lifecycle.
+For graphical UI changes, align changed layouts, interactions, and states **before implementing those changes**. Reuse confirmed designs and review only affected surfaces. Backend, CLI, and script tasks without graphical UI impact skip this gate and verify their own contracts instead.
 
 ## The five alignment items
 
-Before generating Phase Plans and Task Packs, confirm with the user:
+Before implementing unconfirmed graphical UI changes, resolve the applicable items; existing approvals count:
 
 1. **Product Prototype & Navigation Flow**: overall wireframe and user journey - which screens exist and how the user moves between them.
 2. **Screen UI Layout & Views**: for each core screen, the layout, component breakdown, and visual hierarchy.
-3. **Component-to-API Binding Matrix**: an explicit table mapping each UI component to its unified API module - request parameters, projected response fields (`fields`), and the UI feedback state.
+3. **Bindings**: for API-backed UI, map affected components to existing service calls, inputs, outputs, and feedback states. Local-only UI records events, state, and outcomes; no API module or field projection is required.
 4. **Interaction States**: loading spinners, empty states, error banners, optimistic updates - defined per view.
-5. **Multimodal Mockups**: if the environment provides image generation (`generate_image` or multimodal generation), proactively generate high-fidelity mockups for core screens, save them as artifacts, and embed them with `![Screen Name UI Mockup](path/to/image.png)` in `docs/ux.md`. If no image tool exists, fall back to structured ASCII wireframes and Mermaid UI flow diagrams.
+5. **Mockups**: when visual decisions need alignment, use available image generation and embed the result in the owning UX doc, or use wireframes/flow diagrams. Reuse approved mockups rather than generating images for unrelated changes.
 
 ## Binding matrix columns
 
@@ -26,15 +26,15 @@ Each row of the Component-to-API binding table (kept in `docs/ux.md`):
 | Component | the view component emitting the interaction |
 | API module | the centralized client/service function (never a raw fetch at the call site) |
 | Parameters | request inputs |
-| Projected fields | the `fields` projection the view consumes |
+| Response fields | consumed response data; projection only when justified by actual requirements |
 | Feedback states | loading / empty / error / success rendering |
 
 ## Documentation requirement
 
-All agreed prototypes, layouts, bindings, and states are recorded in `docs/ux.md` (and architecture impacts in `docs/architecture.md`) **before** S9. The gate passes when: docs entry exists, requirements trace to `REQ-*` IDs, wireframes/layouts/bindings are fully documented, and every project fact is findable from docs.
+Record changed layouts, bindings, and states in the existing owning UX document (normally `docs/ux.md`) before implementation. Record architecture impacts only when they change. The gate passes when affected decisions are resolved and traceable; unchanged approved screens do not need renewed confirmation.
 
 ## Gate failure handling
 
-If any item is unconfirmed, re-align with the user on that item and draft the missing piece in `docs/ux.md` - do not proceed to phase planning or coding with an open UI question.
+If an applicable decision is unresolved, draft it in the owning UX doc and ask only about that decision. Pause dependent UI implementation; independent authorized work can continue.
 
 For the full gate table, `docs/ux.md` structure, and image-generation rules, see `references/ux-alignment-gate.md`.

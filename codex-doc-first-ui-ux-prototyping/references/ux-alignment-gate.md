@@ -2,14 +2,18 @@
 
 Distilled from S6 (Docs Source-of-Truth Creation and Pre-Dev UX Alignment) and the Pre-Dev Product UI/UX & API Alignment Gate. Use with the main `codex-doc-first-development` orchestrator; this file is the detail behind its S6 delegation step.
 
+Apply only to changed graphical UI surfaces. Reuse approved designs and existing
+UX docs; non-UI changes skip visual artifacts and validate their own contracts.
+Local-only UI records events, state, and outcomes instead of API bindings.
+
 ## Gate table
 
 | Check item | Pass criterion | Action if failed |
 |---|---|---|
-| Product prototype & flow | Wireframes and screen navigation paths confirmed by the user | Re-align on page hierarchy and user flow |
-| Screen UI layouts | Component breakdown, form controls, responsive layouts defined for all core screens | Draft layouts in `docs/ux.md` and confirm |
-| UI-to-API binding table | Every UI trigger/component mapped to its centralized API module, parameters, projected fields, feedback states | Complete the binding matrix in `docs/ux.md` |
-| Multimodal UI preview | If `generate_image` (or multimodal generation) is available, high-fidelity mockups embedded in `docs/ux.md` | Invoke `generate_image`, or fall back to ASCII wireframes + Mermaid flows |
+| Product prototype & flow | Affected flow decisions resolved; existing approvals count | Ask only about unresolved changed flow |
+| Screen UI layouts | Changed components and layouts defined | Draft affected layouts in owning UX doc |
+| UI-to-API binding table | Affected API bindings and feedback states mapped when API-backed | Record service calls/inputs/outputs; local UI uses events/state/outcomes |
+| Multimodal UI preview | Unresolved visual decisions have a suitable proposal | Use available image tools or wireframes; reuse approved mockups |
 | Full documentation | All agreed layouts, bindings, states recorded in `docs/ux.md` and `docs/architecture.md` | Write specs into `docs/` before S9 |
 
 ## `docs/ux.md` structure
@@ -22,11 +26,11 @@ Distilled from S6 (Docs Source-of-Truth Creation and Pre-Dev UX Alignment) and t
 
 ## Image generation rules
 
-- Generate mockups for **core screens first**; secondary screens may follow after user confirmation.
+- Generate mockups for unresolved visual decisions on affected core screens; reuse approved mockups for unchanged designs.
 - Save images under a stable artifacts path and reference them relatively from `docs/ux.md` so the docs stay portable.
 - Mockups are alignment aids, not final design specs: once the user confirms, the binding matrix and layouts in `docs/ux.md` are the contract that S13 implements against.
 - No image tool available: structured ASCII wireframes plus Mermaid UI flow diagrams are the accepted fallback.
 
 ## Handoff to planning
 
-When the gate passes, S9 phase planning may begin. Task Packs generated afterwards reference the confirmed `docs/ux.md` sections through their Must Read anchors; any later UI change routes through the doc-sync discipline (S18) instead of silent divergence.
+When applicable decisions are resolved, dependent UI implementation may begin. Reference the owning UX doc anchors from the applicable task record. Later UI changes route through doc sync; pause only work dependent on unresolved decisions.

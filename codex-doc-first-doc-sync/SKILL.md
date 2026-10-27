@@ -24,7 +24,7 @@ Code must never run ahead of documentation. If implementation reveals a new fact
 | Class | Trigger | Required doc action |
 |---|---|---|
 | Micro | Typo, comment, internal rename with no contract change | None |
-| Standard | Behavior-preserving refactor inside documented contracts | Update affected doc sections in the same step |
+| Standard | Behavior-preserving refactor inside documented contracts | Update only changed documented facts; no doc edit if facts remain unchanged |
 | Strict | Architecture, API contract, UI layout, or requirement change | Update docs **before** code; acceptance gate (S16) blocks divergence |
 
 ## Writeback checklist (S20)
@@ -41,12 +41,13 @@ At phase end, sync final facts back:
 Run the checker over the docs tree before finalizing:
 
 ```bash
-python scripts/check_docs_links.py docs --json
+python <skill-root>/scripts/check_docs_links.py <project-root>/docs --json
 ```
 
 Exit 0 means all relative links and heading anchors resolve. Anchors follow GitHub (GFM) rules: lowercase, punctuation dropped, **underscores kept**, each space becomes one hyphen (consecutive spaces stay consecutive hyphens). The checker enforces exactly these rules - if it passes locally, GitHub renders the same anchors.
 
 Exit 2 means the path itself was unreadable; exit 1 lists every broken link with file, line, and target.
+Here `<skill-root>` is this companion's installation directory. Check the affected tree or existing record; Quick work does not require creating `docs/`. Report the failed check, affected work, and smallest repair; a link check does not verify code contracts or tests.
 
 ## Manual fallback
 

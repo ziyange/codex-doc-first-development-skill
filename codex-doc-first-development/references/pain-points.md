@@ -1,6 +1,6 @@
 # Domain Pain-Point Cards Repository
 
-This document contains 6 core domain pain-point cards. During `CoT Intake Reflection`, agents match user inputs against these cards using rule-based feature counting to proactively diagnose deep engineering risks.
+This document contains 6 core domain pain-point cards. When domain-specific inspection is relevant, match user inputs using rule-based feature counting; communicate material findings and decisions concisely.
 
 ## Contents
 
@@ -20,7 +20,7 @@ This document contains 6 core domain pain-point cards. During `CoT Intake Reflec
 - **Thresholds**:
   - $S(C) \ge 0.8$: High confidence match. Trigger targeted inspection checklist.
   - $0.5 \le S(C) < 0.8$: Mid confidence. Require `user_confirmed: true` in Task Pack.
-  - $S(C) < 0.5$: Low/No match. Fall back to standard passive CoT intake.
+  - $S(C) < 0.5$: Low/No match. Continue ordinary repository intake without a domain checklist.
 - **Top-1 Exclusivity**: Only the highest scoring card with $S(C) \ge 0.5$ is activated. Lower scoring candidates are logged in `ignored_candidates`.
 
 ---

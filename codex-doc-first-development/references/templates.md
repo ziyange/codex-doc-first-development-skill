@@ -1,6 +1,7 @@
 # Templates
 
 Use these templates when the active task needs concrete docs or engineering artifacts. Keep empty sections out of final project docs unless they clarify expected future content.
+Apply [Adaptive Workflow](adaptive-workflow.md) first. These are optional initialization layouts; reuse existing records and paths. Quick normally uses an existing task/doc or one brief, not a new docs tree. Selected runtime protocols retain their full inputs.
 
 ## Contents
 
@@ -14,7 +15,7 @@ Use these templates when the active task needs concrete docs or engineering arti
 
 ## Directory Structures
 
-Quick mode:
+Quick initialization layout (only when explicitly requested):
 
 ```text
 AGENTS.md

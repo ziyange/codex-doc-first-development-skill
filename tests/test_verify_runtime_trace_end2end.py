@@ -17,6 +17,14 @@ FIXTURES_DIR = os.path.join(REPO_ROOT, "tests", "fixtures")
 
 
 class TestVerifyRuntimeTraceEnd2End(unittest.TestCase):
+    def test_missing_project_inputs_return_structured_exit_3(self):
+        with tempfile.TemporaryDirectory() as directory:
+            command = [sys.executable, VERIFY_SCRIPT, "--json"]
+            result = subprocess.run(command, cwd=directory, capture_output=True, text=True)
+            self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+            self.assertEqual(json.loads(result.stdout)["reason"], "SCHEMA_OR_PARSE_FAILURE")
+            self.assertNotIn("Traceback", result.stderr)
+
     def test_installed_cli_uses_bundled_schemas_from_project_directory(self):
         with tempfile.TemporaryDirectory() as directory:
             command = [sys.executable, VERIFY_SCRIPT,

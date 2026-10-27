@@ -1,6 +1,6 @@
 ---
 name: codex-doc-first-start
-description: Start a document-first development session: reflect on the raw idea, confirm scope and workflow mode, then run the full S0-S22 lifecycle.
+description: Start document-first development with a workflow matched to task risk and existing project context.
 disable-model-invocation: true
 ---
 
@@ -11,11 +11,11 @@ The human entry point into the doc-first development workflow. Only you can star
 ## What this does
 
 1. **Capture the idea**: paste the project idea, feature, bug, or refactoring goal.
-2. **Confirm the frame**: the agent reflects on the idea (missing facts, codebase conflicts, feasibility bottlenecks), then confirms with you:
+2. **Establish the frame**: the agent inspects existing docs/code and authorization, then briefly states:
    - workflow mode: Goal, Plan, or Build
    - risk tier: Quick, Standard, or Strict
    - authorization scope: file writes, branches, subagents, GitHub/PR/CI
-3. **Hand off to the lifecycle**: once the frame is confirmed, the agent runs the full S0-S22 document-first workflow.
+3. **Run applicable stages**: Quick reuses an existing task/doc or one brief record; Standard maintains affected docs and a Task Pack; Strict retains full applicable governance. Existing runtime protocols keep their required inputs. Ask only about material missing choices or authorization; skip visual UX gates for non-UI work.
 
 ## Usage
 
@@ -25,7 +25,7 @@ The human entry point into the doc-first development workflow. Only you can star
 Project idea:
 <<<paste your idea or requirement>>>
 
-Authorization:
+Optional constraints or additional authorization (existing authorization is reused):
 - File writes: yes/no
 - Git branches: yes/no
 - Subagents: yes/no
@@ -34,4 +34,4 @@ Authorization:
 
 ## Handoff
 
-After the frame is confirmed, this skill delegates to the orchestrator: **Call the Skill tool with "codex-doc-first-development"**. From there, the main workflow guide takes over (S0 handshake through S22 archive), delegating discipline steps to the companion skills (`codex-doc-first-doc-sync`, `codex-doc-first-task-pack-gate`, `codex-doc-first-ui-ux-prototyping`) as the lifecycle requires.
+After resolving material missing decisions, Call the Skill tool with "codex-doc-first-development". Follow its adaptive applicability policy and delegate only relevant discipline steps. The user can start with a natural-language task; the authorization template is optional and does not reset prior approvals.

@@ -1,6 +1,7 @@
 # Full Methodology
 
 Use this reference when the user wants a complete document-first engineering workflow, not just a quick plan.
+Read [Adaptive Workflow](adaptive-workflow.md) first. S0-S22 is a stage index: Quick uses intake/scope, implementation, relevant checks, and acceptance/writeback; Standard/Strict run applicable stages. Selected runtime protocols retain all required artifacts.
 
 ## Contents
 
@@ -92,7 +93,7 @@ Never execute by default:
 Turn natural language into structured product input through mandatory self-reflection. Ask only for information that changes direction or resolves feasibility bottlenecks; otherwise record reasonable assumptions.
 
 Mandatory Reflection & Feasibility Rules:
-- **Never produce final specs immediately**: Upon receiving raw ideas, the agent's first block output MUST be `## CoT Intake Reflection`, detailing Missing Facts, Codebase Conflicts, and Technical Feasibility Bottlenecks.
+- **Intake summary**: Inspect missing facts, repository conflicts, and feasibility. Briefly state tier, scope, and checks; ask only material unresolved questions, without a prescribed reflection transcript.
 - **Pain-Point Card Matching**: Match user input against 6 domain cards in `references/pain-points.md` using binary (0/1) feature hit score $S(C)$:
   $$S(C) = \frac{2.0 \times N_{\text{mandatory-hits}} + 1.0 \times N_{\text{pattern-hits}}}{2.0 \times N_{\text{mandatory-total}} + 1.0 \times N_{\text{pattern-total}}}$$
   Top-1 exclusivity applies for $S(C) \ge 0.5$.
@@ -112,7 +113,7 @@ Capture:
 - Delivery shape: site, app, API, CLI, library, plugin, automation.
 
 Auto-Init Trigger:
-Once sufficient information is gathered and feasibility is confirmed, automatically trigger project initialization (`python scripts/scaffold_docs.py --auto-detect`) to auto-populate `AGENTS.md` with detected stack commands (including Monorepo / sub-directory scan for Makefile, Dockerfile, pnpm-workspace, go.work, Cargo workspace, etc.) and create `docs/` source of truth.
+Reuse existing docs first. When initialization is needed, preview `python <skill-root>/scripts/scaffold_docs.py --root <project-root> --auto-detect --dry-run`, select the required mode, inspect planned files and detected commands, then rerun without `--dry-run`. Quick work normally reuses a record or brief and does not initialize a docs tree. The helper remains available when explicitly requested.
 
 Artifact: `docs/product.md`.
 
@@ -168,7 +169,7 @@ Include:
 - **Functional Modules & Single Responsibility**:
   - Independent module boundaries with clear encapsulation.
   - **Unified API / Service Layer**: All data requests and external communication must be routed through centralized reusable modules (e.g. `ApiClient` or `DataService`). Forbid duplicate API call implementations.
-  - **Backend Data Projection & Generic Filtering**: Backend endpoints must support dynamic field filtering (`fields=...` or projected query schemas) so one generic endpoint serves multiple consumer views without creating repetitive ad-hoc endpoints.
+  - **Backend Data Projection & Generic Filtering**: Use projection only when consumer/performance requirements justify it; preserve existing API contracts rather than inventing generic endpoints for template compliance.
 - Data objects and state transitions.
 - **Interface & UI Architecture**:
   - Component hierarchy and page layout specifications.
@@ -221,18 +222,18 @@ Incorporate valid review findings into the final plan. Do not output a compariso
 
 Use mode-specific structure:
 
-- Quick: minimum docs (`AGENTS.md`, `docs/README.md`, `docs/requirements.md`, `docs/delivery/TASK-001.md`).
-- Standard: AGENTS, docs index, product, requirements, architecture, ux, delivery, verification, archive.
-- Strict: standard plus decisions, locks, quality gates, and optional api/data-model/security/operations docs.
+- Quick: reuse an existing task/doc or one brief with goal, allowed files, acceptance, and verification. Selected runtime protocols still require their complete inputs.
+- Standard: reuse/update affected requirements and contracts, a Task Pack, verification evidence, and a phase plan for multiple tasks. UX/API docs only when applicable.
+- Strict: full applicable source-of-truth docs, phase plan, Task Packs, runtime audit and risk review; optional domain docs only when needed.
 
 ### Pre-Dev Product & UI/UX Interactive Alignment Gate (Mandatory before coding):
-Before generating Phase Plans and Task Packs, the agent MUST communicate with the user to align on product design:
+Apply only to graphical UI changes; reuse confirmed designs and review changed surfaces. Non-UI tasks verify CLI/backend/script contracts instead. Resolve applicable open design decisions before dependent implementation:
 1. **Product Prototype & Navigation Flow**: Overall wireframe and user journey.
 2. **Screen UI Layout & Views**: Specific layout for each screen, component breakdown, visual hierarchy.
-3. **Component-to-API Binding Matrix**: Explicit table linking each UI component to its unified API module, request parameters, projected response fields, and UI feedback states.
+3. **Bindings**: API-backed UI records affected service calls, inputs, consumed outputs, and feedback states. Local-only UI records events, state, and outcomes without invented API requirements.
 4. **Interaction States**: Loading spinners, empty states, error banners, optimistic UI updates.
 5. **Multimodal Image Generation (`generate_image`)**:
-   - If the agent environment supports image generation tools (`generate_image` or multimodal generation), the agent MUST generate high-fidelity UI visual mockups for core product screens.
+   - When visual decisions need alignment, use available image generation for affected core screens; reuse approved mockups for unchanged designs.
    - Save the generated images as project/artifact assets and embed them directly into `docs/ux.md` or `docs/product.md` using `![Screen Name UI Mockup](path/to/image.png)`.
    - If image generation tools are unavailable, fallback to structured ASCII wireframes and Mermaid UI flow diagrams.
 6. **Full Documentation into `docs/`**: All agreed prototypes, UI layouts, API bindings, and interaction states must be recorded in `docs/ux.md` and `docs/architecture.md`.
@@ -241,7 +242,7 @@ Gate:
 
 - Docs entry exists.
 - Current requirements are traceable with `REQ-*` IDs.
-- UX wireframes, UI layouts, and Component-API bindings are fully documented.
+- Changed graphical UI layouts, states, and applicable bindings are documented; non-UI tasks skip visual artifacts.
 - Current validation is explicit.
 - Codex can find all project facts from docs.
 
@@ -301,10 +302,10 @@ Each Task Pack must include:
 - Status.
 - Related `REQ-*` IDs.
 - Objective.
-- Must-read documents (must explicitly include `docs/architecture.md`, `docs/ux.md`, and relevant `docs/requirements.md#REQ-*`).
+- Must-read documents (existing affected requirement/contract anchors; include UX only for graphical UI changes).
 - Allowed files (must list explicit subdirectories or file patterns, e.g. `src/auth/*.ts`; broad wildcards such as `*`, `**`, `.` are strictly rejected).
 - Forbidden files.
-- Interface/data/UI constraints (must reference centralized service modules and documented UI mockups/bindings).
+- Interface/data/UI constraints (reference applicable contracts; task-specific not-applicable reasons for unused domains).
 - Implementation requirements (spec-driven, functional independence, DRY reusability).
 - Test requirements.
 - Acceptance criteria.
@@ -312,7 +313,7 @@ Each Task Pack must include:
 - Risks.
 - Required output.
 
-No worker may modify code without a Task Pack.
+Standard/Strict work and selected runtime protocols require a Task Pack. Quick work may use the brief defined in the adaptive policy. Neither a brief nor a structurally valid pack grants user authorization.
 
 ## S11 Execution Strategy Selection
 
@@ -353,7 +354,7 @@ Concurrency protocol:
 
 Implementation steps:
 
-1. Read Task Pack.
+1. Read the applicable Task Pack or Quick record.
 2. Read must-read docs (verify API contracts, data models, UI wireframes, and component bindings).
 3. Check allowed and forbidden files.
 4. Check git status.
@@ -370,7 +371,7 @@ Core Rules:
 - **Functional Independence & DRY Reusability (功能独立化 & 模块复用)**:
   - All data fetching and API communication must be encapsulated into a single reusable service/client module.
   - Consumers must import and call this module instead of writing duplicate fetch/axios/HTTP request logic in multiple places.
-  - Backend/service handlers must support generic querying and field filtering/projection (e.g. `fields` parameter) so multiple views consume the same endpoint cleanly.
+  - Add field filtering/projection only for demonstrated consumer or performance needs; preserve documented contracts.
 - Do not revert user changes.
 - Do not overwrite other agents.
 - Do not do unrelated refactors.
@@ -454,7 +455,7 @@ Whenever user suggestions, feedback, or implementation adaptations lead to chang
 
 The agent MUST **synchronously update the corresponding project documents (`docs/architecture.md`, `docs/api.md`, `docs/ux.md`, `docs/requirements.md`, `TASK-*.md`) in the exact same step or prior to changing code**. Code changes must never outpace or diverge from documentation.
 
-Strict changes require pausing affected work and asking the user to confirm.
+On risk escalation, update affected docs and checks. Pause dependent work only for unresolved scope, authority, or design decisions; reuse authorization already established for the same action and scope.
 
 ## S19 Phase Integration Acceptance
 

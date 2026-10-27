@@ -57,3 +57,58 @@ reproduced the two downstream command failures. The changeset requests a patch;
 release automation owns version bumps, so 2.3.0 metadata remains synchronized.
 Install all five directories together and compare their file hashes to the
 verified Git commit; keep a backup of the previous local installation.
+
+## Second Review: Adaptive Workflow
+
+Baseline: 2836d48. User-approved priorities: proportional task routing and reuse
+of existing docs or one brief for bounded low-risk work. No script moves, new
+public JSON fields, or exit-code changes are introduced.
+
+| Dimension | Previous / 20 | Revised / 20 | Evidence |
+|---|---:|---:|---|
+| Discovery and invocation | 17 | 19 | Shorter capability description, risk-based picker prompts, unchanged invocation policy |
+| Progressive disclosure | 17 | 18 | One applicability policy; main entrypoint remains below 150 lines |
+| Installation portability | 19 | 19 | Companion examples use owning skill paths; downstream command checks |
+| Executable verification | 19 | 20 | Missing/corrupt runtime inputs now fail closed; explicit Goal limits validated |
+| Maintenance consistency | 18 | 18 | Cross-reference and rule drift guards; existing release automation limitation remains |
+| Total | 90 / 100 | 94 / 100 | Reviewer judgment, not a measured task-success rate |
+
+An independent baseline pass reproduced conflicting instructions for Quick,
+non-UI tasks, repeated authorization, and structural Task Pack readiness. The
+forward review applied the revised skills to ten scenarios; it found two remaining
+routing ambiguities and an inherited runtime fail-open defect. The author fixed
+these findings and ran the full suite; this is not a second independent review.
+
+| Scenario | Final intended outcome |
+|---|---|
+| Authorized README typo | Quick; reuse existing task/doc and relevant documentation check |
+| Small authorized bug without docs | Quick brief; targeted meaningful regression verification |
+| Pure CLI feature | Standard CLI contracts/Task Pack; no visual prototype |
+| Backend public API change | Strict contracts and runtime audit; no graphical UX gate |
+| Approved GUI label adjustment | Quick; reuse existing approval/mockup, update changed fact |
+| Local-only graphical UI | Standard events/state/outcomes; no invented API |
+| Single-file permission migration | Strict by impact, permission/migration tests and audit |
+| Already authorized commit/push | Reuse scope-specific authorization; verify destination/checks |
+| Structurally passed Task Pack, no authority | No implementation; resolve missing authorization |
+| Explicit Goal, small task | Quick risk plus complete Goal protocol inputs and valid iteration limit |
+
+Rulings and evidence:
+
+- Work stayed in the supplied checkout on a dedicated branch rather than creating
+  a second worktree. The checkout was clean; this preserves the user's workspace
+  location, but branch isolation does not provide a separate filesystem.
+- The runtime repair is included because independent execution returned SUCCESS
+  for missing required inputs, contradicting the preserved fail-close guarantee.
+  Tests failed before the fix. Missing/corrupt records now return existing Exit 3;
+  initialized empty logs/traces and absent optional expansions remain supported.
+- Explicit Quick scaffolder output stays compatible. The agent avoids invoking
+  it unnecessarily; the helper is still available on request.
+- Automated documentation tests check routing discoverability and known conflicting
+  instructions, not agent understanding. The independent scenario review supplies
+  behavioral evidence; no latency, token-cost, or user-satisfaction gain is claimed.
+- Local Ruff and the full unittest suite pass. Repository links, valid Task Pack,
+  and fixture runtime checks pass. Remote three-platform CI is checked after push.
+- The baseline Release workflow failed because changesets/action expected a
+  package.json in a deliberately non-npm repository. Repairing release automation
+  is deferred; the pending patch and minor changesets are retained. No release
+  version bump or successful automatic release is claimed.
