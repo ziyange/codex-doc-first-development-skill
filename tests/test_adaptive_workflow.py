@@ -31,13 +31,12 @@ class AdaptiveWorkflowTests(unittest.TestCase):
                 for instruction in obsolete:
                     self.assertNotIn(instruction, text, str(source))
 
-    def test_companion_cli_examples_use_owning_skill_path(self):
-        for skill_name, script in [("codex-doc-first-doc-sync", "check_docs_links.py"),
-                                   ("codex-doc-first-task-pack-gate", "check_task_pack.py")]:
-            text = (ROOT / skill_name / "SKILL.md").read_text(encoding="utf-8")
+    def test_bundled_cli_examples_use_main_skill_path(self):
+        for reference, script in [("doc-sync.md", "check_docs_links.py"), ("task-pack.md", "check_task_pack.py")]:
+            text = (MAIN / "references" / reference).read_text(encoding="utf-8")
             match = re.search(r"python (<skill-root>/scripts/" + re.escape(script) + r")", text)
-            self.assertIsNotNone(match, skill_name)
-            command = ROOT / skill_name / "scripts" / script
+            self.assertIsNotNone(match, reference)
+            command = MAIN / "scripts" / script
             result = subprocess.run([sys.executable, str(command), "--help"],
                                     cwd=ROOT.parent, capture_output=True, text=True)
             self.assertEqual(result.returncode, 0, result.stderr)

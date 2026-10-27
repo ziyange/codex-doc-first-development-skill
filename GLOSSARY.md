@@ -47,7 +47,7 @@ The binary-feature-hit confidence score for pain-point card matching: `(2.0 x ma
 The path form recorded in audit/trace entries: forward slashes, leading `./` stripped, case preserved. Platform-independent by design so hashes verify identically on every OS.
 
 **Doc sync**:
-The mandatory write-back of architecture, API, UI, or requirements changes into `docs/` in the same step as (or before) the code change. Owned by the `codex-doc-first-doc-sync` skill.
+The mandatory write-back of architecture, API, UI, or requirements changes into `docs/` in the same step as (or before) the code change. Owned by the `codex-doc-first-development` skill.
 
 ## Relationships
 

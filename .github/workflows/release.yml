@@ -35,7 +35,7 @@ jobs:
         python -m pip install -r requirements.txt
         python .github/scripts/release_version.py --apply --json
         python -m unittest discover -s tests -v
-        python codex-doc-first-doc-sync/scripts/check_docs_links.py . --json
+        python codex-doc-first-development/scripts/check_docs_links.py . --json
 
     - name: Open or update version PR
       id: version-pr

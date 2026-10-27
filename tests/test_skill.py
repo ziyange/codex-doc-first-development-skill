@@ -11,11 +11,9 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_ROOT = REPO_ROOT / "codex-doc-first-development"
-TASK_PACK_GATE_ROOT = REPO_ROOT / "codex-doc-first-task-pack-gate"
-DOC_SYNC_ROOT = REPO_ROOT / "codex-doc-first-doc-sync"
 
-# Every installable skill in this repository (main orchestrator + companions).
-SKILL_ROOTS = sorted(REPO_ROOT.glob("codex-doc-first-*"))
+# Only directories containing a skill entrypoint are installable units.
+SKILL_ROOTS = sorted(path for path in REPO_ROOT.glob("codex-doc-first-*") if (path / "SKILL.md").is_file())
 
 
 def load_module(name: str, skill_root: Path, relative: str):
@@ -39,7 +37,7 @@ def fenced_template(markdown: str, heading: str) -> str:
     return match.group(1).strip()
 
 
-checker = load_module("check_task_pack", TASK_PACK_GATE_ROOT, "scripts/check_task_pack.py")
+checker = load_module("check_task_pack", SKILL_ROOT, "scripts/check_task_pack.py")
 scaffolder = load_module("scaffold_docs", SKILL_ROOT, "scripts/scaffold_docs.py")
 
 
@@ -118,7 +116,7 @@ class TaskPackTests(unittest.TestCase):
         result = subprocess.run(
             [
                 sys.executable,
-                str(TASK_PACK_GATE_ROOT / "scripts/check_task_pack.py"),
+                str(SKILL_ROOT / "scripts/check_task_pack.py"),
                 "missing-task-pack.md",
             ],
             cwd=REPO_ROOT,
@@ -158,7 +156,7 @@ class TaskPackTests(unittest.TestCase):
             result = subprocess.run(
                 [
                     sys.executable,
-                    str(TASK_PACK_GATE_ROOT / "scripts/check_task_pack.py"),
+                    str(SKILL_ROOT / "scripts/check_task_pack.py"),
                     str(path),
                     "--json",
                 ],
@@ -296,7 +294,7 @@ class PackageTests(unittest.TestCase):
     }
 
     def test_skill_metadata_and_references(self) -> None:
-        self.assertGreaterEqual(len(SKILL_ROOTS), 5)
+        self.assertEqual(SKILL_ROOTS, [SKILL_ROOT])
         for skill_root in SKILL_ROOTS:
             skill = (skill_root / "SKILL.md").read_text(encoding="utf-8")
             self.assertLessEqual(len(skill.splitlines()), 150, skill_root.name)

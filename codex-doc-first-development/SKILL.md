@@ -8,6 +8,7 @@ description: Use when running document-first software development, planning boun
 ## Operating Model
 
 Treat this skill as the main engineering workflow guide within higher-priority platform, user, and repository instructions. Use it to convert vague intent into durable project facts, then into bounded tasks, then into verified code changes.
+Install only this directory. Start with `$codex-doc-first-development` plus a task, or let the agent select it when appropriate. Intake, doc sync, Task Pack checks, and UI guidance are bundled here.
 Read `references/adaptive-workflow.md` first: select applicable stages and artifacts by risk, reuse existing authorization/docs, and apply UI gates only to graphical UI changes. S0-S22 is the lifecycle index, not a required artifact list for every task.
 
 Keep three layers separate; never let execution facts replace product or engineering facts. If implementation reveals a new fact, write it back to the correct document:
@@ -34,7 +35,7 @@ Keep three layers separate; never let execution facts replace product or enginee
    - **DRY Gate**: Reject code changes that implement identical or near-identical request logic in multiple places.
 
 4. **Pre-Dev Interactive UI/UX Design Gate & Image Generation (开发前产品UI/交互深度沟通与生图联动)**:
-   - For graphical UI changes, align on changed layouts and states before implementation; reuse approved designs. Call the Skill tool with "codex-doc-first-ui-ux-prototyping".
+   - For graphical UI changes, read `references/ui-ux-prototyping.md`, align changed layouts/states before implementation, and reuse approved designs.
    - Record changed layouts/bindings/states in the owning docs; use mockups when visual decisions need alignment. Non-UI tasks skip this gate; local UI records events/state without invented APIs.
 
 5. **Strict Spec-Driven Targeted Development (严格按文档专项开发)**:
@@ -53,8 +54,6 @@ Keep three layers separate; never let execution facts replace product or enginee
    - Computes SHA256 chain: `intent_hash_n = SHA256(prev_hash_n + ":" + action_type_n + ":" + normalized_path_n + ":" + tx_id_n)`.
    - Enforces `docs/delivery/.log.lock` single-writer file mutex locking using `lock_manager.py` with PID & timestamp stale lock cleanup.
 
----
-
 ## Exit Code Protocol (0–6) & Exhaustive Main-Agent Dispatch Table
 
 Main agent handles non-Exit-0 CLI outputs by strictly looking up the `(exit_code, runtime_event_reason)` tuple:
@@ -70,8 +69,6 @@ Main agent handles non-Exit-0 CLI outputs by strictly looking up the `(exit_code
 | `4` | `null` | AuditLog contains uncommitted transaction | **Fallback Dictionary Parse**: Parse `reason_details`: `UNCOMMITTED_PENDING` retry action or abort; `COMMITTED_RESULT_MISSING` write Result trace ONLY, DO NOT retry action; `RESULT_WITHOUT_INTENT` discard the orphan Result and reconcile the audit log. |
 | `5` | `null` | Merkle chain broken, hash mismatch, or trace tampered | **Security Alert (Short-circuit)**: Halt immediately, alert audit log corruption. |
 | `6` | `null` | `PENDING+Present` or `ABORTED+Present` contradiction | **Data Audit (Short-circuit)**: Halt immediately, request manual audit intervention. |
-
----
 
 ## Workflow Modes & Risk Levels
 
@@ -91,11 +88,11 @@ Main agent handles non-Exit-0 CLI outputs by strictly looking up the `(exit_code
 4. **S3 Formal Solution Draft**: Create architecture, data model, and interface specs with independent module & DRY design.
 5. **S4 Solution Review**: Verify against `references/review-gates.md`.
 6. **S5 Solution Finalization**: Update `docs/product.md` and `docs/architecture.md`.
-7. **S6 Docs Source-of-Truth & Applicable UX Alignment**: Reuse/update applicable docs. For graphical UI changes, Call the Skill tool with "codex-doc-first-ui-ux-prototyping"; non-UI work skips visual artifacts.
-8. **S7 Docs Review**: For the link/anchor sweep, Call the Skill tool with "codex-doc-first-doc-sync" (it runs `check_docs_links.py`). If the companion skill is not installed, run the inline checklist in `references/review-gates.md`.
+7. **S6 Docs Source-of-Truth & Applicable UX Alignment**: Reuse/update applicable docs; for graphical UI changes read `references/ui-ux-prototyping.md`. Non-UI work skips visual artifacts.
+8. **S7 Docs Review**: Read `references/doc-sync.md`; run `python <skill-root>/scripts/check_docs_links.py <project-root>/docs --json` over the affected tree.
 9. **S8 Docs Finalization & Baseline Lock**: Lock initial documentation including UI layouts and API bindings.
 10. **S9 Phase Plan Breakdown**: Create `docs/delivery/phase-001.md` prioritizing shared modules.
-11. **S10 Task Pack Generation**: Create `docs/delivery/tasks/TASK-001.md` with explicit contract references; for the readiness gate, Call the Skill tool with "codex-doc-first-task-pack-gate" (it runs `check_task_pack.py`). If the companion skill is not installed, run the inline checklist in `references/review-gates.md`.
+11. **S10 Task Pack Generation**: Read `references/task-pack.md`; create the applicable scoped Task Pack and run `python <skill-root>/scripts/check_task_pack.py <active-task-pack> --json`.
 12. **S11 Strategy Selection**: Select Goal, Plan, or Build mode.
 13. **S12 Branch & Concurrency Setup**: Create feature branch and locks.
 14. **S13 Spec-Driven Implementation**: Follow authorized contracts and scope; maintain audit/trace inputs when the selected protocol requires them.
@@ -117,21 +114,24 @@ Main agent handles non-Exit-0 CLI outputs by strictly looking up the `(exit_code
 - `scripts/check_permission_log.py`: Internal module for static Merkle chain verification.
 - `scripts/scaffold_docs.py`: Scaffolds mode-specific documentation directory skeletons.
 
-Two discipline-specific checkers live in companion skills (see Companion Skills & Delegation): `check_task_pack.py` in `codex-doc-first-task-pack-gate`, `check_docs_links.py` in `codex-doc-first-doc-sync`.
+- `scripts/check_task_pack.py`: Checks Task Pack structure and emits advisory warnings; does not grant execution authority.
+- `scripts/check_docs_links.py`: Checks Markdown relative links and GFM heading anchors.
+- `scripts/lock_manager.py`: Coordinates single-writer audit access.
 
 ---
 
-## Companion Skills & Delegation
+## Bundled Guidance
 
-This orchestrator stays installable and useful on its own; companion skills add depth and install independently. Delegate with the Skill tool, one skill per call:
+Load the relevant internal reference as needed; no other skill installation or Skill-tool handoff is required:
 
-| Step | Skill | Covers |
+| Step | Reference | Covers |
 |---|---|---|
-| S6 | `codex-doc-first-ui-ux-prototyping` | prototypes, layouts, component-to-API bindings, states, mockups |
-| S7 / S18 / S20 | `codex-doc-first-doc-sync` | link/anchor validation, doc sync, writeback |
-| S10 | `codex-doc-first-task-pack-gate` | Task Pack readiness gate |
+| S0 / S1 | `references/session-start.md` | one entry point, intake, scope, existing authorization |
+| S6 | `references/ui-ux-prototyping.md` | applicable layouts, bindings, states, mockups |
+| S7 / S18 / S20 | `references/doc-sync.md` | link/anchor validation, doc sync, writeback |
+| S10 | `references/task-pack.md` | Task Pack structural readiness gate |
 
-If a companion skill is not installed, fall back to the inline checklist in `references/review-gates.md` and record the fallback in the Task Pack.
+If a bundled script cannot run, report the missing dependency or damaged installation; do not claim its executable gate passed from a manual checklist.
 
 ---
 

@@ -1,5 +1,9 @@
 # Skill Architecture Review
 
+This file records historical reviews in order. The current distribution is the
+single `codex-doc-first-development` directory; earlier five-skill assessments
+below describe superseded layouts, not current installation instructions.
+
 Review date: 2026-10-27. Baseline: 9217c63, version 2.3.0.
 
 ## Assessment and Plan
@@ -126,3 +130,36 @@ Historical red runs remain attached to their original commits. Current CI and th
 generated version branch must be assessed separately by commit SHA. The user
 explicitly authorized enabling the combined Actions create/approve-PR repository
 setting; workflows create version PRs only, and default permissions stay read-only.
+
+## Single-Skill Distribution Follow-Up
+
+Observed user failure: README still described a five-skill suite and optional
+installations, while users wanted one complete skill. An isolated copy of the
+main directory could not run the link and Task Pack checkers because their source
+files were owned by sibling directories. New copied-bundle tests reproduced this
+before the migration.
+
+All startup, doc-sync, Task Pack, and UI guidance now lives in internal references;
+both checkers move into the main scripts directory. The four independent entrypoints
+and their metadata are removed rather than retained as required compatibility skills.
+README and the Chinese guide now show one installation, one invocation, actual
+module ownership, and explicit old-installation migration. The main entrypoint
+stays within 150 lines and keeps normal automatic discovery.
+
+This is a distribution correction, not a new measured quality score. Moving CLI
+paths is explicitly a major changeset; exit codes and payload formats remain
+unchanged. The pending version PR aggregates earlier changes and this migration
+into 3.0.0. The release helper still owns version labels; an unmerged version PR
+does not change the released-version label on main.
+
+Verification includes copying only the main directory to a temporary installation
+and executing all three real gates against a separate project, single-owner script
+checks, prohibition of sibling/self-invocation dependencies, full unittest, Ruff,
+repository links, and the remote CI/release workflows.
+
+An independent migration review found an installed-path defect in the updated
+documentation inspection card. The command was reproduced failing from a downstream
+project; a regression now runs that exact card with isolated paths containing spaces.
+Bundled card commands now resolve helpers from the installation and artifacts from
+the project. The independent reviewer found no other Important or Critical issue;
+the author verified this correction through the regression and full suite.

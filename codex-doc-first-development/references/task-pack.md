@@ -1,11 +1,6 @@
----
-name: codex-doc-first-task-pack-gate
-description: Use when creating, reviewing, or validating a Task Pack (TASK-###.md) before agent code execution: required sections, explicit Allowed Files granularity, MAX_ITERATIONS bounds, contract anchors, tautological-test rejection, and placeholder detection.
----
-
 # Task Pack Gate
 
-A Task Pack (`TASK-###.md`) records bounded execution scope; user authorization is separate. This skill checks structural readiness for Standard/Strict work and selected runtime protocols. Quick work can reuse an existing record or brief when no selected protocol requires a Task Pack.
+A Task Pack (`TASK-###.md`) records bounded execution scope; user authorization is separate. This guidance checks structural readiness for Standard/Strict work and selected runtime protocols. Quick work can reuse an existing record or brief when no selected protocol requires a Task Pack.
 
 ## Readiness checklist
 
@@ -27,7 +22,7 @@ python <skill-root>/scripts/check_task_pack.py <project-root>/docs/delivery/task
 - Exit 0: `status: "passed"` - structural checks passed; verify authorization, dependencies, and applicable runtime gates before execution.
 - Exit 1: `status: "failed"` - the `issues` array lists every structural blocker.
 - Exit 2: the file could not be read (missing or unreadable path).
-Here `<skill-root>` is this companion's installation directory; select the active Task Pack rather than assuming TASK-001. If blocked, report the failed check, affected work, and smallest repair. Preserve existing exit codes and JSON fields.
+Here `<skill-root>` is the main skill installation directory; select the active Task Pack rather than assuming TASK-001. If blocked, report the failed check, affected work, and smallest repair. Preserve existing exit codes and JSON fields.
 
 The JSON payload also carries a non-blocking `warnings` array (exit code unchanged): legacy v1.x packs missing `MAX_ITERATIONS`, and tautological test patterns (`assert True`, `assertTrue(True)`, commented-out assertions, empty `pass` test bodies) detected inside the Test Requirements section. Warnings are advisory: the main agent resolves them during the S14 test-quality review rather than at this gate.
 
@@ -37,6 +32,6 @@ Tests must assert behavior through public interfaces, cover acceptance criteria,
 
 ## Manual fallback
 
-If this skill's script is unavailable (not installed), check the pack against the readiness checklist above by hand and record the review in the pack's Status section.
+If the bundled script cannot run, report the dependency or installation problem. A manual readiness review can inform repairs, but record it separately from the executable gate and do not claim the gate passed.
 
 For the full gate reference (16 required sections, blocking vs warning rules, and the S14 test-quality anti-pattern list), see `references/task-pack-gate.md`.

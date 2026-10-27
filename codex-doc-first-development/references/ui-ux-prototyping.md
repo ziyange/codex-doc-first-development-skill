@@ -1,8 +1,3 @@
----
-name: codex-doc-first-ui-ux-prototyping
-description: Use when a graphical UI change needs design alignment before coding: changed layouts, interactions, states, and relevant API bindings. Reuse confirmed designs; exclude backend, CLI, and script changes without graphical UI impact.
----
-
 # Pre-Dev UI/UX Alignment Gate
 
 For graphical UI changes, align changed layouts, interactions, and states **before implementing those changes**. Reuse confirmed designs and review only affected surfaces. Backend, CLI, and script tasks without graphical UI impact skip this gate and verify their own contracts instead.

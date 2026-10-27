@@ -1,11 +1,6 @@
----
-name: codex-doc-first-doc-sync
-description: Use when code, architecture, API contracts, UI layouts, or requirements change and docs/ must be updated in the same step; also for phase documentation writeback, Markdown link and anchor validation, and doc-code drift audits before acceptance or merge.
----
-
 # Doc-First Doc Sync
 
-Documentation is the single source of truth. This skill is the reusable discipline behind S7 (Docs Review), S18 (Change Classification & Synchronous Doc Sync), and S20 (Knowledge & Doc Writeback) of the doc-first lifecycle. Consult it whenever a change touches facts that documents own.
+Documentation is the single source of truth. This guidance is the reusable discipline behind S7 (Docs Review), S18 (Change Classification & Synchronous Doc Sync), and S20 (Knowledge & Doc Writeback) of the doc-first lifecycle. Consult it whenever a change touches facts that documents own.
 
 ## The sync rule
 
@@ -47,10 +42,10 @@ python <skill-root>/scripts/check_docs_links.py <project-root>/docs --json
 Exit 0 means all relative links and heading anchors resolve. Anchors follow GitHub (GFM) rules: lowercase, punctuation dropped, **underscores kept**, each space becomes one hyphen (consecutive spaces stay consecutive hyphens). The checker enforces exactly these rules - if it passes locally, GitHub renders the same anchors.
 
 Exit 2 means the path itself was unreadable; exit 1 lists every broken link with file, line, and target.
-Here `<skill-root>` is this companion's installation directory. Check the affected tree or existing record; Quick work does not require creating `docs/`. Report the failed check, affected work, and smallest repair; a link check does not verify code contracts or tests.
+Here `<skill-root>` is the main skill installation directory. Check the affected tree or existing record; Quick work does not require creating `docs/`. Report the failed check, affected work, and smallest repair; a link check does not verify code contracts or tests.
 
 ## Manual fallback
 
-If this skill's script is unavailable (not installed), validate manually: every `[text](path.md#anchor)` link must point at an existing file, and the anchor must match the target heading after lowercasing, dropping punctuation (keeping `_`), and replacing each space with `-`.
+If the bundled script cannot run, report the dependency or installation problem. Manual inspection can identify links to repair, but cannot be reported as an executed gate: every `[text](path.md#anchor)` must resolve and follow the documented GFM rules.
 
 For the full distilled checklist (ownership map, S18 triggers, S20 writeback list, Docs Review gate), see `references/doc-sync-checklist.md`.

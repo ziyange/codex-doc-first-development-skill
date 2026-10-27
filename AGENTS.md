@@ -11,13 +11,10 @@ Instructions for coding agents working **in this repository** (the skills distri
 ├── codex-doc-first-development/      # Main orchestrator skill (installable unit)
 │   ├── SKILL.md                      # Entry point: governance rules, S0-S22 workflow, script index
 │   ├── agents/openai.yaml            # Codex UI metadata
-│   ├── references/                   # 9 methodology docs + schemas/ (5 standalone JSON, the authority)
+│   ├── references/                   # Methodology + internal modules + schemas/ (JSON authority)
 │   └── scripts/                      # Hard gates: verify_runtime_trace, check_permission_log,
-│                                     #   lock_manager, scaffold_docs
-├── codex-doc-first-doc-sync/         # Companion skill: doc sync discipline + check_docs_links.py
-├── codex-doc-first-task-pack-gate/   # Companion skill: Task Pack gate + check_task_pack.py
-├── codex-doc-first-ui-ux-prototyping/# Companion skill: pre-dev UI/UX alignment gate (no scripts)
-├── codex-doc-first-start/            # Companion skill: user-invoked human entry point
+│                                     #   lock_manager, scaffold_docs, check_docs_links,
+│                                     #   check_task_pack
 ├── tests/                            # unittest suite (no pytest); fixtures/ drive the CLI end-to-end
 ├── docs/user-guide.md                # Chinese user manual
 ├── .agents/invocation.md             # Invocation model (user-invoked vs model-invoked)
@@ -28,7 +25,7 @@ Instructions for coding agents working **in this repository** (the skills distri
 └── CHANGELOG.md                      # Keep a Changelog history
 ```
 
-The repo root (README, tests, CI, docs) is the development shell. Each `codex-doc-first-*/` directory is a self-contained installable skill copied as a whole to the agent's skills directory.
+The repo root (README, tests, CI, docs) is the development shell. `codex-doc-first-development/` is the only installable skill; copy it as a whole to the agent's skills directory. Startup, doc sync, Task Pack, and UI guidance are internal references, not separate installations.
 
 ## Commands
 
@@ -37,8 +34,8 @@ The repo root (README, tests, CI, docs) is the development shell. Each `codex-do
 python -m unittest discover -s tests -v
 
 # Docs self-check (dogfooding: the repo's own gates must stay green)
-python codex-doc-first-doc-sync/scripts/check_docs_links.py . --json
-python codex-doc-first-task-pack-gate/scripts/check_task_pack.py tests/fixtures/valid_task_pack.md --json
+python codex-doc-first-development/scripts/check_docs_links.py . --json
+python codex-doc-first-development/scripts/check_task_pack.py tests/fixtures/valid_task_pack.md --json
 
 # End-to-end hard gate on fixtures
 python codex-doc-first-development/scripts/verify_runtime_trace.py \
@@ -63,7 +60,7 @@ Requires Python >= 3.9 and `jsonschema` (see `requirements.txt`).
 2. **Keep `SKILL.md` lean** (<= 150 lines). It is the progressive-disclosure entry point; details live in the skill's own `references/` or sibling files.
 3. **`short_description`**: 25-64 characters, verb phrase, no trailing period.
 4. **References with a Contents section**: any reference doc longer than ~100 lines gets a Contents list with GFM-correct anchors (underscores kept, `&` dropped without collapsing spaces). `tests/test_doc_sync.py` enforces the slug rules; CI runs the link checker on the repo.
-5. **Scripts belong to exactly one skill.** Shared gates live in the orchestrator; a discipline-specific checker moves with its companion skill. Never keep two copies of a script.
+5. **Scripts belong to exactly one skill.** All six runtime helpers live in the main skill's `scripts/`. Internal modules reuse these helpers; never keep two copies of a script.
 6. **Schema authority**: `references/schemas/*.json` in the owning skill is the machine-readable source of truth; `references/schemas.md` is the degradation fallback and must deep-match the JSON (enforced by `tests/test_schemas_parity.py`).
 7. **Tests are mandatory** for behavior changes. New gates need fixture-driven cases; doc claims need parity/anchor tests. The suite must stay green on all three OSes in CI.
 8. **Cross-skill references** use `Call the Skill tool with "<name>"`, never deep relative links and never bare `/name` mentions in operative instructions.

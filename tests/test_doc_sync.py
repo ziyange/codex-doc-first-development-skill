@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
 Unit tests for check_docs_links.py slug generation and GFM anchor semantics,
-plus end-to-end link checking (moved from test_skill.py when the checker
-moved into the codex-doc-first-doc-sync companion skill).
+plus end-to-end checks of the main skill's bundled link checker.
 
 GitHub-flavored Markdown anchors (github-slugger):
 - lowercase
@@ -19,7 +18,7 @@ import unittest
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SCRIPTS_DIR = REPO_ROOT / "codex-doc-first-doc-sync" / "scripts"
+SCRIPTS_DIR = REPO_ROOT / "codex-doc-first-development" / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
 import check_docs_links

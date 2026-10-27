@@ -1,4 +1,0 @@
-interface:
-  display_name: "Doc-First Doc Sync"
-  short_description: "Sync docs with code and validate links"
-  default_prompt: "Use $codex-doc-first-doc-sync to synchronize docs/ with the current architecture, API, UI, or requirements change, and validate Markdown links and anchors."

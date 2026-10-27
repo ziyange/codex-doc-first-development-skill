@@ -9,7 +9,7 @@ from pathlib import Path
 import sys
 
 # Add scripts directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "codex-doc-first-task-pack-gate" / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "codex-doc-first-development" / "scripts"))
 
 from check_task_pack import check_task_pack, collect_warnings, detect_dummy_test_patterns
 

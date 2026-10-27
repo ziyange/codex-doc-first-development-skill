@@ -1,12 +1,6 @@
----
-name: codex-doc-first-start
-description: Start document-first development with a workflow matched to task risk and existing project context.
-disable-model-invocation: true
----
-
 # Doc-First Start
 
-The human entry point into the doc-first development workflow. Only you can start it; the agent cannot invoke it on its own.
+Start through the single main skill, explicitly or through normal automatic selection. This reference provides intake guidance; it is not a separate installable entry point.
 
 ## What this does
 
@@ -20,7 +14,7 @@ The human entry point into the doc-first development workflow. Only you can star
 ## Usage
 
 ```text
-/codex-doc-first-start
+$codex-doc-first-development
 
 Project idea:
 <<<paste your idea or requirement>>>
@@ -32,6 +26,6 @@ Optional constraints or additional authorization (existing authorization is reus
 - GitHub/PR/CI: yes/no
 ```
 
-## Handoff
+## Continue the Workflow
 
-After resolving material missing decisions, Call the Skill tool with "codex-doc-first-development". Follow its adaptive applicability policy and delegate only relevant discipline steps. The user can start with a natural-language task; the authorization template is optional and does not reset prior approvals.
+After resolving material missing decisions, continue the main skill's applicable stages and read its internal references as needed. Do not invoke the skill recursively. The user can start with a natural-language task; the authorization template is optional and does not reset prior approvals.

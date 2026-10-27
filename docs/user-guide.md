@@ -1,317 +1,127 @@
-# Codex Doc-First Development Skill 用户使用手册
+# Codex 文档优先开发 Skill 使用指南
 
-文档状态：与当前仓库实现同步
-Skill 名称：`codex-doc-first-development`
+## 1. 安装和调用
 
-## 1. 定位
+当前只有一个安装单元：`codex-doc-first-development/`。它包含启动、需求梳理、文档同步、Task Pack、UI/UX 对齐和验证脚本，内部参考文档不需要单独安装。
 
-这个 Skill 是一套工程化的 Codex 文档优先软件开发工作流。它不是简单提示词，而是一个可复用的 Codex Skill 包，用于把原始想法或已有项目变更，转换成可执行、可验证、可归档的软件工程流程。
-
-它覆盖：
-
-1. 从 0 捕获项目想法并进行强制反思质疑与可行性评估。
-2. 在信息澄清充分后，由 Agent 自动触发初始化（创建 AGENTS.md 与 docs 事实源）。
-3. 判断快速档、标准档、严格档。
-4. 生成产品、需求、架构、阶段计划、Task Pack。
-5. 规划 Codex 子智能体并行协作。
-6. 管理分支、文件所有权、锁协议和 Git 冲突。
-7. 执行 TDD、测试质量审查、本地验证、CI/PR 验收。
-8. 进行文档回写、合并准备和阶段归档。
-
-## 2. 当前仓库内容
-
-仓库当前包含 **5 个可独立安装的 Skill**：主控 `codex-doc-first-development/`，以及 4 个伴随技能 `codex-doc-first-doc-sync/`、`codex-doc-first-task-pack-gate/`、`codex-doc-first-ui-ux-prototyping/`、`codex-doc-first-start/`。只安装主控即可完整运行（伴随技能缺失时自动回退到 `references/review-gates.md` 内联清单）；安装伴随技能后，主控会把对应纪律步骤委托给它们（委托关系见 3.1 节）。
-
-本手册位于 `docs/user-guide.md`；`CHANGELOG.md` 位于仓库根目录。仓库不承诺预生成 `outputs/` 目录或 ZIP 包；如需打包，应以单个可安装 Skill 目录为输入自行生成。
-
-## 3. Skill 包结构
+向 Codex 发送：
 
 ```text
-codex-doc-first-development-skill/
-  README.md                          # 中文项目说明与流程图
-  CHANGELOG.md                       # 版本变更记录（仓库根目录）
-  AGENTS.md / CLAUDE.md              # 仓库级 Agent 指令（CLAUDE.md 为符号链接）
-  SCOPE.md                           # 贡献门槛
-  GLOSSARY.md                        # 共享术语表
-  pyproject.toml
-  requirements.txt
-  .agents/invocation.md              # 调用双轴规约
-  .changeset/config.json             # changesets 配置
-  .out-of-scope/README.md            # 已拒绝概念归档约定
-  .github/workflows/ci.yml           # CI
-  .github/workflows/release.yml      # 发布
-  docs/user-guide.md                 # 本手册
-  tests/                             # 76 项 unittest 与端到端用例
-  codex-doc-first-development/       # 主控 Skill（S0-S22 编排）
-    SKILL.md
-    agents/openai.yaml
-    references/
-      methodology.md
-      templates.md
-      prompts.md
-      review-gates.md
-      agent-git-ci.md
-      examples.md
-      capabilities-matrix.md
-      pain-points.md
-      schemas.md
-      schemas/
-        ExecutionTraceSchema.json
-        AuditLogSchema.json
-        ExpansionSchema.json
-        PainPointCardSchema.json
-        TaskPackSchema.json
-    scripts/
-      scaffold_docs.py
-      check_permission_log.py
-      verify_runtime_trace.py
-      lock_manager.py
-  codex-doc-first-doc-sync/          # 伴随 Skill：S7/S18/S20 文档同步纪律
-    SKILL.md
-    agents/openai.yaml
-    references/doc-sync-checklist.md
-    scripts/check_docs_links.py
-  codex-doc-first-task-pack-gate/    # 伴随 Skill：S9-S10 Task Pack 门禁
-    SKILL.md
-    agents/openai.yaml
-    references/task-pack-gate.md
-    scripts/check_task_pack.py
-  codex-doc-first-ui-ux-prototyping/ # 伴随 Skill：S6 UI/UX 对齐门禁（纯纪律）
-    SKILL.md
-    agents/openai.yaml
-    references/ux-alignment-gate.md
-  codex-doc-first-start/             # 伴随 Skill：人类入口（user-invoked）
-    SKILL.md
-    agents/openai.yaml
+安装 https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-development
 ```
 
-`SKILL.md` 是 Codex 触发后首先读取的核心工作流。
+手动安装时，将该目录完整复制到 `~/.codex/skills/` 或所配置的 `CODEX_HOME/skills/`。安装目录要保留 `SKILL.md`、`agents/`、`references/`、`scripts/`，不能只复制入口文件。
 
-`references/methodology.md` 是完整 S0-S22 生命周期。
+下一轮对话使用：
 
-`references/templates.md` 是文档、Task Pack、PR、归档模板。
+```text
+使用 $codex-doc-first-development，在现有项目中修复 CSV 导出错误。
+先阅读已有文档和相关测试，保持修改范围明确，完成后报告验证结果。
+```
 
-`references/prompts.md` 是主控、评审、worker、验收、变更控制提示词。
+不需要另一个启动命令，也不需要选择子 skill。主 skill 同时支持明确调用和自动选择；调用策略见[说明](../.agents/invocation.md)。
 
-`references/review-gates.md` 是评审、测试、验收、合并门禁。
+## 2. 新项目和已有项目
 
-`references/agent-git-ci.md` 是子智能体、分支、锁、CI、PR、冲突处理规范。
+新项目可以描述目标、用户、核心场景和限制：
 
-`references/examples.md` 是新项目、已有功能、Bug、重构、多 Agent 阶段示例。
+```text
+使用 $codex-doc-first-development，设计一个本地个人任务管理工具。
+先明确需求和验收标准，按照实际风险选择文档深度。
+```
 
-`references/capabilities-matrix.md` 是 S0-S22 各阶段与工具/知识/技能资产的映射表。
+已有项目可以直接给出问题、预期行为和允许修改的范围。智能体先检查仓库、当前文档、测试、Git 状态和已有授权，简要说明档位、范围与验证方法。它只询问会改变结果的缺失事实或尚未获得的权限。
 
-`references/pain-points.md` 是 6 大领域工程难点卡片库（S1 主控侧按 S(C) 置信度公式匹配）。
+确认过的设计、授权和契约直接复用。新增范围或未授权的外部操作仍需满足相应授权要求。
 
-`references/schemas.md` 与 `references/schemas/*.json` 是 JSON Schema 说明文档与机器可读权威源（脚本优先加载独立 JSON，Markdown 为降级路径）。
+## 3. 风险档位与执行协议
 
-`scripts/scaffold_docs.py` 可以生成项目 docs 脚手架。
-
-主控 `scripts/` 下的 4 个脚本（`scaffold_docs.py`、`check_permission_log.py`、`verify_runtime_trace.py`、`lock_manager.py`）均属主控技能。
-
-`codex-doc-first-task-pack-gate/scripts/check_task_pack.py`（Task Pack 门禁伴随技能）可以检查 Task Pack 完整性（结构性问题走阻断 `issues`，伪测试等启发式命中走非阻断 `warnings`）。
-
-`codex-doc-first-doc-sync/scripts/check_docs_links.py`（文档同步伴随技能）是 Markdown 相对链接与标题锚点静态校验器（slug 生成遵循 GitHub GFM 规则：保留下划线、标点删除后不折叠连续空格）。
-
-`scripts/check_permission_log.py` 是 Merkle 链静态校验内部模块（被 `verify_runtime_trace.py` 引用，也可独立调试）。
-
-`scripts/verify_runtime_trace.py` 是运行时硬门禁 CLI（Exit 0-6 + `--json` 输出）。
-
-`scripts/lock_manager.py` 是跨平台咨询锁管理器（持锁后才校验/覆写锁元数据，释放不删除锁文件）。
-
-仓库根目录的 `AGENTS.md`、`SCOPE.md`、`GLOSSARY.md`、`.agents/invocation.md`、`.changeset/`、`.out-of-scope/` 属于仓库级约定，不随 Skill 安装，详见第 2 节与 `README.md` 的「仓库规约」段。
-
-### 3.1 伴随技能（Companion Skills，可选安装）
-
-职责与委托关系如下表：
-
-| 技能 | 职责 | 独有脚本 |
+| 档位 | 判断依据 | 记录与验证 |
 |---|---|---|
-| `codex-doc-first-doc-sync` | S18/S20 双向文档同步与写回纪律、S7 文档评审 | `scripts/check_docs_links.py` |
-| `codex-doc-first-task-pack-gate` | S9-S10 Task Pack 就绪门禁 | `scripts/check_task_pack.py` |
-| `codex-doc-first-ui-ux-prototyping` | S6 开发前 UI/UX 对齐门禁 | 无（纯纪律） |
-| `codex-doc-first-start` | 人类入口：确认想法与模式后交接主控 | 无 |
+| Quick | 范围清晰、低风险，无架构或公共契约变化 | 复用任务/文档；缺少记录时一份简短记录即可 |
+| Standard | 一般功能、非轻量行为变化或跨模块工作，且不触发 Strict | 受影响需求/契约、Task Pack、验证证据，多任务时加阶段计划 |
+| Strict | 安全、权限、迁移、公共契约、重大架构或生产风险 | 完整适用文档和运行时审计，不因只改一个文件而降级 |
 
-伴随技能未安装时，主控自动回退到 `references/review-gates.md` 内联清单，功能不受影响。
+Quick 简短记录包含：目标、允许修改文件、验收标准、验证命令与预期结果；执行后补实际结果。不要只为小任务生成整套 docs。
 
-## 4. 推荐安装方式：把 GitHub 地址发给 Codex
+Goal/Plan/Build 是独立的执行协议。明确选择这些运行时协议后，仍需提供其要求的 Task Pack、审计输入、白名单/黑名单和迭代限制。Goal 必须有一条有效的 `MAX_ITERATIONS: N`，N 在 1–10 之间。
 
-正常安装不需要用户手动复制文件。你只需要把下面这段话发给 Codex：
+S0–S22 是生命周期索引，按适用阶段执行，不要求每个任务都生成完整阶段产物。
+
+## 4. 文档同步、Task Pack 与 UI
+
+三项能力都由主 skill 内部执行：
+
+- `references/doc-sync.md`：事实变化时同步更新所属文档；未改变文档事实的内部重构无需机械回写。
+- `references/task-pack.md`：检查任务范围、16 个必需标题、占位符和测试质量建议。结构通过不等于用户授权或测试通过。
+- `references/ui-ux-prototyping.md`：对图形界面变化检查受影响布局、交互和状态；复用已确认设计。没有图形界面变化时跳过原型，本地界面无需 API 绑定表。
+
+这些文件是主 skill 内部参考，不是需要安装的插件或独立 skill。
+
+## 5. 检查脚本
+
+以下命令在本仓库根目录执行，需要 Python >= 3.9 和 `jsonschema`：
+
+```bash
+python -m pip install -r requirements.txt
+python -m unittest discover -s tests -v
+python codex-doc-first-development/scripts/check_docs_links.py . --json
+python codex-doc-first-development/scripts/check_task_pack.py tests/fixtures/valid_task_pack.md --json
+python codex-doc-first-development/scripts/verify_runtime_trace.py --trace tests/fixtures/valid_trace.json --permission-log tests/fixtures/valid_audit.log --task-pack tests/fixtures/valid_task_pack.md --mode goal --json
+```
+
+下游项目使用安装目录定位脚本，使用项目路径定位工件。`<skill-root>`、`<project-root>` 和 `<active-task-pack>` 都要替换为实际路径，有空格时加引号：
 
 ```text
-使用 $skill-installer 安装这个 Codex Skill：
-https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc-first-development
+python <skill-root>/scripts/check_docs_links.py <project-root>/docs --json
+python <skill-root>/scripts/check_task_pack.py <active-task-pack> --json
+python <skill-root>/scripts/verify_runtime_trace.py --task-pack <active-task-pack> --mode goal --json
 ```
 
-Codex Agent 应使用 `skill-installer` 的 GitHub 安装脚本，把 skill 安装到 `$CODEX_HOME/skills`；如果未设置 `CODEX_HOME`，则安装到 `~/.codex/skills`。
+运行时命令在目标项目根目录执行；需要时显式提供 `--trace` 和 `--permission-log`。默认 Schema 随安装目录解析，不从目标项目寻找 skill 的 Schema。
 
-可选：逐个安装 4 个伴随技能（`codex-doc-first-doc-sync`、`codex-doc-first-task-pack-gate`、`codex-doc-first-ui-ux-prototyping`、`codex-doc-first-start`），主控会自动把对应纪律步骤委托给它们；未安装时回退到内联清单。
+| 检查 | 结果解释 |
+|---|---|
+| 链接检查 Exit 0 | 相对链接与 GFM 锚点有效，不证明代码契约一致 |
+| Task Pack Exit 0 | 结构检查通过，不授予执行权限；`warnings` 仍需审查 |
+| 运行时 Exit 0 | 提供的 Trace/AuditLog 与链检查通过，不证明所有外部操作已被记录 |
+| 运行时 Exit 3 | 必需输入缺失/损坏、Schema 或解析错误，应修复输入后重试 |
+| 运行时 Exit 1/2/4/5/6 | 迭代限制、范围、事务、链完整性或状态问题，按主入口分发表处理 |
 
-重启或刷新后即可使用：
+脚本无法运行时报告依赖或安装问题，不把手工清单检查说成可执行门禁通过。
+
+## 6. 按需初始化
+
+默认复用已有文档。确需创建文档骨架时先预览：
 
 ```text
-使用 $codex-doc-first-development，从这个项目想法开始，帮我进行反思质疑、自动初始化 docs 事实源、阶段计划、Task Pack 与验证门禁：
-<<<粘贴项目想法>>>
+python <skill-root>/scripts/scaffold_docs.py --root <project-root> --mode standard --auto-detect --dry-run
 ```
 
-## 5. 手动安装方式，仅作为 fallback
+检查计划创建的文件和识别的命令后，移除 `--dry-run` 执行。现有文件默认不会被覆盖；不要未经确认使用 `--overwrite` 覆盖用户文档。显式请求 Quick 脚手架时仍保留其原有输出，但小任务通常无需调用它。
 
-如果 Codex 无法联网安装，或你想从本地目录安装，可以手动复制 skill 目录：
+## 7. 从旧安装迁移
 
-```powershell
-Copy-Item `
-  -LiteralPath "<workspace>\codex-doc-first-development" `
-  -Destination "$env:USERPROFILE\.codex\skills\codex-doc-first-development" `
-  -Recurse `
-  -Force
-```
+旧布局包含主 skill 和四个伴随目录，现统一收回主 skill：
 
-手动复制后同样需要重启 Codex。
+| 旧目录 | 新位置 |
+|---|---|
+| `codex-doc-first-start` | 主入口与 `references/session-start.md` |
+| `codex-doc-first-doc-sync` | `references/doc-sync.md` 与 `scripts/check_docs_links.py` |
+| `codex-doc-first-task-pack-gate` | `references/task-pack.md` 与 `scripts/check_task_pack.py` |
+| `codex-doc-first-ui-ux-prototyping` | `references/ui-ux-prototyping.md` |
 
-## 6. 基础调用与自动初始化流程
+迁移步骤：
 
-从 0 开始：
+1. 备份旧安装，将当前主目录完整安装到原主 skill 位置。
+2. 将旧的四个伴随目录移出 skill 发现目录，防止旧描述继续自动触发；保留备份以便恢复。
+3. 将项目 CI、脚本及文档中的旧检查命令改到主 skill 的 `scripts/`，不保留两份实现。
+4. 下一轮对话只调用 `$codex-doc-first-development`。
 
-```text
-使用 $codex-doc-first-development，从 0 开始协助我完成这个软件项目。
+主 skill 的名称和现有脚本退出码、JSON 输出保持不变。检查脚本位置迁移是破坏性变更，已通过 major changeset 明确记录；正式版本由版本 PR 同步更新，不能仅凭主分支标题判断代码是否已更新。
 
-项目想法：
-<<<粘贴项目想法>>>
+## 8. 发布与问题定位
 
-授权：
-- 允许修改文件：是/否
-- 允许创建 Git 分支：是/否
-- 允许创建子智能体：是/否
-- 允许使用 GitHub/PR/CI：是/否
+README 描述当前主分支的安装方式，标题版本由发布流程同步。Changeset、版本 PR、标签发布及 Actions 权限详见[发布维护](releasing.md)。
 
-请先对我的想法进行反思质疑（分析缺失信息、代码库冲突与可行性瓶颈），在信息澄清充分后，自动触发初始化并生成 AGENTS.md 与 docs 结构。
-```
-
-## 6.1 需求反思、可行性排查与 Agent 自动初始化
-
-Agent 先检查仓库事实和已有授权，再按风险选择流程；已确定的事项不重复确认：
-
-1. **第 1 步：检查与简短说明**：
-   Agent 简要说明目标、风险等级、修改范围和验证方式，检查以下事项并只报告影响结果的发现：
-   - **Missing Facts（缺失事实）**：有哪些边界条件或业务规则未交代？
-   - **Codebase Conflicts（代码库冲突）**：与现有代码库框架、接口、模式是否存在冲突？
-   - **Feasibility Bottlenecks（技术可行性瓶颈）**：在当前约束下，项目目标是否具备技术可行性？
-2. **第 2 步：交互澄清与可行性确认**：
-   先从仓库查找答案，只询问会改变结果或补足授权的问题，复用已有批准。
-3. **第 3 步：按需初始化**：
-   优先复用现有文档；确需初始化时，先用 `python <skill-root>/scripts/scaffold_docs.py --root <project-root> --auto-detect --dry-run` 预览并检查，再移除 `--dry-run` 执行。Quick 默认不生成整套 docs；显式调用脚手架仍保留原有各模式输出。
-
-已有项目功能：
-
-```text
-使用 $codex-doc-first-development 为当前仓库规划并实现这个功能：
-<<<功能描述>>>
-
-请先扫描 README、docs、AGENTS.md、构建配置、测试、CI 和 git 状态，再输出流程档位、风险、Task Pack、测试策略和分支策略。
-```
-
-Bug 修复：
-
-```text
-使用 $codex-doc-first-development 修复这个 Bug：
-<<<Bug 描述、复现步骤、期望行为>>>
-
-请先补充或设计能复现问题的测试，再做最小修复，并用验收证据证明。
-```
-
-重构：
-
-```text
-使用 $codex-doc-first-development 重构这个模块：
-<<<模块和目标>>>
-
-要求不改变外部行为。请先生成 Task Pack、风险、回滚策略和 characterization tests。
-```
-
-## 7. 三种流程档位
-
-快速档：
-
-适用于范围清晰、无架构或公共契约变化的低风险任务。复用已有任务/文档；缺少记录时补一份目标、允许修改文件、验收标准与验证记录。权限、安全、迁移、公共契约变更按影响升级，不能因单文件而归入 Quick。
-
-标准档：
-
-适用于普通功能、局部跨模块修改、较重要 Bug。复用并更新受影响的需求/契约、Task Pack 与验证证据，多任务时再准备阶段计划。
-
-严格档：
-
-适用于安全、权限、支付、数据迁移、公共契约、重大架构或生产风险。保留完整适用文档、评审、运行时审计与有意义的测试；新项目按实际风险判断，CI/PR 和发布操作遵守已有授权。
-
-Quick/Standard/Strict 是风险与产物档位，Goal/Plan/Build 是执行协议，彼此独立。已选择 Goal 等运行时协议时，即使任务很小也保留 Task Pack、审计、白名单和迭代约束。检查器 Exit 0 仅表示结构检查通过，不能代表用户授权、依赖就绪或测试通过。报错时应说明失败检查、受影响工作和最小恢复动作。
-
-## 8. docs 脚手架生成与 Monorepo / 复合技术栈感知
-
-安装后或在 Skill 目录中，可以使用自动技术栈感知。探针已升级，支持递归扫描根目录及子目录中的 `Makefile` (`make test`), `Dockerfile` / `docker-compose.yml`, `pnpm-workspace.yaml` (`pnpm -r test`), `go.work`, `Cargo.toml` (workspace), `CMakeLists.txt` (`ctest`) 等：
-
-```powershell
-python scripts/scaffold_docs.py --root "C:\path\to\project" --mode standard --phase 001 --auto-detect
-```
-
-严格档：
-
-```powershell
-python scripts/scaffold_docs.py --root "C:\path\to\project" --mode strict --phase 001 --auto-detect
-```
-
-严格档默认只生成核心文档、锁登记和质量门禁。仅在确有相关事实时选择可选文档，并可先预览：
-
-```powershell
-python scripts/scaffold_docs.py --root "C:\path\to\project" --mode strict --phase 001 --include security --include api --dry-run
-```
-
-覆盖已有模板：
-
-```powershell
-python scripts/scaffold_docs.py --root "C:\path\to\project" --mode standard --phase 001 --overwrite
-```
-
-## 9. Task Pack 授权范围与防虚假测试门禁
-
-1. **Allowed Files 授权细粒度管控**：
-   Task Pack 中的 `Allowed Files` 严禁使用全盘通配符（如 `*`、`**`、`.`）。`codex-doc-first-task-pack-gate` 技能中的 `check_task_pack.py` 将会自动拦截过宽授权，强制要求 Agent 列出具体子目录或文件名规则（如 `src/auth/*.ts`）。
-2. **防虚假测试与断言质量审计（双通道）**：
-   - **阻断通道（issues）**：Task Pack 结构、占位符、`MAX_ITERATIONS` 越界等问题直接失败（退出码 1）。
-   - **提示通道（warnings）**：`check_task_pack.py` 将 Test Requirements 章节中的 `assert True`、`self.assertTrue(True)`、注释断言、空 `pass` 测试块及 v1.x 遗留格式（缺失 `MAX_ITERATIONS`）收敛为 `warnings`（`--json` 输出的 `warnings` 数组），**不改变退出码**，由主控 Agent 在 S14 测试质量评审中处置。
-   - S14 Test Quality Gate 本身仍严格拦截假测试反面模式（无断言空测试、纯 HTTP 200 无 payload 断言、过度 Mock 核心逻辑等），强制要求变动逻辑覆盖边缘情况与异常路径。
-
-## 10. 静态死链检查器与 CI/CD 结构化 Output 契约
-
-1. **文档相对链接与锚点静态检查器 (`codex-doc-first-doc-sync` 技能中的 `check_docs_links.py`)**：
-   用于自动化解析 Markdown 文档中的相对文件路径 (`[text](relative/path.md)`) 与标题锚点 (`#anchor-name` / `file.md#anchor-name`)，无需启动 HTTP 服务即可进行静态死链阻断。锚点 slug 生成遵循 GitHub GFM 规则（小写、删除标点、保留 `_`、空格逐一转 `-` 且不折叠连续空格），与 GitHub 实际渲染一致：
-   ```powershell
-   # 链接校验（在 codex-doc-first-doc-sync 技能目录下执行）
-   python scripts/check_docs_links.py "C:\path\to\project\docs"
-   ```
-
-2. **结构化 JSON Output 与 CI/CD 流水线无缝集成 (`--json`)**：
-   所有检查与脚手架工具脚本 (`check_task_pack.py` / `check_docs_links.py` / `scaffold_docs.py`) 均内置 `--json` 选项，可直接输出符合 JSON Schema 契约的机器可读 Payload，便于无缝集成至 GitHub Actions 或 GitLab CI 流水线。各脚本在其所属技能目录下执行：
-   ```powershell
-   # Task Pack 门禁（codex-doc-first-task-pack-gate 技能目录）
-   python scripts/check_task_pack.py "docs/delivery/tasks/TASK-001.md" --json
-   # 链接校验（codex-doc-first-doc-sync 技能目录）
-   python scripts/check_docs_links.py "docs" --json
-   # 文档脚手架（codex-doc-first-development 技能目录）
-   python scripts/scaffold_docs.py --root "." --mode standard --auto-detect --json
-   ```
-
-## 11. v2.2.0 功能独立化、UI原型生图与同步联动规范
-
-1. **功能独立化与 DRY 模块复用**：
-   - 所有的 API 请求与数据调用逻辑必须抽象封装为独立的客户端/服务层模块（如 `api/client.ts` 或 `services/data_service.py`）。
-   - 避免重复实现相同请求；字段投影仅在消费需求或性能要求明确时引入，不为满足模板新增接口或改变已有契约。
-
-2. **开发前产品 UI/UX 深度沟通 & 多模态生图联动**：
-   - 仅对图形界面变化，在相关实现前对齐改变的布局、交互和状态；复用已有设计与确认。无图形界面变化的后端、CLI、脚本任务跳过视觉门禁。本地界面记录事件、状态与结果，不要求 API 绑定表。
-   - 所有 UI 设计全量记录在 `docs/ux.md` 中。
-   - 有未解决的视觉决策时，使用可用生图工具或线框图提出方案并记录到所属 UX 文档；已批准的界面不重复生图。
-
-3. **严格按文档专项开发与同步联动**：
-   - 编码阶段必须 100% 严格执行 Must Read 文档和 Task Pack 中约定的接口契约与 UI 规范，禁止脱节开发。
-   - 当用户提出修改建议或技术调整涉及架构、接口、UI/交互变动时，必须同步在改代码前或同一步骤中更新 `docs/` 对应文件，确保代码与文档永远保持一致。
-
-运行时验证应在目标项目根目录执行：`python <skill-root>/scripts/verify_runtime_trace.py --task-pack <active-task-pack> --mode goal --json`。默认 Schema 随 skill 安装目录解析；显式 `--schemas` 仍可覆盖默认值，缺失时保持失败关闭。
+GitHub Actions 失败时先看提交 SHA：旧提交的失败记录会保留，不会被新提交的成功覆盖。报告问题时附上任务、实际命令、退出码、预期与实际结果。

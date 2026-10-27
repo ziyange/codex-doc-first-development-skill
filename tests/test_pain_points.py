@@ -58,14 +58,10 @@ class TestPainPointCards(unittest.TestCase):
             self.assertEqual(card["card_id"], card["category"])
 
     def test_inspection_cmd_is_runnable_or_skill_reference(self):
-        # Collect every script available across skill directories (the main
-        # skill plus companion skills, before and after the split).
-        available = set()
-        for scripts_dir in SKILL_ROOT.parent.glob("*/scripts"):
-            if scripts_dir.is_dir():
-                available.update(p.name for p in scripts_dir.glob("*.py"))
+        # A card must resolve using the one installed skill, without siblings.
+        available = {p.name for p in (SKILL_ROOT / "scripts").glob("*.py")}
 
-        # Companion skill directories that can be referenced by name.
+        # Explicit external references, if any, must resolve to known skill units.
         skill_dirs = {p.name for p in SKILL_ROOT.parent.glob("codex-doc-first-*") if p.is_dir()}
 
         for card in self.cards:

@@ -20,7 +20,7 @@ The philosophy, in three rules the whole repository is built on:
 ## By bucket
 
 - **`codex-doc-first-development/`** (main orchestrator skill): the bar above.
-- **Companion skills** (`codex-doc-first-doc-sync/`, `codex-doc-first-task-pack-gate/`, `codex-doc-first-ui-ux-prototyping/`, `codex-doc-first-start/`): the bar above.
+- **Internal modules** (startup, doc sync, Task Pack, UI/UX): the same bar; they ship inside the main skill rather than as separate installations.
 - **`.out-of-scope/`**: rejected concepts, frozen. Every entry records what was rejected and why. Read them before filing.
 
 ## Non-goals

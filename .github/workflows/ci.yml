@@ -67,11 +67,11 @@ jobs:
 
     - name: Markdown link and anchor check (GFM)
       run: |
-        python codex-doc-first-doc-sync/scripts/check_docs_links.py . --json
+        python codex-doc-first-development/scripts/check_docs_links.py . --json
 
     - name: Task Pack gate on fixtures
       run: |
-        python codex-doc-first-task-pack-gate/scripts/check_task_pack.py tests/fixtures/valid_task_pack.md --json
+        python codex-doc-first-development/scripts/check_task_pack.py tests/fixtures/valid_task_pack.md --json
 
     - name: End-to-end runtime hard gate on fixtures
       run: |

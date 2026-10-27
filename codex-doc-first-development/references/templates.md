@@ -493,7 +493,7 @@ validation:
 
 Use these JSON Schemas to validate machine-readable CLI outputs and CI/CD contract payloads.
 
-### Check Results Schema (check_task_pack.py & check_docs_links.py, both companion-skill scripts)
+### Check Results Schema (bundled check_task_pack.py & check_docs_links.py)
 
 ```json
 {

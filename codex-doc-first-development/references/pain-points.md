@@ -1,6 +1,7 @@
 # Domain Pain-Point Cards Repository
 
 This document contains 6 core domain pain-point cards. When domain-specific inspection is relevant, match user inputs using rule-based feature counting; communicate material findings and decisions concisely.
+Run inspection commands from the project root. Replace `<skill-root>`, `<project-root>`, and `<active-task-pack>` with actual paths and quote paths containing spaces; bundled helpers live in the installation, while project artifacts live in the target project.
 
 ## Contents
 
@@ -36,7 +37,7 @@ This document contains 6 core domain pain-point cards. When domain-specific insp
     "mandatory_keywords": ["concurrent", "async", "lock", "mutex", "thread", "parallel", "race"],
     "pattern_contexts": ["shared_state", "shared_resource", "atomic", "queue", "worker"]
   },
-  "inspection_cmd": "python scripts/check_permission_log.py docs/delivery/permission-audit.log",
+  "inspection_cmd": "python <skill-root>/scripts/check_permission_log.py <project-root>/docs/delivery/permission-audit.log",
   "version": "1.0.0",
   "last_validated": "2026-07-28"
 }
@@ -117,7 +118,7 @@ Deleting or renaming database columns or public API fields that break existing c
     "mandatory_keywords": ["windows", "linux", "mac", "path", "os", "cross_platform", "case_sensitivity"],
     "pattern_contexts": ["backslash", "slash", "symlink", "file_system", "encoding"]
   },
-  "inspection_cmd": "Call the Skill tool with \"codex-doc-first-doc-sync\" (runs scripts/check_docs_links.py over docs)",
+  "inspection_cmd": "python <skill-root>/scripts/check_docs_links.py <project-root>/docs --json",
   "version": "1.0.0",
   "last_validated": "2026-07-28"
 }
@@ -171,7 +172,7 @@ Executing database queries or external HTTP requests inside loops without batchi
     "mandatory_keywords": ["security", "permission", "auth", "rbac", "token", "escalation", "secret"],
     "pattern_contexts": ["jwt", "bearer", "authorization", "unauthorized", "bypass", "credential"]
   },
-  "inspection_cmd": "python scripts/verify_runtime_trace.py --mode goal --json",
+  "inspection_cmd": "python <skill-root>/scripts/verify_runtime_trace.py --task-pack <active-task-pack> --mode goal --json",
   "version": "1.0.0",
   "last_validated": "2026-07-28"
 }

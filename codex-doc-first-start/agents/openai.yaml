@@ -1,6 +1,0 @@
-interface:
-  display_name: "Doc-First Start"
-  short_description: "Start a doc-first development workflow"
-  default_prompt: "Use $codex-doc-first-start to inspect my task, recommend a risk tier, reuse existing authorization, and begin the applicable document-first workflow."
-policy:
-  allow_implicit_invocation: false

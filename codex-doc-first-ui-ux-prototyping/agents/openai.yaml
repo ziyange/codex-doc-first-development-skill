@@ -1,4 +1,0 @@
-interface:
-  display_name: "UI/UX Prototyping Gate"
-  short_description: "Align UI and API bindings before coding"
-  default_prompt: "Use $codex-doc-first-ui-ux-prototyping to review changed graphical UI layouts and states, reuse approved designs, and resolve only applicable open decisions before coding."
