@@ -3,7 +3,7 @@ name: codex-doc-first-development
 description: Use when planning or implementing document-first software changes, keeping changed contracts in sync with docs, and verifying work at the level its risk requires.
 ---
 
-# Codex Doc-First Development (v3.0.0 Released)
+# Codex Doc-First Development (v3.1.0 Released)
 
 Use one installed skill to turn intent into scoped, verified changes. Follow platform, user, and repository instructions. Read `references/adaptive-workflow.md` first: it selects risk, records, and checks. Treat S0–S22 as an index of available stages.
 

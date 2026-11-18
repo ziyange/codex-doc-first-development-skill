@@ -5,6 +5,16 @@ All notable changes to this repository - the `codex-doc-first-development` skill
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-11-18
+
+### Changed
+
+- Close each independently verifiable plan point in one existing record, or in the
+  final reply for small tasks with no project record. Fold review into preflight and
+  delivery, and select checks for the changed behavior and risk. Require the bundled
+  transaction audit only when selected or mandated, preserving existing CLI contracts
+  and project-required protocols.
+
 ## [3.0.0] - 2026-10-27
 
 ### Changed
