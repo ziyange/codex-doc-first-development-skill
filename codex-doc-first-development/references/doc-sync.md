@@ -10,7 +10,7 @@ When user feedback, a technical discovery, or an implementation change alters ar
 - `docs/api.md` - endpoints, signatures, field projections
 - `docs/ux.md` - screen layouts, component-to-API bindings, interaction states
 - `docs/requirements.md` - scope, non-goals, success criteria
-- `docs/delivery/tasks/TASK-*.md` - contracts and acceptance criteria for the active pack
+- Active task record - changed scope and acceptance criteria, with pointers to governing contracts
 
 Code must never run ahead of documentation. If implementation reveals a new fact, write it back to the owning document, not to a comment or a commit message.
 
@@ -24,16 +24,13 @@ Code must never run ahead of documentation. If implementation reveals a new fact
 
 ## Writeback checklist (S20)
 
-At phase end, sync final facts back:
-
-1. Reusable patterns and failure lessons as pain-point card candidates for the orchestrator's card repository (owned by the main skill).
-2. Verified commands and stack facts into `AGENTS.md`.
-3. Phase outcome into the phase plan and `docs/README.md` index.
-4. Archive pointers into `docs/archive/`.
+Update only facts that changed. Keep the acceptance result in the existing task
+record; a phase plan, index, or archive may link to it when useful. Document new
+verified project commands in the owning docs; do not copy routine check output.
 
 ## Link and anchor validation
 
-Run the checker over the docs tree before finalizing:
+When changing Markdown links or anchors, or when the project requires it, run the checker against the affected path:
 
 ```bash
 python <skill-root>/scripts/check_docs_links.py <project-root>/docs --json

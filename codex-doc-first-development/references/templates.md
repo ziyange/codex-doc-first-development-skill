@@ -1,17 +1,17 @@
 # Templates
 
 Use these templates when the active task needs concrete docs or engineering artifacts. Keep empty sections out of final project docs unless they clarify expected future content.
-Apply [Adaptive Workflow](adaptive-workflow.md) first. These are optional initialization layouts; reuse existing records and paths. Quick normally uses an existing task/doc or one brief, not a new docs tree. Selected runtime protocols retain their full inputs.
+Apply [Adaptive Workflow](adaptive-workflow.md) first. Reuse existing records and paths. Directory layouts below document the explicit scaffolder; they are not required artifacts for a risk tier.
 
 ## Contents
 
 - [Directory Structures](#directory-structures)
 - [Core Project Documents](#agentsmd)
-- [Permission & Action Plan](#permission--action-plan)
+- [Plan Point Record](#plan-point-record)
 - [Pain-Point Card Template](#pain-point-card-template)
 - [Phase and Task Packs](#docsdeliveryphase-001md)
-- [Coordination and Verification](#locksyml)
-- [PR, Writeback, and Archive](#pr-body)
+- [Coordination Locks](#locksyml)
+- [Handoff](#handoff)
 
 ## Directory Structures
 
@@ -26,7 +26,7 @@ docs/
     TASK-001.md
 ```
 
-Standard mode:
+Explicit standard scaffold:
 
 ```text
 AGENTS.md
@@ -46,7 +46,7 @@ docs/
   archive/
 ```
 
-Strict mode:
+Explicit strict scaffold:
 
 ```text
 AGENTS.md
@@ -71,29 +71,18 @@ docs/
 
 Add `api.md`, `data-model.md`, `security.md`, `ux.md`, `operations.md`, or an ADR only when the project has applicable facts to record. Do not create placeholder-only optional documents.
 
-## Permission & Action Plan
+## Plan Point Record
 
-```markdown
-# Permission & Action Plan: [Task / Feature Title]
+Reuse a task or plan entry where available. Fill this same entry before and
+after work. For Quick work with no record, state the scope and planned check
+at intake and give the result in the final reply.
 
-## Summary of Action Intent
-- Action Type: [FILE_WRITE / FILE_DELETE / COMMAND_EXEC / MODE_SWITCH]
-- Target Paths: [explicit path list]
-- Reason: [business or technical rationale]
+| Plan point | Allowed scope | Observable acceptance | Planned check | Actual result and evidence |
+|---|---|---|---|---|
+| Export preserves filtered rows | Export code, behavior tests, owning contract | CSV matches the current filter | Run export tests | Pending until verified |
 
-## Autonomy & Scope Bounds
-- Autonomy Mode: [Goal Mode / Plan Mode / Build Mode]
-- MAX_ITERATIONS: [1 - 10]
-- Whitelist Patterns:
-  - `src/auth/*.ts`
-- Blacklist Patterns:
-  - `.git/*`
-  - `docs/delivery/.log.lock`
-  - `docs/delivery/permission-audit.log`
-
-## Execution Intent Pairing
-- Intent Hash: `SHA256(prev_hash + ":" + action_type + ":" + normalized_path + ":" + tx_id)`
-```
+For a required formal Task Pack, use its own status and evidence. For the
+opt-in transaction format, see [runtime audit](runtime-audit.md).
 
 ## Pain-Point Card Template
 
@@ -106,7 +95,7 @@ Add `api.md`, `data-model.md`, `security.md`, `ux.md`, `operations.md`, or an AD
     "mandatory_keywords": ["keyword1", "keyword2"],
     "pattern_contexts": ["context1", "context2"]
   },
-  "inspection_cmd": "python scripts/verify_runtime_trace.py --json",
+  "inspection_cmd": "python -m unittest discover -s tests",
   "version": "1.0.0",
   "last_validated": "2026-07-28"
 }
@@ -349,6 +338,9 @@ planned
 - Notes and risks
 ```
 
+Use this template only when a formal pack is required. Add the actual check
+and outcome to this same record and update its status.
+
 ## locks.yml
 
 Use only when multiple agents or branches may write overlapping areas.
@@ -361,133 +353,12 @@ locks:
     reason: auth implementation
 ```
 
-## Verification Report
+## Handoff
 
-```markdown
-# Verification Report
-
-## Commit / Branch
-
-## Evidence Source
-- planned / local execution / isolated execution / external CI
-
-## Commands
-
-## Results
-
-## Failed Tests
-
-## Warnings
-
-## Coverage
-
-## Artifacts
-
-## Conclusion
-```
-
-## PR Body
-
-```markdown
-## Summary
-
-## Requirements
-
-## Changes
-
-## Tests
-
-## Risks
-
-## Screenshots / Artifacts
-
-## Docs Updated
-```
-
-## Conflict Resolution Task
-
-```markdown
-# Conflict Resolution Task
-
-## Conflict Source
-- Task:
-- Branch:
-- Target Branch:
-- Files:
-
-## Conflict Type
-- Text conflict
-- Logic conflict
-- Type conflict
-- Interface conflict
-- Test conflict
-- Docs conflict
-
-## Context
-- Task Pack:
-- Requirements:
-- Architecture:
-- Tests:
-
-## Resolution Rules
-1. Do not delete valid business logic from either side.
-2. Do not change interface contracts without authorization.
-3. Do not change data structures without authorization.
-4. Do not delete relevant tests.
-5. Re-run tests after resolving.
-
-## Output
-- Conflict cause:
-- Resolution:
-- Changed files:
-- Test results:
-- Continue merge:
-```
-
-## Writeback Patch
-
-```yaml
-patch_id: ""
-change_id: ""
-task_id: ""
-requirement_ids:
-  - ""
-target_document: ""
-operation: "add_section | update_section | append_item | replace_item | delete_item | update_table_row | add_table_row"
-target_anchor: ""
-content:
-  title: ""
-  body: ""
-validation:
-  required_fields:
-    - ""
-  must_update_index: true
-  must_archive: true
-```
-
-## Phase Archive Summary
-
-```markdown
-# Phase 001 Summary
-
-## Goal
-
-## Completed
-
-## Not Completed
-
-## Requirements Status
-
-## Major Changes
-
-## Test Evidence
-
-## Decisions
-
-## Risks
-
-## Next Phase Recommendations
-```
+For a PR or an archive that the project needs, summarize the outcome and link
+the authoritative task entries, existing check results, and material risks.
+Keep conflict resolutions and verification outcomes in the original record.
+Write independent product or engineering facts into the owning docs.
 
 ## Structured JSON Contracts & Schema
 

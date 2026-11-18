@@ -28,7 +28,7 @@ Strict-class changes require appropriate risk checks and doc sync. Reuse existin
 
 ## S20 writeback list
 
-At phase end, write back (targeted patches, not rewrites):
+Write changed facts to the owning docs (targeted patches, not rewrites):
 
 - requirement status
 - architecture and module changes
@@ -36,23 +36,18 @@ At phase end, write back (targeted patches, not rewrites):
 - new commands
 - test strategy changes
 - decisions and known limitations
-- phase acceptance and change records
-- archive pointers into `docs/archive/`
+
+Keep phase acceptance in the existing plan or linked task records. Add archive
+pointers only for a required or useful handoff.
 
 ## Docs Review gate (S7)
 
-Docs are ready when:
+Apply these checks to existing affected docs during the relevant review pass.
+Use [Adaptive Workflow](adaptive-workflow.md) to select records and gates.
 
-Apply this checklist to existing affected docs. Quick work can reuse a task/doc or brief; no empty docs tree is required. UI bullets apply only to changed graphical UI, and API bindings only to API-backed UI.
-
-- `docs/README.md` points to active requirements, phase, tasks, verification, and archive
-- current requirements carry `REQ-*` IDs
-- UI/UX mockups and Component-to-API binding matrices are fully in `docs/ux.md`
-- acceptance criteria are testable
-- the phase plan names tasks and dependencies, shared infrastructure first
-- each Task Pack has allowed/forbidden files and explicit Must-Read contract anchors
-- test strategy and expected commands are explicit
-- all relative Markdown links and anchors resolve (`check_docs_links.py`, exit 0)
+- Changed facts have a clear owner and match the requirements and acceptance criteria.
+- Changed graphical designs and applicable API bindings are in the owning UX doc.
+- Existing indexes and affected Markdown links and anchors still resolve.
 
 ## Link checker rules (GFM)
 

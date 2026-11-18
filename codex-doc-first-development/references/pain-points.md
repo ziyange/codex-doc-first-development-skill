@@ -1,7 +1,7 @@
 # Domain Pain-Point Cards Repository
 
-This document contains 6 core domain pain-point cards. When domain-specific inspection is relevant, match user inputs using rule-based feature counting; communicate material findings and decisions concisely.
-Run inspection commands from the project root. Replace `<skill-root>`, `<project-root>`, and `<active-task-pack>` with actual paths and quote paths containing spaces; bundled helpers live in the installation, while project artifacts live in the target project.
+Use these cards only for relevant domain risks. Consult [Adaptive Workflow](adaptive-workflow.md) for verification and audit applicability. The command fields are examples: prefer a targeted project check that tests the changed behavior. The unittest examples apply only to Python projects with that runner; the links example applies only to Markdown path issues.
+Run applicable commands from the project root. Replace `<skill-root>` and `<project-root>` with actual paths and quote paths containing spaces.
 
 ## Contents
 
@@ -20,9 +20,9 @@ Run inspection commands from the project root. Replace `<skill-root>`, `<project
   $$S(C) = \frac{2.0 \times N_{\text{mandatory-hits}} + 1.0 \times N_{\text{pattern-hits}}}{2.0 \times N_{\text{mandatory-total}} + 1.0 \times N_{\text{pattern-total}}}$$
 - **Thresholds**:
   - $S(C) \ge 0.8$: High confidence match. Trigger targeted inspection checklist.
-  - $0.5 \le S(C) < 0.8$: Mid confidence. Require `user_confirmed: true` in Task Pack.
+  - $0.5 \le S(C) < 0.8$: Tentative match. Check repository evidence and ask only if a material decision is still missing.
   - $S(C) < 0.5$: Low/No match. Continue ordinary repository intake without a domain checklist.
-- **Top-1 Exclusivity**: Only the highest scoring card with $S(C) \ge 0.5$ is activated. Lower scoring candidates are logged in `ignored_candidates`.
+- **Top-1 selection**: Start with the strongest match. Inspect other applicable risks if they affect acceptance. Record only material findings in the closure record. Preserve machine fields required by projects already using structured cards.
 
 ---
 
@@ -37,7 +37,7 @@ Run inspection commands from the project root. Replace `<skill-root>`, `<project
     "mandatory_keywords": ["concurrent", "async", "lock", "mutex", "thread", "parallel", "race"],
     "pattern_contexts": ["shared_state", "shared_resource", "atomic", "queue", "worker"]
   },
-  "inspection_cmd": "python <skill-root>/scripts/check_permission_log.py <project-root>/docs/delivery/permission-audit.log",
+  "inspection_cmd": "python -m unittest discover -s tests",
   "version": "1.0.0",
   "last_validated": "2026-07-28"
 }
@@ -47,9 +47,9 @@ Run inspection commands from the project root. Replace `<skill-root>`, `<project
 Simultaneous state mutation across multiple async workers or threads causing non-deterministic data corruption or deadlock.
 
 ### Mandatory Inspection Checklist
-1. Verify single-writer mutex or transactional file locking.
-2. Confirm state modifications are atomic.
-3. Add stress tests for concurrent execution paths.
+1. Verify the affected shared state boundaries and coordination mechanism.
+2. Check concurrent updates and relevant failure or recovery cases.
+3. Inspect the audit lock only if the change affects an active audit protocol.
 
 ---
 
@@ -172,7 +172,7 @@ Executing database queries or external HTTP requests inside loops without batchi
     "mandatory_keywords": ["security", "permission", "auth", "rbac", "token", "escalation", "secret"],
     "pattern_contexts": ["jwt", "bearer", "authorization", "unauthorized", "bypass", "credential"]
   },
-  "inspection_cmd": "python <skill-root>/scripts/verify_runtime_trace.py --task-pack <active-task-pack> --mode goal --json",
+  "inspection_cmd": "python -m unittest discover -s tests",
   "version": "1.0.0",
   "last_validated": "2026-07-28"
 }
@@ -182,6 +182,6 @@ Executing database queries or external HTTP requests inside loops without batchi
 Bypassing authorization middleware, exposing sensitive secrets in version control, or granting excessive scope.
 
 ### Mandatory Inspection Checklist
-1. Validate access token signature and scope bounds.
-2. Ensure secrets are loaded from environment variables, never hardcoded.
-3. Verify permission enforcement on every API endpoint.
+1. Test allowed and denied actions for affected roles and entry points.
+2. Check token, scope, and secret handling when changed.
+3. Do not select the bundled runtime audit based on a card match; a trace of agent actions cannot verify the product's permission behavior.

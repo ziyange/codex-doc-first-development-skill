@@ -5,12 +5,15 @@ Shared vocabulary for the doc-first development skills. Skills and scripts use t
 ## Language
 
 **Task Pack**:
-A bounded unit of agent work (`TASK-###.md`) declaring objective, allowed files, contracts, test requirements, and acceptance criteria. Records execution scope for Standard/Strict work and selected runtime protocols; structural validation does not grant user authorization. Other Quick work can reuse an existing task/doc or brief.
+A formal task record (`TASK-###.md`) declaring objective, allowed files, contracts, test requirements, and acceptance criteria. Use it when the project, user, or selected runtime protocol requires it. Structural validation does not grant user authorization.
 *Avoid*: ticket, work item, spec (a spec lives in `docs/`; a Task Pack references it).
 
 **Allowed Files**:
 The explicit, narrow file-pattern whitelist inside a Task Pack's `Allowed Files` section. Broad globs (`*`, `**`, `.`) are rejected by the gate.
 *Avoid*: scope, permissions (use "Allowed Files" verbatim).
+
+**Closure record**:
+The single authoritative entry for an independently verifiable plan point. Holds its goal, scope, acceptance, planned check, actual result, and any evidence or blocker. A formal Task Pack can be that entry.
 
 **Merkle chain**:
 The SHA-256 hash chain over `permission-audit.log` entries: `intent_hash = SHA256(prev_hash + ":" + action_type + ":" + normalized_path + ":" + tx_id)`. Tampering with any record breaks every downstream hash.
@@ -32,7 +35,7 @@ A user-approved widening of the Allowed Files whitelist, recorded in `expansions
 *Avoid*: exception, override.
 
 **Fail-close**:
-The rule that missing, empty, or corrupted governance input blocks the action (non-zero exit) instead of silently proceeding. The counterpart, fail-open, is a bug.
+Missing or invalid required input blocks the dependent action instead of silently proceeding. A valid, intentionally initialized empty audit history is distinct from missing input.
 
 **Exit 0-6**:
 The deterministic exit-code contract of `verify_runtime_trace.py`: 0 success, 1 iteration limit, 2 boundary/expansion violation, 3 schema/parse failure, 4 uncommitted transaction, 5 tamper/hash mismatch, 6 illegal transaction state.
@@ -60,5 +63,5 @@ The mandatory write-back of architecture, API, UI, or requirements changes into 
 - **"Mode" is overloaded three ways.** Autonomy modes (`goal`, `plan`, `build` - how much the agent may do unsupervised, `--mode` on the CLI) vs risk tiers (`Quick`, `Standard`, `Strict` - how heavy the ceremony is, workflow mode selection) vs the CLI's `--mode` argument values. Resolved: autonomy modes and CLI `--mode` share one vocabulary; risk tiers are only ever "Quick/Standard/Strict" and never appear as a `--mode` value.
 - **"Gate" is overloaded.** Review gates (S4/S7/S14/S16 documentation-driven checks in `references/review-gates.md`) vs runtime gates (executable CLI checks with exit codes). Resolved: "review gate" and "runtime gate" are used explicitly.
 - **"check" vs "verify" verbs.** Scripts named `check_*` validate static artifacts (Task Pack, docs links); `verify_runtime_trace.py` validates runtime evidence. Resolved: keep the existing script names; do not introduce new `check`/`verify` synonyms.
-- **"Task Pack" vs "Context Pack".** A Context Pack is the read-only briefing material a Task Pack points to via "Must Read"; only the Task Pack authorizes work.
+- **"Task Pack" vs "Context Pack".** A Context Pack is the read-only briefing material a Task Pack points to via "Must Read"; authorization comes from the user and applicable policy.
 - **Schema versions vs skill versions.** `references/schemas/*.json` carries its own `title` field; the skill version (e.g. v2.3.0) lives in `SKILL.md` and `pyproject.toml`. They move independently.

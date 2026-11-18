@@ -1,8 +1,9 @@
 # Skill Architecture Review
 
 This file records historical reviews in order. The current distribution is the
-single `codex-doc-first-development` directory; earlier five-skill assessments
-below describe superseded layouts, not current installation instructions.
+single `codex-doc-first-development` directory. Earlier layouts and governance
+decisions below are historical. For current record and audit requirements, see
+[Adaptive Workflow](../codex-doc-first-development/references/adaptive-workflow.md).
 
 Review date: 2026-10-27. Baseline: 9217c63, version 2.3.0.
 

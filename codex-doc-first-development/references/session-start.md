@@ -6,10 +6,10 @@ Start through the single main skill, explicitly or through normal automatic sele
 
 1. **Capture the idea**: paste the project idea, feature, bug, or refactoring goal.
 2. **Establish the frame**: the agent inspects existing docs/code and authorization, then briefly states:
-   - workflow mode: Goal, Plan, or Build
    - risk tier: Quick, Standard, or Strict
    - authorization scope: file writes, branches, subagents, GitHub/PR/CI
-3. **Run applicable stages**: Quick reuses an existing task/doc or one brief record; Standard maintains affected docs and a Task Pack; Strict retains full applicable governance. Existing runtime protocols keep their required inputs. Ask only about material missing choices or authorization; skip visual UX gates for non-UI work.
+   - acceptance criteria and proposed checks
+3. **Run applicable stages**: use [Adaptive Workflow](adaptive-workflow.md) to choose one closure record and the relevant checks. If an audit protocol already applies, preserve its inputs. Ask only about material missing choices or authorization.
 
 ## Usage
 

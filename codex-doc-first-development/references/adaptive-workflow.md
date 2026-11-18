@@ -1,85 +1,81 @@
 # Adaptive Workflow
 
-Read this before selecting stages or artifacts. This is the applicability policy
-for the lifecycle, review gates, templates, and prompts; those resources describe
-the applicable stage's mechanics. Higher-priority instructions and explicit user
-choices remain authoritative.
+This is the policy for selecting stages, records, and checks. Other references
+describe how to run a selected stage. Respect higher-priority instructions,
+existing project requirements, and explicit user choices.
 
-## Choose a Risk Tier
+## Choose a risk tier
 
-Inspect the repository, existing docs, change scope, and known authorization first.
-Choose the highest applicable tier by impact, not file count:
+Inspect project instructions, docs, change scope, and known authorization.
+Choose by impact, regardless of file count, project age, or existing CI.
 
-| Tier | Trigger | Required record | Applicable stages and checks |
-|---|---|---|---|
-| Quick | Clear, bounded, low-risk task without architecture or public-contract changes | Reuse an existing task or doc; otherwise one brief task record | Intake/scope, implementation, relevant verification, acceptance/writeback |
-| Standard | Nontrivial features, behavior changes, or cross-module work that exceed Quick's bounded low-risk scope and have no Strict trigger | Affected requirements/contracts, Task Pack, verification evidence; phase plan only for multiple tasks | Relevant S0-S22 stages; Task Pack and relevant tests |
-| Strict | Security, permissions, migrations, public contracts, major architecture, or material production risk | Full applicable source-of-truth docs, Task Packs, phase plan, runtime audit | Full applicable lifecycle, runtime gate, meaningful tests and risk review |
+| Tier | Trigger | Verification |
+|---|---|---|
+| Quick | Clear, bounded, low-risk work, including small fixes with no architecture or public-contract impact | A focused check that proves the change, such as reviewing a wording diff or running a regression test |
+| Standard | Feature, behavior, or cross-module changes that exceed Quick and do not trigger Strict | Verify the changed behavior across affected boundaries; run relevant project checks |
+| Strict | Security, permissions, data migration, public contracts, major architecture, or material production risk | Review the specific risk and produce checkable evidence; cover relevant denial, failure, compatibility, or recovery behavior |
 
-Quick record: goal, allowed files, acceptance criteria, and verification command
-and result. Before implementation, specify the command and expected outcome;
-afterward, record the actual result. An existing record that already covers these
-facts is sufficient. Do not initialize a docs tree just to satisfy a small task.
-Record a documentation-only task's relevant check; do not invent code tests.
+For Strict, use the evidence needed to assess the actual risk. For example, test
+allowed and denied permission cases; rehearse a migration and its recovery in
+isolation when feasible. Use independent review, full CI, or phase acceptance
+when the risk warrants it or the project requires it. Reuse checks that already
+cover the same acceptance criteria for the same change. Do not claim independent
+review without an independent reviewer or delegate without authorization.
 
-Standard and Strict reuse existing documents. Create only missing applicable
-artifacts, preserving the repository's established paths and conventions. The
-scaffolder is an explicit initialization helper, not a required intake action;
-its existing `--mode quick` output remains available for users who request it.
+## Keep one closure record
 
-## Keep Autonomy Separate
+A plan point is a result that can be accepted independently. A file edit,
+command, or retry is not a new plan point. Multiple points may live in a single
+plan or task table. Give each point one authoritative record:
 
-Quick/Standard/Strict describe risk and artifacts. Goal/Plan/Build describe
-execution authorization and iteration behavior. Keep the user's chosen autonomy
-mode; do not silently switch it or choose Build to avoid audit requirements.
-If none is selected, use the host's existing authorization model without inventing
-a separate mode-selection handshake. Configure an explicit mode when runtime audit
-is required; ask if the choice changes authorization or cannot be inferred.
+- Before editing: objective, authorized scope and restrictions, observable
+  acceptance criteria, and the check or evidence expected to prove them.
+- After verifying: actual outcome (passed, needs changes, or blocked), the
+  executed check or evidence location, and unresolved failures or limitations.
+  Link to the test output, CI run/commit, or other source where available.
+- Quick: use an existing task or plan entry if available. Otherwise state scope
+  and the check at intake, then close in the final reply; no project file needed.
+- Standard/Strict: prefer an existing writable task, issue, plan entry, or Task
+  Pack that can hold the closure. Use an external record only with authorization.
+  If none fits, add one compact Markdown task record in the project's existing
+  task location, or under `docs/delivery/` when the project has no convention.
+  A formal Task Pack is needed only when the project, user, or selected runtime
+  protocol requires one. Use a phase plan when multiple outcomes need coordination.
 
-Explicit Goal, Plan, Build runtime protocols or user-required auditing retain their
-Task Pack, audit, whitelist/blacklist, iteration, and mode-switch requirements even
-for Quick work. A brief is not a substitute for a runtime gate's inputs. Strict
-requires runtime audit. Missing or invalid required inputs remain blocking.
-Initialize trace/log files explicitly before the first action; an initialized
-empty audit log and an empty trace array represent a clean state, not a missing
-file. Goal requires one explicit `MAX_ITERATIONS: N` line with N in 1..10.
+A verification report, PR, or archive can point to the same evidence. Do not
+copy the record into each of them. Store changed product and engineering facts
+in their owning docs, before or alongside the implementation. Scaffolding is
+for explicitly needed initialization; it is not a prerequisite.
 
-## Apply Design Gates to Changed Surfaces
+## Use two review points
 
-- No graphical UI change: skip visual prototypes, image generation, and graphical
-  binding tables. Verify CLI arguments/output, backend contracts, or script behavior.
-- Graphical UI change: reuse confirmed designs and review changed screens, states,
-  and interactions before coding. Generate new mockups when visual decisions need
-  alignment; do not regenerate approved screens for unrelated changes.
-- UI with an API: record the affected API bindings and feedback states.
-- Local-only UI: record events, local state, and outcomes; no invented API layer.
-- Shared external requests: reuse appropriate service/client modules. Use field
-  projection only when consumer or performance requirements justify it; preserve
-  existing contracts and avoid adding generic endpoints to satisfy a template.
+**Before editing:** Confirm existing authorization, scope, relevant contracts,
+applicable project rules, and the verification approach in one pass. Align
+unresolved designs only on changed surfaces. UI with no API documents events,
+state, and outcomes. Non-graphical work skips visual proposals.
 
-## Keep Interaction Focused
+**Before delivering:** Review the change against its start state and verify the
+same acceptance criteria. In Git, account for staged, unstaged, and new files,
+preserving pre-existing work. Without Git, review the actual changed files.
+Check owning docs for changed facts, resolve local fixes, and rerun only affected
+or explicitly required checks. Count a manual check only for what was observed;
+it cannot stand in for a required executable check. If required evidence is
+missing or a check fails, record the gap and the smallest recovery action.
 
-Open with a short statement of the task, selected tier and reason, scope, and
-verification approach. Explain material uncertainties and decisions, not private
-reasoning or a prescribed reflection transcript. Inspect discoverable facts first;
-ask only questions whose answers change the result or establish missing authority.
-Reuse existing authorization; no repeated approval for the same action and scope.
-New external actions and scope expansion still need the applicable authorization.
+Reuse established authorization. If scope expands or risk rises, update the
+record and stop only work dependent on unresolved authority or decisions.
+A record, diff, or structural checker never grants authority.
 
-If new evidence raises risk, explain why, update affected docs and gate inputs,
-and pause only work dependent on unresolved scope, authority, or design decisions.
-Already authorized high-risk work still gets Strict checks without asking the user
-to authorize the same action again.
+## Keep runtime audit separate
 
-## Interpret Evidence Correctly
+Strict is a risk tier. Transaction logging is a separate protocol, selected by
+existing project requirements, explicit user choice, or applicable audit rules.
+Use the project's established audit mechanism. Only load [the bundled runtime
+protocol](runtime-audit.md) when it is the selected mechanism. Ordinary host
+planning, building, or goal tracking does not by itself select the skill's
+Goal/Plan/Build protocols. Without the bundled protocol, do not create its
+audit log, execution trace, expansions file, or lock just to satisfy this skill.
 
-A Task Pack checker pass proves structural checks passed. It does not grant user
-authorization, resolve dependencies, execute tests, or replace runtime validation.
-Warnings are advisory; review their effect on acceptance without treating them as
-either structural failure or test success. Review scripts using their owning skill
-paths and project artifacts using project paths.
-
-When blocked, report the failed check, affected work, and smallest recovery action.
-Never fabricate successful checks. Retain existing exit codes and JSON payloads.
-Update affected docs before or alongside changed facts; a behavior-preserving
-internal refactor needs no doc edit when documented facts remain unchanged.
+When the bundled protocol is active, preserve its inputs and fail-close behavior
+even for Quick work. A closure record or final diff cannot replace an active
+audit. Never recreate a missing record as empty to make a failed audit pass.

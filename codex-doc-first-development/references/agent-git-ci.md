@@ -1,232 +1,38 @@
 # Agent, Git, and CI Coordination
 
-Use this reference when the project uses subagents, branches, PRs, CI, or conflict handling.
-
-Treat these as coordination protocols over tools the environment actually provides. This reference does not create a scheduler, persistent lock service, CI provider, remote repository access, or merge authority.
-
-## Contents
-
-- [Agent Roles](#agent-roles)
-- [Delegation Decision](#delegation-decision)
-- [File Ownership and Locks](#file-ownership-matrix)
-- [Branch and Commit Strategy](#branch-strategy)
-- [CI and PR Evidence](#ci-strategy)
-- [Conflict and Blocked Handling](#conflict-handling)
-
-## Agent Roles
-
-Main Codex agent:
-
-- Owns product and engineering interpretation.
-- Chooses workflow mode.
-- Creates or updates docs.
-- Defines Task Packs.
-- Spawns subagents only when authorized.
-- Reviews and integrates subagent results.
-- Runs or reviews verification.
-- Produces final acceptance.
-
-Explorer:
-
-- Read-only.
-- Answers one specific codebase or design question.
-- Should not edit files.
-- Should return evidence with paths and concise conclusions.
-
-Worker:
-
-- Edits files only inside assigned ownership.
-- Handles one Task Pack.
-- Must not revert or tidy unrelated changes.
-- Must report changed files, tests, risks, and blockers.
-
-Reviewer:
-
-- Can be simulated by the main agent or an explorer.
-- Requires explicit subagent authorization when implemented as an explorer.
-- Reviews formal solution, docs, tests, or diff.
-- Does not modify code unless explicitly assigned a fix task.
-
-## Delegation Decision
-
-Do not delegate:
-
-- Immediate blocking work on the critical path.
-- Tasks without clear ownership.
-- Tasks that need constant product judgment.
-- Work that writes shared contracts before those contracts are designed.
-
-Delegate:
-
-- Independent read-only investigation.
-- Independent module implementation.
-- Test creation for a bounded surface.
-- Documentation cleanup separate from code writes.
-
-## File Ownership Matrix
-
-Before parallel work, produce:
-
-```text
-TASK-001:
-  owns:
-    - src/auth/**
-    - tests/auth/**
-  forbidden:
-    - src/payments/**
-    - docs/requirements.md
-  shared:
-    - docs/delivery/phase-001.md (main agent only)
-```
-
-Shared files should normally be edited by the main agent after workers return.
-
-## Lock Protocol
-
-Use a lock only when file ownership is not enough.
-
-Lock fields:
-
-- Path pattern.
-- Owner task.
-- Expiration time.
-- Reason.
-- Contact or responsible agent.
-
-Example:
-
-```yaml
-locks:
-  - path: src/auth/**
-    owner: TASK-001
-    expires_at: <ISO-8601 timestamp>
-    reason: auth implementation
-```
-
-Treat expired locks as stale only after checking whether the owning work is still active.
-
-## Branch Strategy
-
-Quick mode:
-
-- Current branch is acceptable when risk is low.
-
-Standard mode:
-
-- Prefer one feature branch.
-- Name: `codex/<short-feature>`.
-
-Strict mode:
-
-- When Git operations are authorized and separate branches reduce risk, use phase branch `codex/phase-001-<name>` and task branch `codex/task-001-<name>`.
-
-Rules:
-
-- Check worktree before branch operations.
-- Do not overwrite uncommitted user changes.
-- Rebase or merge only when the user/project strategy allows it.
-- Do not push, force push, or delete remote branches without confirmation.
-
-## Commit Strategy
-
-Commit only when authorized. Keep commits scoped:
-
-```text
-docs: establish doc-first project plan
-feat(auth): add login validation
-test(auth): cover expired session behavior
-fix(api): handle missing customer id
-```
-
-Include requirement or task IDs in commit body when useful.
-
-## CI Strategy
-
-Map checks by risk:
-
-- Low risk: targeted command.
-- Normal feature: lint/test/build or project equivalent.
-- Strict: clean install or CI evidence.
-- UI: screenshots or Playwright where visual behavior matters.
-- Data: migration verification and rollback note.
-- External services: mock, sandbox, or contract evidence.
-
-Record:
-
-```text
-Evidence source: planned / local execution / isolated execution / external CI
-Command:
-Environment:
-Result:
-Relevant output:
-Skipped checks:
-Reason:
-```
-
-Do not label a local command as CI or claim a PR check ran unless external evidence is available.
-
-## PR Preparation
-
-Before PR:
-
-- Verify branch state.
-- Summarize changes by requirement.
-- Include test evidence.
-- Include screenshots/artifacts when relevant.
-- Link docs updates.
-- List risks and follow-ups.
-
-PR body:
-
-```markdown
-## Summary
-
-## Requirements
-
-## Changes
-
-## Tests
-
-## Risks
-
-## Screenshots / Artifacts
-
-## Docs Updated
-```
-
-## Conflict Handling
-
-Text conflict:
-
-- Resolve markers.
-- Preserve both valid behaviors when possible.
-- Re-run tests.
-
-Logic conflict:
-
-- Compare against requirements and architecture.
-- Choose behavior that satisfies documented contract.
-- Update docs if the contract changed with authorization.
-
-Test conflict:
-
-- Do not delete tests just to pass.
-- Merge test intent.
-- Update fixtures carefully.
-
-Docs conflict:
-
-- Preserve facts from accepted work.
-- Keep docs index current.
-- Archive superseded decisions if needed.
-
-## Blocked Conditions
-
-Return `BLOCKED` when:
-
-- Overlapping workers changed the same contract differently.
-- CI cannot be interpreted.
-- Required secrets or external accounts are missing.
-- Current instructions require a destructive or high-risk operation.
-- Requirements are internally inconsistent.
-- The correct business decision is not derivable from docs or user instructions.
+Use only the capabilities that the user and project authorize. This reference
+applies when subagents, branches, CI, PRs, or conflicts need coordination.
+
+## Roles and ownership
+
+The main agent owns scope, shared contracts, integration, and acceptance.
+An explorer reads for a specific question; a worker implements one bounded
+outcome with a disjoint write scope; a reviewer checks a particular risk or
+decision. Use subagents only with authorization. A main-agent self-review is
+useful but is not independent.
+
+Use the existing task or plan to list allowed files, exclusions, and the owner
+of shared files. Leave tightly coupled or blocking work with the main agent.
+Add an advisory lock only if file ownership alone cannot avoid overlap. Record
+its owner, path scope, reason, and expiry; check whether the owner is active
+before treating an expired lock as stale.
+
+## Branches, conflicts, and commits
+
+Check the starting worktree, preserve unrelated user changes, and follow the
+project's branch policy. Use separate branches only when required or useful
+for isolation. Rebase, merge, commit, or push only within established scope
+and authorization. For a conflict, preserve each side's valid behavior, check
+against governing docs, and rerun affected verification after resolution.
+
+## CI and handoff
+
+Use [Adaptive Workflow](adaptive-workflow.md) to select verification and
+[review gates](review-gates.md) to interpret the result. Link CI evidence for
+the revision delivered. Distinguish planned, local, isolated, and external
+evidence; a local command is not a PR check.
+
+Prepare a PR by describing the change and linking the existing task, checks,
+and material risks. Add screenshots or artifacts only when they help review.
+If the necessary checks, authority, or inputs are missing, record the blocker
+with the affected plan point and identify the smallest recovery step.

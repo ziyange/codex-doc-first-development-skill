@@ -1,6 +1,6 @@
 # Task Pack Gate
 
-A Task Pack (`TASK-###.md`) records bounded execution scope; user authorization is separate. This guidance checks structural readiness for Standard/Strict work and selected runtime protocols. Quick work can reuse an existing record or brief when no selected protocol requires a Task Pack.
+A Task Pack (`TASK-###.md`) records bounded execution scope. Use this checker when the project, user, or selected runtime protocol requires a formal Task Pack. Follow [Adaptive Workflow](adaptive-workflow.md) for other tasks. Update the pack's own status and add the verified result or an evidence link there; no separate acceptance report is needed.
 
 ## Readiness checklist
 
@@ -24,11 +24,11 @@ python <skill-root>/scripts/check_task_pack.py <project-root>/docs/delivery/task
 - Exit 2: the file could not be read (missing or unreadable path).
 Here `<skill-root>` is the main skill installation directory; select the active Task Pack rather than assuming TASK-001. If blocked, report the failed check, affected work, and smallest repair. Preserve existing exit codes and JSON fields.
 
-The JSON payload also carries a non-blocking `warnings` array (exit code unchanged): legacy v1.x packs missing `MAX_ITERATIONS`, and tautological test patterns (`assert True`, `assertTrue(True)`, commented-out assertions, empty `pass` test bodies) detected inside the Test Requirements section. Warnings are advisory: the main agent resolves them during the S14 test-quality review rather than at this gate.
+The non-blocking `warnings` array flags missing `MAX_ITERATIONS` and dummy test patterns. Apply iteration requirements only for the selected protocol. Address relevant test warnings in the delivery review; warnings by themselves are neither a gate failure nor proof that tests passed.
 
 ## Test quality expectations (context for warnings)
 
-Tests must assert behavior through public interfaces, cover acceptance criteria, include failure paths and edge cases for modified logic, and reuse the centralized client/service modules. Anti-patterns that trigger warnings or S14 rejection: empty test bodies, tautological assertions, HTTP-status-only checks, truthiness-only assertions, mocking the unit under test, and duplicating request logic across call sites.
+Use the [delivery review](review-gates.md#before-delivering) to assess whether tests prove the changed behavior. This checker does not run the tests.
 
 ## Manual fallback
 

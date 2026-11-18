@@ -1,37 +1,30 @@
-# Capabilities Matrix (S0 - S22 Lifecycle Mapping)
+# S0–S22 Lifecycle Index
 
-This document provides an explicit mapping between the **S0-S22 engineering lifecycle stages** and the three categories of executable assets: **Tool (Scripts/CLI)**, **Knowledge (Schemas/Guides)**, and **Skill (Workflows)**.
+Consult [Adaptive Workflow](adaptive-workflow.md) first. The stages below are
+available capabilities, not separate approval points or required artifacts.
 
-## Asset Classifications
-
-* **Tool**: Executable Python helper scripts (`scripts/`). Hard gates and enforcement commands.
-* **Knowledge**: Structured documentation, templates, pain-point cards, and JSON schemas (`references/`).
-* **Skill**: Procedural guidance and agent workflow triggers defined in `SKILL.md`.
-
-## Full Lifecycle Asset Matrix
-
-| Lifecycle Stage | Stage Name | Category | Primary Asset | Secondary Reference / Tool |
-|:---:|---|---|:---:|---|
-| **S0** | Startup & Authorization | **Skill** / **Knowledge** | `SKILL.md` (S0 Section) | `references/templates.md` (Permission Plan) |
-| **S1** | Raw Idea & CoT Intake | **Skill** / **Knowledge** | `references/pain-points.md` (agent-side S(C) scoring) | `SKILL.md` (Core Rule 2: Pain-Point Card Matching) |
-| **S2** | Repository Scan | **Tool** | When initialization is needed: `python <skill-root>/scripts/scaffold_docs.py --root <project-root> --auto-detect --dry-run` | `references/methodology.md` (S2) |
-| **S3** | Formal Solution Draft (DRY Architecture) | **Knowledge** | `references/templates.md` (Formal Solution) | `references/methodology.md` (S3 DRY & Unified Client) |
-| **S4** | Independent Solution Review | **Knowledge** | `references/review-gates.md` | `references/templates.md` (Review Rubric) |
-| **S5** | Solution Finalization | **Knowledge** | `references/methodology.md` (S5) | `docs/product.md` |
-| **S6** | Pre-Dev UX Alignment & Image Prototyping | **Knowledge** | `references/ui-ux-prototyping.md` | `docs/ux.md` (applicable layouts and bindings) |
-| **S7** | Docs Review | **Tool** / **Knowledge** | `scripts/check_docs_links.py` / `references/doc-sync.md` | `references/review-gates.md` (Docs Gate) |
-| **S8** | Docs Finalization & Baseline Lock | **Knowledge** | `references/methodology.md` (S8) | `docs/README.md` |
-| **S9** | Phase Plan & Task Breakdown (Foundation First) | **Knowledge** | `references/templates.md` (Phase Plan) | `references/methodology.md` (S9 Foundation First) |
-| **S10** | Context / Task Pack Generation | **Tool** / **Knowledge** | `scripts/check_task_pack.py` / `references/task-pack.md` | `references/templates.md` (Task Pack) |
-| **S11** | Execution Strategy Selection | **Skill** | `SKILL.md` (Goal/Plan/Build Modes) | `references/methodology.md` (S11) |
-| **S12** | Branch & Concurrency Control | **Knowledge** | `references/agent-git-ci.md` | `docs/delivery/locks.yml` |
-| **S13** | Spec-Driven Agent Implementation (DRY) | **Tool** / **Skill** | `scripts/verify_runtime_trace.py` | `references/schemas.md` (ExecutionTraceSchema) |
-| **S14** | Test Quality & DRY Review | **Knowledge** | `references/review-gates.md` (Test & DRY Gate) | `references/methodology.md` (S14) |
-| **S15** | Validation (L1 - L4) | **Knowledge** | `references/review-gates.md` (3-Tier Gate) | `scripts/verify_runtime_trace.py` (Exit Codes) |
-| **S16** | Acceptance & Code-Doc Traceability | **Tool** | `scripts/verify_runtime_trace.py` | `references/review-gates.md` (Acceptance & Traceability) |
-| **S17** | Git Conflict Handling | **Knowledge** | `references/agent-git-ci.md` | `references/methodology.md` (S17) |
-| **S18** | Change Classification & Sync Doc Update | **Knowledge** | `references/doc-sync.md` / `references/methodology.md` (S18) | affected project docs |
-| **S19** | Phase Integration Acceptance | **Knowledge** | `references/review-gates.md` | `docs/delivery/phase-xxx.md` |
-| **S20** | Documentation Writeback & Sync | **Knowledge** | `references/doc-sync.md` / `references/methodology.md` (S20) | `references/pain-points.md` (Ingestion Gate) |
-| **S21** | Merge / PR Preparation | **Knowledge** | `references/agent-git-ci.md` | `references/review-gates.md` (Merge Gate) |
-| **S22** | Phase Archive | **Knowledge** | `references/methodology.md` (S22) | `docs/archive/` |
+| Stage | Purpose | Resource |
+|---|---|---|
+| S0 | Establish authority and scope | [Session start](session-start.md) |
+| S1 | Check intake, feasibility, and material risks | [Domain cards](pain-points.md), if applicable |
+| S2 | Scan the repository or preview explicit initialization | `scripts/scaffold_docs.py`, if needed |
+| S3 | Draft changed design or contracts | [Methodology](methodology.md) |
+| S4 | Review material design decisions | [Review gates](review-gates.md) |
+| S5 | Record agreed design facts | Owning project docs |
+| S6 | Align changed graphical UX | [UI/UX guidance](ui-ux-prototyping.md) |
+| S7 | Review affected docs and links | [Doc sync](doc-sync.md) |
+| S8 | Identify governing docs and revisions | Existing docs |
+| S9 | Coordinate plan points with dependencies | [Templates](templates.md) |
+| S10 | Scope implementation | Existing record or [formal Task Pack](task-pack.md), when required |
+| S11 | Select execution strategy | [Agent and Git coordination](agent-git-ci.md) |
+| S12 | Manage branch and write ownership | [Agent and Git coordination](agent-git-ci.md) |
+| S13 | Implement the scoped change | Changed contracts and task record; [runtime audit](runtime-audit.md) only if active |
+| S14 | Review test quality and reuse | [Review gates](review-gates.md) |
+| S15 | Execute suitable checks | Project tests/CI; [runtime audit](runtime-audit.md) only if active |
+| S16 | Close the plan point against actual evidence | Existing task record |
+| S17 | Resolve conflicts without discarding work | [Agent and Git coordination](agent-git-ci.md) |
+| S18 | Revisit scope and synchronize changed facts | [Doc sync](doc-sync.md) |
+| S19 | Verify integration when needed | Phase plan, with links to existing task evidence |
+| S20 | Write back durable facts | Owning project docs |
+| S21 | Prepare an authorized handoff or release | Existing evidence and project CI |
+| S22 | Archive when needed | Pointers to completed records |

@@ -14,8 +14,8 @@ Size is irrelevant: a one-word fix and a rewrite face the same bar. Reactions an
 The philosophy, in three rules the whole repository is built on:
 
 - **Docs are the single source of truth.** Code never runs ahead of documentation; every architectural, API, or UI change writes back to `docs/` in the same step.
-- **Fail-close.** Any missing, empty, or corrupted governance input must produce a non-zero exit code or an explicit recovery instruction. Silence is never approval.
-- **Evidence over assertion.** Verification means executable gates (Merkle chain, Task Pack checks, link checks) with deterministic exit codes, not prose promises.
+- **Fail-close.** Missing or invalid required inputs or checks block the dependent action. Silence is never approval.
+- **Evidence over assertion.** Use observable checks appropriate to the change and keep each result with its plan point. A required executable gate must run; optional audit or structural gates do not add evidence about unrelated behavior.
 
 ## By bucket
 

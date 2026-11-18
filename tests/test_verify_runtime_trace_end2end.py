@@ -17,13 +17,24 @@ FIXTURES_DIR = os.path.join(REPO_ROOT, "tests", "fixtures")
 
 
 class TestVerifyRuntimeTraceEnd2End(unittest.TestCase):
-    def test_missing_project_inputs_return_structured_exit_3(self):
+    def test_each_required_input_blocks_the_selected_audit_protocol(self):
         with tempfile.TemporaryDirectory() as directory:
-            command = [sys.executable, VERIFY_SCRIPT, "--json"]
-            result = subprocess.run(command, cwd=directory, capture_output=True, text=True)
-            self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
-            self.assertEqual(json.loads(result.stdout)["reason"], "SCHEMA_OR_PARSE_FAILURE")
-            self.assertNotIn("Traceback", result.stderr)
+            inputs = {
+                "--trace": self.valid_trace,
+                "--permission-log": self.valid_audit,
+                "--task-pack": self.valid_task_pack,
+            }
+            # Leave the other two inputs valid so a failure proves the named
+            # input cannot be skipped even in an explicitly selected protocol.
+            for mode, missing in zip(("goal", "plan", "build"), inputs):
+                with self.subTest(mode=mode, missing=missing):
+                    command = [sys.executable, VERIFY_SCRIPT, "--mode", mode, "--json"]
+                    for flag, path in inputs.items():
+                        command.extend([flag, os.path.join(directory, "missing") if flag == missing else path])
+                    result = subprocess.run(command, cwd=directory, capture_output=True, text=True)
+                    self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
+                    self.assertEqual(json.loads(result.stdout)["reason"], "SCHEMA_OR_PARSE_FAILURE")
+                    self.assertNotIn("Traceback", result.stderr)
 
     def test_installed_cli_uses_bundled_schemas_from_project_directory(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -4,7 +4,7 @@
 
 **只安装 `codex-doc-first-development/` 一个目录。** 所有参考文档、检查脚本和 Schema 都在其中，不再需要分别安装入口、文档同步、Task Pack 或 UI/UX skill。
 
-> main 当前版本为 **3.0.0**，只包含一个可安装 skill。检查脚本路径已统一到主 skill 的 `scripts/`；从旧布局升级前请按下方迁移步骤备份安装并更新 CI 路径。
+> 检查脚本都在主 skill 的 `scripts/`；从旧布局升级前请按下方步骤备份安装并更新 CI 路径。
 
 ## 安装一次即可使用
 
@@ -26,17 +26,17 @@ https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc
 
 也可描述新项目、现有功能或文档问题，由智能体按任务选择该 skill。内部模块按需读取，不需要用户再选择或安装子 skill。
 
-## 按任务轻重执行
+## 一个计划点，一处记录
 
 | 档位 | 适用情况 | 最低产物与验证 |
 |---|---|---|
-| Quick | 范围明确、低风险的小修复或文案调整 | 复用已有任务/文档；缺少记录时补目标、文件范围、验收与验证记录 |
-| Standard | 超出 Quick 范围的一般功能、行为变化或跨模块修改 | 受影响的需求/契约、Task Pack 与测试；多任务时再准备阶段计划 |
-| Strict | 权限、安全、迁移、公共契约或重大架构/生产风险 | 完整适用文档、Task Pack、风险评审、运行时审计及测试 |
+| Quick | 范围明确、低风险的小修复或文案调整 | 复用已有任务；没有现成记录时，说明计划并在最终回复交代实际检查结果 |
+| Standard | 超出 Quick 范围的一般功能、行为变化或跨模块修改 | 在已有任务或计划中记录验收及实际证据，只更新受影响的契约 |
+| Strict | 权限、安全、迁移、公共契约或重大架构/生产风险 | 用同一处任务记录保留针对性验证，如权限允许/拒绝测试或迁移恢复演练 |
 
-风险按影响判断，单文件权限修改也可能是 Strict。Quick/Standard/Strict 与 Goal/Plan/Build 是两条独立轴；已选择的执行协议不会因为 Quick 而省略白名单、审计或迭代限制。
+每个能独立验收的计划点，开工前写范围、验收条件和计划检查，交付前补实际结果和证据链接。同一次测试无需再写成验证报告、验收日志和归档副本。
 
-智能体复用已有授权，只询问影响方向的缺失信息或新增权限。S0–S22 是生命周期索引，小任务不必生成完整文档树。
+风险按影响判断，单文件权限修改也可能是 Strict。日常开发默认不生成逐操作日志；项目规定或明确启用本 Skill 的运行时审计时，仍保留其范围校验、白名单/黑名单和迭代限制。智能体复用已有授权。S0–S22 是按需参考的生命周期索引。
 
 ## 一个 skill 内部包含什么
 
@@ -46,7 +46,7 @@ https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc
 | 文档同步与链接检查 | `references/doc-sync.md` | `scripts/check_docs_links.py` |
 | Task Pack 结构检查 | `references/task-pack.md` | `scripts/check_task_pack.py` |
 | 图形界面设计对齐 | `references/ui-ux-prototyping.md` | 使用可用的设计/生图工具，无额外 skill 依赖 |
-| 运行时验证与审计 | `references/review-gates.md`、`references/schemas.md` | `scripts/verify_runtime_trace.py`、`scripts/check_permission_log.py`、`scripts/lock_manager.py` |
+| 按需运行时审计 | `references/runtime-audit.md`、`references/schemas.md` | `scripts/verify_runtime_trace.py`、`scripts/check_permission_log.py`、`scripts/lock_manager.py` |
 
 主入口保持不超过 150 行，详细规则放在本目录的 `references/` 中。模块化体现在内部文件组织，不体现为多个安装单元。
 
@@ -55,8 +55,9 @@ https://github.com/ziyange/codex-doc-first-development-skill/tree/main/codex-doc
 - **文档与实现同步**：需求、架构、API、布局或交互事实变化时，在实现前或同一步更新所属文档；未改变事实的内部重构无需机械改文档。
 - **设计门禁按变化适用**：仅对图形界面变化对齐布局和状态；复用已确认设计。CLI、后端、脚本没有图形界面变化时跳过视觉原型。本地界面记录事件、状态和结果，不虚构 API。
 - **避免重复请求逻辑**：复用公共服务/客户端；字段投影仅在真实需求或性能要求明确时引入。
+- **合并审查**：开工前核对范围、授权与验收方式，交付前一次核对改动和实际结果。复用覆盖同一变更的测试或 CI 证据；项目明确要求的检查仍要通过。
 - **区分结构与授权**：Task Pack Exit 0 仅表示结构检查通过，不代表用户许可、依赖就绪或测试通过。`warnings` 是建议项。
-- **失败关闭**：必需审计输入缺失或损坏返回 Exit 3。Merkle 链检查验证提交给它的记录一致性，不证明所有外部操作均已被记录。
+- **审计兼容**：启用审计时，必需输入缺失或损坏返回 Exit 3。Merkle 链验证提交给它的记录一致性，不证明所有外部操作均已被记录。
 
 ## 运行检查
 
